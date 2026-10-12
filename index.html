@@ -1,0 +1,1517 @@
+<title>Bloodstream Patrol</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;600;800&display=swap">
+<style>
+/* Layout: one 16:9 game stage centered in a deep plasma room; every menu is an overlay card inside the stage. Single dark look by design. */
+:root {
+  --plasma: #2a0e08;      /* page ground */
+  --vessel: #5c1a12;      /* stage edge */
+  --ink: #fff6ee;         /* text */
+  --muted: #f0c9a8;       /* secondary text */
+  --defender: #b49ae8;    /* white-cell lavender, the accent */
+  --good: #9be59b;
+  --bad: #ff8a80;
+  --panel: rgba(38, 12, 8, 0.92);
+  --display: "Secular One", "Arial Hebrew", "Trebuchet MS", sans-serif;
+  --body: "Rubik", "Arial Hebrew", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body {
+  background: radial-gradient(ellipse at 50% 40%, #44160c 0%, var(--plasma) 70%);
+  background-color: var(--plasma);
+  color: var(--ink);
+  font-family: var(--body);
+  padding-inline: 16px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.wrap { width: 100%; max-width: 1100px; display: grid; gap: 10px; }
+.stage {
+  position: relative; width: 100%;
+  max-width: calc((100vh - 90px) * 16 / 9);
+  max-width: calc((100dvh - 90px) * 16 / 9);
+  margin-inline: auto; aspect-ratio: 16 / 9;
+  border-radius: 22px; overflow: hidden;
+  box-shadow: 0 0 0 6px var(--vessel), 0 24px 60px rgba(0,0,0,.5);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+canvas { display: block; width: 100%; height: 100%; }
+.hint { text-align: center; color: var(--muted); font-size: 0.85rem; margin: 0; }
+.hint kbd { font-family: var(--body); font-weight: 800; font-size: 0.75rem; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--muted); color: var(--ink); }
+
+.overlay {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: rgba(24, 6, 4, 0.6); backdrop-filter: blur(3px); padding: 3%;
+}
+.card {
+  background: var(--panel); border: 3px solid var(--defender); border-radius: 22px;
+  padding: clamp(12px, 2.6vw, 28px) clamp(14px, 3.4vw, 36px);
+  display: grid; justify-items: center; gap: clamp(6px, 1.1vw, 12px);
+  text-align: center; width: 100%; max-width: 620px; max-height: 100%;
+  overflow: auto; box-sizing: border-box;
+}
+.card.wide { max-width: 860px; }
+.card h1, .card h2, .card h3 { font-family: var(--display); font-weight: 400; margin: 0; line-height: 1.05; text-wrap: balance; }
+.card h1 { font-size: clamp(1.6rem, 5vw, 3.1rem); text-shadow: 0 4px 0 #6e1c10; }
+.card h1 span { color: var(--defender); }
+.card h2 { font-size: clamp(1.3rem, 3.6vw, 2.2rem); }
+.card h3 { font-size: clamp(1rem, 2.2vw, 1.3rem); }
+.card p { margin: 0; color: var(--muted); font-size: clamp(0.78rem, 1.6vw, 1rem); max-width: 52ch; line-height: 1.45; }
+.eyebrow { font-weight: 800; font-size: clamp(0.65rem, 1.3vw, 0.8rem); letter-spacing: 0.08em; color: var(--defender); }
+.speech { background: var(--ink); color: #3a1a26; font-weight: 600; border-radius: 14px; padding: 8px 14px; font-size: clamp(0.75rem, 1.6vw, 0.95rem); }
+.hero { display: flex; align-items: center; gap: 10px; }
+.sprite { width: clamp(60px, 11vw, 120px); aspect-ratio: 1; background-size: 600% 100%; background-repeat: no-repeat; flex: none; }
+.brain-idle { background-image: url("sprites/brain_hero_idle.png"); animation: play6 0.75s steps(6) infinite; }
+.brain-hurt { background-image: url("sprites/brain_hero_hurt.png"); background-size: 400% 100%; animation: play4 0.35s steps(4) infinite; }
+.wbc { background-image: url("sprites/white_blood_cell_idle.png"); background-size: 800% 100%; animation: play8 1s steps(8) infinite; }
+@keyframes play6 { to { background-position: 120% 0; } }
+@keyframes play4 { to { background-position: 133.333% 0; } }
+@keyframes play8 { to { background-position: 114.2857% 0; } }
+.row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px; font-family: var(--display); font-size: clamp(1rem, 2.4vw, 1.4rem); }
+.stats small { display: block; font-family: var(--body); font-weight: 800; font-size: 0.68rem; color: var(--muted); }
+.btn {
+  font-family: var(--display); font-size: clamp(0.95rem, 2.4vw, 1.4rem); color: #2e2250; background: var(--defender);
+  border: none; border-radius: 999px; padding: 8px 28px; cursor: pointer; box-shadow: 0 5px 0 #5b4b8a; transition: transform .08s, box-shadow .08s;
+}
+.btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--defender); box-shadow: none; }
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #5b4b8a; }
+.btn:focus-visible, .pick:focus-visible, .entry:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.btn:disabled { opacity: .45; cursor: default; }
+
+.cells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; }
+@media (max-width: 640px) { .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pick {
+  display: grid; justify-items: center; gap: 4px; padding: 10px 8px; min-width: 0;
+  background: rgba(255,255,255,.04); color: var(--ink); border: 2px solid rgba(180,154,232,.35);
+  border-radius: 16px; cursor: pointer; font-family: var(--body); text-align: center;
+}
+.pick[aria-pressed="true"] { border-color: var(--defender); background: rgba(180,154,232,.16); }
+.pick b { font-family: var(--display); font-weight: 400; font-size: clamp(0.95rem, 2vw, 1.15rem); }
+.pick small { color: var(--muted); font-size: clamp(0.66rem, 1.3vw, 0.78rem); line-height: 1.35; }
+.pick .ab { color: #ffe082; font-weight: 600; }
+.pick .sprite { width: clamp(50px, 8vw, 84px); }
+.seg { display: flex; border: 2px solid var(--defender); border-radius: 999px; overflow: hidden; }
+.seg button { font-family: var(--body); font-weight: 600; background: transparent; color: var(--ink); border: none; padding: 6px 16px; cursor: pointer; font-size: clamp(0.75rem, 1.6vw, 0.95rem); }
+.seg button[aria-pressed="true"] { background: var(--defender); color: #2e2250; }
+.seg button:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+
+.ups { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: 100%; }
+@media (max-width: 560px) { .ups { grid-template-columns: 1fr; } }
+.quiz-q { font-weight: 600; font-size: clamp(0.9rem, 2vw, 1.15rem); max-width: 48ch; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+@media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+.opts button { font-family: var(--body); font-size: clamp(0.78rem, 1.6vw, 0.95rem); padding: 9px 10px; border-radius: 12px; border: 2px solid rgba(180,154,232,.4); background: rgba(255,255,255,.05); color: var(--ink); cursor: pointer; }
+.opts button.right { border-color: var(--good); background: rgba(155,229,155,.18); }
+.opts button.wrong { border-color: var(--bad); background: rgba(255,138,128,.16); }
+.feedback { font-size: clamp(0.75rem, 1.5vw, 0.9rem); color: var(--ink); max-width: 56ch; line-height: 1.45; }
+
+.ency { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; width: 100%; text-align: start; }
+.entry { background: rgba(255,255,255,.05); border: 1px solid rgba(180,154,232,.35); border-radius: 12px; padding: 8px 10px; color: var(--ink); font-family: var(--body); cursor: pointer; text-align: start; font-size: 0.85rem; }
+.entry.locked { opacity: .45; cursor: default; }
+.entry b { font-family: var(--display); font-weight: 400; display: block; font-size: 1rem; }
+.ency-detail { background: rgba(180,154,232,.12); border-radius: 12px; padding: 10px 14px; text-align: start; width: 100%; box-sizing: border-box; min-height: 3em; }
+.ency-detail p { max-width: none; color: var(--ink); }
+
+.ability {
+  position: absolute; left: 3%; bottom: 5%;
+  width: clamp(66px, 11vw, 108px); aspect-ratio: 1; border-radius: 50%;
+  border: 4px solid #5b4b8a; background: rgba(180, 154, 232, 0.9);
+  color: #2e2250; font-family: var(--display); font-size: clamp(0.62rem, 1.4vw, 0.9rem); line-height: 1.1;
+  cursor: pointer; touch-action: none; padding: 4px;
+}
+.ability.cool { opacity: 0.4; }
+.ability.on { background: #ffe082; border-color: #c49000; }
+.ability:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.corner { position: absolute; left: 2%; top: 3%; display: flex; gap: 8px; }
+.corner button { font-family: var(--display); background: var(--panel); color: var(--ink); border: 2px solid var(--defender); border-radius: 12px; padding: 3px 11px; font-size: clamp(0.66rem, 1.4vw, 0.9rem); cursor: pointer; }
+.corner button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.toast {
+  position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+  background: var(--panel); border: 2px solid #ffe082; color: var(--ink); border-radius: 999px;
+  padding: 6px 16px; font-size: clamp(0.72rem, 1.5vw, 0.92rem); font-weight: 600; pointer-events: none; white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) { .brain-idle, .brain-hurt, .wbc { animation-duration: 3s; } }
+</style>
+
+<div class="wrap" dir="rtl">
+  <div class="stage" id="stage">
+    <canvas id="game" aria-label="משחק סיירת זרם הדם"></canvas>
+    <div class="corner" id="corner" hidden>
+      <button id="pauseBtn">השהיה</button>
+      <button id="soundBtn">צליל: פועל</button>
+    </div>
+    <button class="ability" id="abilityBtn" hidden>יכולת</button>
+    <div class="toast" id="toast" hidden></div>
+
+    <!-- title -->
+    <div class="overlay" id="titleScreen">
+      <div class="card">
+        <div class="hero">
+          <div class="sprite brain-idle" role="img" aria-label="המוח מנופף"></div>
+          <div class="speech">פולשים בגוף! בחרו תא לבן וצאו לסייר בדם, בריאות ובכבד.</div>
+        </div>
+        <h1>סיירת <span>זרם הדם</span></h1>
+        <p>4 שלבים באיברים שונים, 4 סוגי תאים לבנים, בוסים בסוף כל שלב. התאים מצוירים בגודל יחסי אמיתי וביחסי הכמויות האמיתיים בדם.</p>
+        <div class="row">
+          <button class="btn" id="toSelect">התחילו</button>
+          <button class="btn ghost" id="toEncy">אנציקלופדיה</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- cell + difficulty select -->
+    <div class="overlay" id="selectScreen" hidden>
+      <div class="card wide">
+        <h2>בחרו תא לבן</h2>
+        <div class="cells" id="cellPicks"></div>
+        <div class="row" style="align-items:center">
+          <span class="eyebrow">רמת קושי</span>
+          <div class="seg" id="diffSeg">
+            <button data-d="easy">קל</button>
+            <button data-d="normal" aria-pressed="true">רגיל</button>
+            <button data-d="hard">קשה</button>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="selectBack">חזרה</button>
+          <button class="btn" id="selectGo">לשלב הראשון</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- level intro -->
+    <div class="overlay" id="introScreen" hidden>
+      <div class="card">
+        <span class="eyebrow" id="introNum">שלב 1 מתוך 4</span>
+        <h2 id="introName"></h2>
+        <p id="introText"></p>
+        <p id="introGoal" style="color:var(--ink)"></p>
+        <button class="btn" id="introGo">צאו לסיור</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="pauseScreen" hidden>
+      <div class="card">
+        <h2>הפסקה</h2>
+        <div class="row">
+          <button class="btn" id="resumeBtn">המשיכו</button>
+          <button class="btn ghost" id="pauseEncy">אנציקלופדיה</button>
+          <button class="btn ghost" id="pauseMenu">לתפריט</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- level complete -->
+    <div class="overlay" id="doneScreen" hidden>
+      <div class="card">
+        <span class="eyebrow">דיאפדזה הצליחה</span>
+        <h2 id="doneTitle">השלב הושלם!</h2>
+        <p>התא השתחל בין תאי הדופן ויצא לרקמה. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.</p>
+        <div class="stats">
+          <div><small>ניקוד</small><span id="doneScore">0</span></div>
+          <div><small>פתוגנים שחוסלו</small><span id="doneKills">0</span></div>
+        </div>
+        <button class="btn" id="toQuiz">לחידון</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="quizScreen" hidden>
+      <div class="card">
+        <span class="eyebrow" id="quizNum">שאלה 1 מתוך 2</span>
+        <div class="quiz-q" id="quizQ"></div>
+        <div class="opts" id="quizOpts"></div>
+        <div class="feedback" id="quizFb"></div>
+        <button class="btn" id="quizNext" hidden>הבא</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="upScreen" hidden>
+      <div class="card wide">
+        <h2>בחרו שדרוג</h2>
+        <p>השדרוג נשאר איתכם עד סוף המשחק.</p>
+        <div class="ups" id="upPicks"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overScreen" hidden>
+      <div class="card">
+        <div class="hero">
+          <div class="sprite brain-hurt" role="img" aria-label="המוח מסוחרר"></div>
+          <div class="speech" id="overLine">אוי! הזיהום התפשט.</div>
+        </div>
+        <h2>הסיור נכשל</h2>
+        <div class="stats">
+          <div><small>ניקוד</small><span id="finalScore">0</span></div>
+          <div><small>שלב</small><span id="finalLevel">1</span></div>
+          <div><small>שיא</small><span id="bestScore">0</span></div>
+        </div>
+        <div class="row">
+          <button class="btn" id="retryBtn">נסו שוב את השלב</button>
+          <button class="btn ghost" id="overMenu">לתפריט</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="winScreen" hidden>
+      <div class="card">
+        <div class="hero">
+          <div class="sprite brain-idle" role="img" aria-label="המוח שמח"></div>
+          <div class="speech">ניצחנו! הגוף נקי מפולשים. תודה, סיירת!</div>
+        </div>
+        <h2>כל השלבים הושלמו</h2>
+        <div class="stats">
+          <div><small>ניקוד סופי</small><span id="winScore">0</span></div>
+          <div><small>שיא</small><span id="winBest">0</span></div>
+        </div>
+        <div class="row">
+          <button class="btn" id="winMenu">לתפריט</button>
+          <button class="btn ghost" id="winEncy">אנציקלופדיה</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="encyScreen" hidden>
+      <div class="card wide">
+        <h2>אנציקלופדיה</h2>
+        <p id="encyCount"></p>
+        <div class="ency-detail" id="encyDetail"><p>בחרו ערך כדי לקרוא עליו. ערכים חדשים נפתחים כשפוגשים אותם במשחק.</p></div>
+        <div class="ency" id="encyGrid"></div>
+        <button class="btn" id="encyClose">סגירה</button>
+      </div>
+    </div>
+  </div>
+  <p class="hint">תנועה: WASD / חצים, או לחיצה ממושכת. יכולת: <kbd>רווח</kbd>. <kbd>P</kbd> השהיה, <kbd>M</kbd> השתקה.</p>
+</div>
+
+<script>
+(() => {
+const W = 960, H = 540, WALL = 62;
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.random() * (b - a);
+const FONT_D = '"Secular One", "Arial Hebrew", sans-serif';
+const FONT_B = 'Rubik, "Arial Hebrew", sans-serif';
+
+function fit() {
+  const r = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.round(r.width * dpr));
+  canvas.height = Math.max(1, Math.round(r.height * dpr));
+}
+if (window.ResizeObserver) new ResizeObserver(fit).observe(canvas);
+
+// ================= STORAGE =================
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
+};
+let best = store.get('bp2-best', 0);
+const unlocked = new Set(store.get('bp2-ency', []));
+
+// ================= CONTENT =================
+const CELLS = {
+  neut:  { name: 'נויטרופיל', spd: 1.2, size: 1, filter: '', tint: null, ability: 'רשת NET', cd: 7,
+           desc: 'הנפוץ ביותר: 50–70% מהתאים הלבנים. מהיר ומצטיין בבליעת חיידקים.', perk: 'נקודות כפולות על חיידקים' },
+  macro: { name: "מקרופאג'", spd: 0.8, size: 1.4, filter: 'hue-rotate(136deg) saturate(2.2)', tint: '#f0a040', ability: 'בליעה ענקית', cd: 7,
+           desc: 'הבולען הגדול. איטי וענק, בולע תאים אדומים נגועים במגע אחד.', perk: 'נזק כפול לבוסים' },
+  bcell: { name: 'תא B', spd: 1, size: 0.85, filter: 'hue-rotate(-47deg) saturate(2.2)', tint: '#4f8de8', ability: 'מטח נוגדנים', cd: 5,
+           desc: 'מייצר נוגדנים שננעלים על פתוגנים, מאטים אותם ומונעים מהם להדביק.', perk: 'יורה נוגדן אוטומטית' },
+  nk:    { name: 'תא NK', spd: 1.1, size: 0.9, filter: 'hue-rotate(-95deg) saturate(2.2)', tint: '#2fbf9f', ability: 'פרץ פרפורין', cd: 6,
+           desc: 'הרוצח הטבעי. מזהה תאים נגועים ומשמיד אותם.', perk: 'מנקה אזורים ותאים נגועים במגע אחד' },
+};
+const DIFF = {
+  easy:   { spd: 0.8, spawn: 1.35, dmg: 0.7, boss: 0.75 },
+  normal: { spd: 1,   spawn: 1,    dmg: 1,   boss: 1 },
+  hard:   { spd: 1.2, spawn: 0.75, dmg: 1.3, boss: 1.3 },
+};
+const LEVELS = [
+  { id: 'vessel', name: 'כלי דם בזרוע', wall: 'vessel', enemies: [['virus', 1]], boss: 'cluster', bossName: 'צבר וירוסים', allies: true,
+    intro: 'וירוסים צפים חופשי בפלזמה (וירמיה). הם לא יכולים להתרבות בתאים האדומים, כי אין להם גרעין. במקום זה הם נצמדים לתאים האדומים כדי לתפוס טרמפ, או ננעצים בדופן ומדביקים את תאי האנדותל.',
+    goal: 'בלעו וירוסים, קלפו טרמפיסטים מהתאים האדומים, ונקו אזורים נגועים בדופן לפני שהם נעלמים בזרם.',
+    entries: ['plasma', 'rbc', 'platelet', 'virus', 'hitchhiker', 'endothelium'],
+    facts: ['תאים אדומים: 4–6 מיליון בכל מיקרוליטר דם', 'תאים לבנים: רק 4,000–11,000 במיקרוליטר', 'טסיות: 150,000–450,000 במיקרוליטר', 'פלזמה היא כ־55% מנפח הדם, ו־90–92% ממנה מים', 'אלבומין (3.5–5.0 גרם לדציליטר) שומר נוזלים בתוך כלי הדם', 'גלוקוז בצום: בדרך כלל 70–99 מ״ג לדציליטר'] },
+  { id: 'lung', name: 'נימי הריאות', wall: 'lung', enemies: [['bacteria', 0.65], ['virus', 0.35]], boss: 'colony', bossName: 'מושבת חיידקים', allies: false,
+    intro: 'הנימים האלה עוטפים את נאדיות הריאה. חיידקים מדלקת ריאות חדרו לדם. חיידק הוא תא חי שמתרבה בחלוקה לשניים, ולכן אם לא תבלעו אותם מהר הם יכפילו את עצמם.',
+    goal: 'בלעו חיידקים לפני שהם מתחלקים, ואל תשכחו את וירוסי השפעת שנצמדים לתאים אדומים.',
+    entries: ['alveoli', 'bacteria'],
+    facts: ['בריאות יש כ־300–500 מיליון נאדיות', 'חיידק יכול להתחלק כל 20 דקות בתנאים טובים', 'נויטרופילים חיים בדם רק שעות עד ימים ספורים', 'חיידקים גדולים פי 10–30 מוירוסים'] },
+  { id: 'liver', name: 'סינוסואידים בכבד', wall: 'liver', enemies: [['sporozoite', 1]], boss: 'schizont', bossName: 'סכיזונט כבדי', allies: false,
+    intro: 'יתוש מלריה עקץ. ספורוזואיטים, הצורה הארוכה של טפיל המלריה, שוחים לכבד וחודרים לתאי הכבד. בתוך תא כבד הטפיל מתחלק לאלפי מרוזואיטים, שבסוף מתפרצים לדם.',
+    goal: 'עצרו ספורוזואיטים לפני שהם חודרים לדופן. אם תא כבד נדבק, נקו אותו מהר לפני שהוא משחרר מרוזואיטים.',
+    entries: ['liver', 'sporozoite', 'merozoite'],
+    facts: ['הכבד מקבל כ־1.5 ליטר דם בדקה', 'ספורוזואיט מגיע לכבד תוך פחות משעה מהעקיצה', 'שלב הכבד של המלריה נמשך כשבוע, בלי תסמינים', 'ספורוזואיט ארוך כ־10 מיקרון'] },
+  { id: 'malaria', name: 'מלריה בזרם הדם', wall: 'vessel', enemies: [['merozoite', 1]], boss: 'rosette', bossName: 'רוזטה', allies: true,
+    intro: 'זה המקרה שבו פולש באמת חודר לתאים אדומים: מרוזואיטים של מלריה. בתוך התא הטפיל גדל, מתחלק, ואז מפוצץ את התא ומשחרר עוד מרוזואיטים. מלריה נגרמת על ידי טפיל, לא וירוס.',
+    goal: 'בלעו מרוזואיטים, והשמידו תאים אדומים נגועים (עם הנקודות הסגולות) לפני שהם מתפוצצים.',
+    entries: ['infectedrbc'],
+    facts: ['מחזור המלריה בתאים האדומים נמשך כ־48 שעות', 'הטחול מסנן תאים אדומים נגועים', 'מרוזואיט קטן מאוד: כ־1.5 מיקרון', 'מלריה נגרמת על ידי הטפיל פלסמודיום'] },
+];
+const ENCY = {
+  plasma: ['פלזמה', 'החלק הנוזלי של הדם, כ־55% מנפחו. 90–92% ממנה מים, ובה מומסים אלבומין (3.5–5.0 גרם לדציליטר), גלוקוז (70–99 מ״ג לדציליטר בצום), מלחים והורמונים. היא צהבהבה: הדם נראה אדום בגלל התאים האדומים.'],
+  rbc: ['תא דם אדום', '4–6 מיליון במיקרוליטר. קוטר כ־7.5 מיקרון, דיסקית שקועה משני הצדדים. אין לו גרעין וריבוזומים, ולכן וירוסים כמעט לא יכולים להתרבות בתוכו. הוא נושא חמצן בעזרת המוגלובין.'],
+  platelet: ['טסית', '150,000–450,000 במיקרוליטר, בגודל 2–3 מיקרון. שברי תאים שנצמדים לאזור פגוע ויוצרים קריש. במשחק: אספו אותן כדי לתקן את הדם.'],
+  virus: ['וירוס', 'קטן פי 75 בערך מתא אדום (במשחק הוא מוגדל). אין לו מנגנון ייצור משלו, ולכן הוא חייב לחדור לתא חי עם גרעין כדי להשתכפל. בדם הוא צף חופשי, מצב שנקרא וירמיה.'],
+  hitchhiker: ['וירוס טרמפיסט', 'וירוסים כמו שפעת נצמדים לפני השטח של תאים אדומים בלי לחדור אליהם, וכך נישאים בזרם. אפשר לקלף אותם בלי לפגוע בתא.'],
+  endothelium: ['תאי אנדותל', 'השכבה הפנימית של דופן כלי הדם. וירוסים כמו אבולה ו־SARS-CoV-2 יכולים להדביק אותם. תא נגוע משחרר וירוסים חדשים ומשדר אותות מצוקה.'],
+  alveoli: ['נימי הריאות', 'נימים דקים עוטפים את נאדיות הריאה, שם חמצן עובר לדם. בדלקת ריאות חמורה חיידקים יכולים לחדור משם לזרם הדם.'],
+  bacteria: ['חיידק', 'תא חי שלם בגודל 1–3 מיקרון. מתרבה בחלוקה לשניים, לפעמים כל 20 דקות, ולכן מושבה גדלה מהר מאוד. נויטרופילים מתמחים בבליעת חיידקים.'],
+  liver: ['הכבד', 'בכבד הדם זורם בנימים רחבים (סינוסואידים) בין שורות של תאי כבד. שם נעצרים טפילי המלריה בשלב הראשון שלהם.'],
+  sporozoite: ['ספורוזואיט', 'הצורה של טפיל המלריה שנכנסת לדם מעקיצת יתוש. דק וארוך (כ־10 מיקרון), ומגיע לכבד תוך פחות משעה.'],
+  merozoite: ['מרוזואיט', 'צורה קטנה (כ־1.5 מיקרון) של טפיל המלריה. משתחרר מתאי כבד ומתאים אדומים שהתפוצצו, וחודר לתאים אדומים חדשים.'],
+  infectedrbc: ['תא אדום נגוע במלריה', 'בתוך התא הטפיל גדל (שלב ה"טבעת"), מתחלק, ואחרי כ־48 שעות מפוצץ את התא. הטחול והמקרופאגים מסלקים תאים נגועים מהדם.'],
+  neut: ['נויטרופיל', '50–70% מהתאים הלבנים, 12–15 מיקרון. הראשון להגיע לזיהום. יכול לשחרר "רשת" (NET) של DNA וחלבונים שלוכדת חיידקים.'],
+  macro: ["מקרופאג'", 'בדם הוא נקרא מונוציט, וכשהוא יוצא לרקמה הוא הופך למקרופאג׳ (20–80 מיקרון). בולע פתוגנים, תאים מתים ותאים נגועים.'],
+  bcell: ['תא B ונוגדנים', 'לימפוציט שמייצר נוגדנים. נוגדן הוא חלבון בצורת Y שנצמד לפתוגן, מנטרל אותו ומסמן אותו לבליעה (אופסוניזציה).'],
+  nk: ['תא NK', 'לימפוציט "רוצח טבעי". מזהה תאים נגועים ומשמיד אותם בעזרת פרפורין, חלבון שקודח חורים בקרום התא.'],
+  fever: ['חום', 'בזמן זיהום הגוף משחרר אותות שמעלים את הטמפרטורה. חום של 38–40°C מאט פתוגנים רבים ומזרז את תאי החיסון. במשחק: מעל 37.5°C אתם מהירים יותר והפולשים מתרבים לאט יותר.'],
+  chemotaxis: ['כימוטקסיס', 'תאים נגועים משחררים ציטוקינים וכימוקינים. תאי חיסון חשים את הריכוז ושוחים לכיוון המקור. במשחק: החץ הצהוב והנקודות הצהובות.'],
+  diapedesis: ['דיאפדזה', 'תא לבן נצמד לדופן, מתגלגל לאורכה, ומשתחל בין תאי האנדותל אל הרקמה שבה הזיהום.'],
+  cluster: ['צבר וירוסים', 'במציאות תא נגוע אחד יכול לשחרר אלפי עותקים של וירוס בבת אחת. במשחק הם מופיעים כגוש ענק.'],
+  colony: ['מושבת חיידקים', 'חיידקים יכולים להתקבץ ולהפריש שכבה דביקה (ביופילם) שמגינה עליהם מתאי חיסון ומאנטיביוטיקה.'],
+  schizont: ['סכיזונט כבדי', 'בתוך תא כבד אחד טפיל המלריה מתחלק לעשרות אלפי מרוזואיטים, ואז משחרר את כולם לדם בבת אחת.'],
+  rosette: ['רוזטה', 'תא אדום נגוע במלריה שתאים אדומים בריאים נדבקים אליו. הגוש חוסם נימים קטנים, וזו אחת הסיבות למלריה קשה.'],
+};
+const QUIZ = [
+  ['למה וירוס לא יכול להתרבות בתא דם אדום בוגר?', ['אין לו גרעין וריבוזומים', 'הוא קטן מדי', 'הוא חם מדי', 'יש בו יותר מדי ברזל'], 'כדי להשתכפל וירוס צריך את מנגנון הייצור של התא, ותא אדום בוגר איבד אותו.'],
+  ['כמה תאי דם אדומים יש במיקרוליטר דם?', ['4–6 מיליון', '4,000–11,000', '150,000–450,000', 'כ־100'], '4,000–11,000 הם התאים הלבנים, ו־150,000–450,000 הן הטסיות.'],
+  ['מה התפקיד העיקרי של הטסיות?', ['קרישה ותיקון כלי דם', 'נשיאת חמצן', 'ייצור נוגדנים', 'פירוק שומנים'], 'טסיות נצמדות לאזור פגוע ויוצרות קריש.'],
+  ['מה נוגדן עושה לוירוס?', ['נצמד אליו ומנטרל אותו', 'מחמם אותו', 'הופך אותו לתא אדום', 'מאיץ אותו'], 'נוגדן חוסם את החלק שהוירוס משתמש בו כדי להיכנס לתא, ומסמן אותו לבליעה.'],
+  ['איזה תא לבן הוא הנפוץ ביותר בדם?', ['נויטרופיל', "מקרופאג'", 'תא NK', 'תא B'], 'נויטרופילים הם 50–70% מהתאים הלבנים.'],
+  ['מה זה כימוטקסיס?', ['תנועה של תאים בעקבות אותות כימיים', 'סוג של חום', 'חלוקה של חיידקים', 'קרישת דם'], 'תאי חיסון שוחים לכיוון ריכוז גבוה של ציטוקינים.'],
+  ['מה זה דיאפדזה?', ['יציאה של תא לבן דרך דופן כלי הדם', 'התחלקות של וירוס', 'פירוק המוגלובין', 'נשימה של התא'], 'התא משתחל בין תאי האנדותל אל הרקמה.'],
+  ['איך חיידקים מתרבים?', ['מתחלקים לשניים', 'בתוך תאים אדומים', 'בעזרת טסיות', 'דרך נוגדנים'], 'חלוקה בינארית, לפעמים כל 20 דקות.'],
+  ['איזה פולש באמת חודר לתאי דם אדומים?', ['טפיל המלריה (פלסמודיום)', 'וירוס השפעת', 'HIV', 'חיידק סלמונלה'], 'שפעת רק נצמדת לפני השטח, ו־HIV תוקף תאי T.'],
+  ['לאן מגיעים טפילי המלריה ראשונים אחרי עקיצה?', ['לכבד', 'ללב', 'לריאות', 'למח העצם'], 'הספורוזואיטים חודרים לתאי כבד ומתחלקים שם כשבוע.'],
+  ['למה הגוף מעלה חום בזמן זיהום?', ['חום מאט פתוגנים ומזרז תאי חיסון', 'כדי לישון יותר', 'כדי לייצר תאים אדומים', 'אין לזה סיבה'], 'הטמפרטורה הגבוהה פוגעת בפתוגנים רבים ומאיצה תגובה חיסונית.'],
+  ['מה תא NK עושה?', ['משמיד תאים נגועים', 'מייצר המוגלובין', 'נושא חמצן', 'סוגר פצעים'], 'הוא קודח חורים בתא הנגוע בעזרת פרפורין.'],
+  ['כמה מנפח הדם הוא פלזמה?', ['כ־55%', 'כ־10%', 'כ־90%', 'כ־5%'], 'שאר הנפח הוא בעיקר תאים אדומים.'],
+];
+const UPGRADES = [
+  { id: 'spd', name: 'פסאודופודים מהירים', desc: 'מהירות +12%' },
+  { id: 'size', name: 'ממברנה מורחבת', desc: 'גודל ושטח בליעה +10%' },
+  { id: 'cd', name: 'מיטוכונדריה נוספות', desc: 'היכולת נטענת מהר יותר ב־20%' },
+  { id: 'regen', name: 'ייצור טסיות מוגבר', desc: 'הדם מתאושש מהר יותר ב־50%' },
+  { id: 'magnet', name: 'קולטני כימוקינים', desc: 'טסיות נמשכות אליכם', once: true },
+  { id: 'maxb', name: 'אריתרופויאטין (EPO)', desc: 'בריאות דם מקסימלית +20' },
+];
+
+// ================= AUDIO =================
+let AC = null, master = null, musicBus = null, sfxBus = null, muted = store.get('bp2-muted', false);
+function initAudio() {
+  if (AC) { AC.resume && AC.resume(); return; }
+  const Ctor = window.AudioContext || window.webkitAudioContext;
+  if (!Ctor) return;
+  AC = new Ctor();
+  master = AC.createGain(); master.gain.value = muted ? 0 : 0.8; master.connect(AC.destination);
+  musicBus = AC.createGain(); musicBus.gain.value = 0.3; musicBus.connect(master);
+  sfxBus = AC.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
+}
+function setMuted(m) {
+  muted = m;
+  if (master) master.gain.setTargetAtTime(m ? 0 : 0.8, AC.currentTime, 0.02);
+  $('soundBtn').textContent = m ? 'צליל: כבוי' : 'צליל: פועל';
+  store.set('bp2-muted', m);
+}
+function tone(freq, dur, o = {}) {
+  if (!AC) return;
+  const { type = 'sine', vol = 0.3, to = null, at = 0, bus = sfxBus, attack = 0.005 } = o;
+  const t = AC.currentTime + at;
+  const os = AC.createOscillator(), gn = AC.createGain();
+  os.type = type; os.frequency.setValueAtTime(freq, t);
+  if (to) os.frequency.exponentialRampToValueAtTime(to, t + dur);
+  gn.gain.setValueAtTime(0.0001, t);
+  gn.gain.exponentialRampToValueAtTime(vol, t + attack);
+  gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  os.connect(gn); gn.connect(bus); os.start(t); os.stop(t + dur + 0.02);
+}
+let noiseBuf = null;
+function noise(dur, o = {}) {
+  if (!AC) return;
+  const { vol = 0.2, freq = 2000, at = 0, bus = sfxBus, q = 1 } = o;
+  if (!noiseBuf) {
+    noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const t = AC.currentTime + at;
+  const s = AC.createBufferSource(), f = AC.createBiquadFilter(), gn = AC.createGain();
+  s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(gn); gn.connect(bus); s.start(t); s.stop(t + dur + 0.02);
+}
+let lastChomp = 0;
+const sfx = {
+  chomp(combo) {
+    if (!AC || AC.currentTime - lastChomp < 0.04) return; lastChomp = AC.currentTime;
+    const up = Math.pow(2, Math.min(combo - 1, 8) / 12);
+    tone(520 * up, 0.12, { type: 'square', vol: 0.16, to: 140 * up });
+    tone(880 * up, 0.08, { vol: 0.14, to: 1400 * up, at: 0.05 });
+    noise(0.08, { vol: 0.13, freq: 1800 });
+  },
+  ability() { tone(180, 0.45, { type: 'sawtooth', vol: 0.13, to: 900 }); tone(360, 0.45, { type: 'triangle', vol: 0.12, to: 1800, at: 0.03 }); noise(0.35, { vol: 0.1, freq: 3500, q: 0.6 }); },
+  net() { noise(0.5, { vol: 0.25, freq: 900, q: 0.5 }); tone(300, 0.5, { type: 'sawtooth', vol: 0.1, to: 80 }); },
+  shot() { tone(1200, 0.06, { type: 'triangle', vol: 0.06, to: 1700 }); },
+  ready() { tone(1046, 0.12, { type: 'triangle', vol: 0.1 }); tone(1568, 0.16, { type: 'triangle', vol: 0.1, at: 0.08 }); },
+  infect() { tone(220, 0.35, { type: 'sawtooth', vol: 0.11, to: 90 }); tone(233, 0.35, { type: 'square', vol: 0.05, to: 95 }); },
+  burst() { noise(0.25, { vol: 0.2, freq: 500, q: 2 }); tone(160, 0.25, { type: 'square', vol: 0.1, to: 60 }); },
+  escape() { tone(500, 0.3, { type: 'triangle', vol: 0.12, to: 150 }); },
+  clear() { [660, 880, 1320].forEach((f, i) => tone(f, 0.15, { type: 'triangle', vol: 0.1, at: i * 0.05 })); },
+  platelet() { tone(990, 0.08, { vol: 0.12 }); tone(1320, 0.1, { vol: 0.1, at: 0.05 }); },
+  divide() { tone(300, 0.1, { type: 'square', vol: 0.05, to: 420 }); },
+  wave() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.15, at: i * 0.09 })); },
+  boss() { [110, 104, 98].forEach((f, i) => tone(f, 0.5, { type: 'sawtooth', vol: 0.18, at: i * 0.3 })); },
+  bossHit() { tone(200, 0.15, { type: 'square', vol: 0.14, to: 70 }); noise(0.12, { vol: 0.16, freq: 700 }); },
+  bossDown() { noise(0.9, { vol: 0.3, freq: 400, q: 0.4 }); [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.35, { type: 'square', vol: 0.09, at: 0.3 + i * 0.1 })); },
+  exit() { tone(300, 0.6, { type: 'sine', vol: 0.2, to: 1200 }); },
+  over() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.4, { type: 'triangle', vol: 0.18, at: i * 0.18 })); },
+  right() { tone(784, 0.12, { type: 'triangle', vol: 0.14 }); tone(1046, 0.2, { type: 'triangle', vol: 0.14, at: 0.1 }); },
+  wrong() { tone(220, 0.25, { type: 'square', vol: 0.08, to: 160 }); },
+  click() { tone(660, 0.05, { type: 'triangle', vol: 0.08 }); },
+};
+const BPM = 118, STEP = 60 / BPM / 4;
+const midi = n => 440 * Math.pow(2, (n - 69) / 12);
+const CHORDS = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]];
+const BASS = [45, 41, 36, 43];
+const LEAD = [
+  [76, null, 72, null, 69, null, 72, 76, null, 77, 76, null, 72, null, 69, null],
+  [72, null, 69, null, 65, null, 69, 72, null, 74, 72, null, 69, null, 65, null],
+  [67, null, 72, null, 76, null, 72, 79, null, 76, 74, null, 72, null, 67, null],
+  [71, null, 74, null, 79, null, 74, 71, null, 74, 79, null, 83, null, 79, null],
+];
+let musicOn = false, nextT = 0, step = 0, musicTimer = null;
+function scheduleMusic() {
+  if (!AC || !musicOn) return;
+  while (nextT < AC.currentTime + 0.15) {
+    const bar = Math.floor(step / 16) % 4, s = step % 16, at = Math.max(0, nextT - AC.currentTime);
+    const intense = g && (g.boss || g.wave >= 3);
+    if (s % 4 === 0) tone(120, 0.18, { vol: 0.5, to: 40, at, bus: musicBus });
+    if (s === 4 || s === 12) noise(0.12, { vol: 0.24, freq: 1500, at, bus: musicBus });
+    if (s % 2 === 1 || intense) noise(0.03, { vol: s % 2 ? 0.08 : 0.04, freq: 8000, at, bus: musicBus });
+    if (s % 2 === 0) tone(midi(BASS[bar] + (s % 8 === 6 ? 12 : 0) - (g && g.boss ? 1 : 0)), STEP * 1.8, { type: 'triangle', vol: 0.32, at, bus: musicBus });
+    if (s === 0 || s === 10) CHORDS[bar].forEach(n => tone(midi(n + 12), STEP * 3, { vol: g && g.boss ? 0.08 : 0.05, at, bus: musicBus, attack: 0.02 }));
+    const n = LEAD[bar][s];
+    if (n) tone(midi(n), STEP * 1.6, { type: 'square', vol: 0.05, at, bus: musicBus });
+    nextT += STEP; step++;
+  }
+}
+function startMusic() { if (!AC || musicOn) return; musicOn = true; nextT = AC.currentTime + 0.05; step = 0; musicTimer = setInterval(scheduleMusic, 40); }
+function stopMusic() { musicOn = false; clearInterval(musicTimer); }
+
+// ================= SPRITES =================
+const SHEETS = {
+  wbcIdle: ['white_blood_cell_idle', 8], wbcAttack: ['white_blood_cell_attack', 6],
+  virus: ['virus_idle', 8], pop: ['virus_pop', 5], rbc: ['red_blood_cell_float', 8],
+};
+const img = {};
+const loads = Object.entries(SHEETS).map(([k, [file, frames]]) => new Promise(res => {
+  const i = new Image();
+  i.onload = () => { img[k] = { src: i, frames, w: i.naturalWidth, h: i.naturalHeight }; res(); };
+  i.onerror = () => res();
+  i.src = `sprites/${file}.png`;
+}));
+const tinted = {}; // cell type -> { idle, attack }
+function tintSheet(s, filter, tint) {
+  const c = document.createElement('canvas'); c.width = s.w; c.height = s.h;
+  const x = c.getContext('2d');
+  if (!filter) { x.drawImage(s.src, 0, 0); }
+  else if ('filter' in x) { x.filter = filter; x.drawImage(s.src, 0, 0); x.filter = 'none'; }
+  else { x.drawImage(s.src, 0, 0); x.globalCompositeOperation = 'source-atop'; x.globalAlpha = 0.4; x.fillStyle = tint; x.fillRect(0, 0, c.width, c.height); }
+  return { src: c, frames: s.frames, w: s.w, h: s.h };
+}
+function sprite(s, frame, x, y, size, flip = false, alpha = 1, rot = 0, sy = 1) {
+  if (!s) return;
+  const fw = s.w / s.frames;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  if (rot) ctx.rotate(rot);
+  if (sy !== 1) ctx.scale(1, sy);
+  if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(s.src, (((frame % s.frames) + s.frames) % s.frames) * fw, 0, fw, s.h, -size / 2, -size / 2, size, size);
+  ctx.restore();
+}
+function mk(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return c; }
+// bacterium: rod (bacillus) with a flagellum
+const BACT = mk(80, 36, (x) => {
+  x.strokeStyle = '#2f6b5e'; x.lineWidth = 2; x.beginPath(); x.moveTo(58, 18);
+  for (let i = 0; i < 20; i++) x.lineTo(58 + i, 18 + Math.sin(i * 0.7) * 4); x.stroke();
+  const gr = x.createLinearGradient(0, 8, 0, 28); gr.addColorStop(0, '#9fe0cf'); gr.addColorStop(1, '#4fa892');
+  x.fillStyle = gr; x.strokeStyle = '#245b4f'; x.lineWidth = 3;
+  x.beginPath(); x.moveTo(16, 8); x.lineTo(50, 8); x.arc(50, 18, 10, -Math.PI / 2, Math.PI / 2); x.lineTo(16, 28); x.arc(16, 18, 10, Math.PI / 2, Math.PI * 1.5); x.closePath(); x.fill(); x.stroke();
+  x.fillStyle = 'rgba(36,91,79,.5)'; [[24, 16], [33, 20], [42, 15]].forEach(([a, b]) => { x.beginPath(); x.arc(a, b, 2.5, 0, 7); x.fill(); });
+  x.fillStyle = 'rgba(255,255,255,.5)'; x.fillRect(18, 11, 26, 2.5);
+});
+// sporozoite: slender crescent
+const SPORO = mk(100, 34, (x) => {
+  const gr = x.createLinearGradient(0, 0, 100, 0); gr.addColorStop(0, '#e9b6f2'); gr.addColorStop(1, '#a45dc0');
+  x.fillStyle = gr; x.strokeStyle = '#5d2b73'; x.lineWidth = 2.5;
+  x.beginPath(); x.moveTo(6, 22); x.quadraticCurveTo(50, -6, 94, 20); x.quadraticCurveTo(50, 8, 6, 22); x.closePath(); x.fill(); x.stroke();
+  x.fillStyle = '#5d2b73'; x.beginPath(); x.ellipse(52, 11, 5, 3, -0.05, 0, 7); x.fill();
+});
+// merozoite: small teardrop with a dark nucleus
+const MERO = mk(32, 32, (x) => {
+  const gr = x.createRadialGradient(13, 13, 2, 16, 16, 14); gr.addColorStop(0, '#f6c3e6'); gr.addColorStop(1, '#c0569e');
+  x.fillStyle = gr; x.strokeStyle = '#6d1f57'; x.lineWidth = 2.5;
+  x.beginPath(); x.moveTo(16, 3); x.quadraticCurveTo(29, 18, 16, 29); x.quadraticCurveTo(3, 18, 16, 3); x.fill(); x.stroke();
+  x.fillStyle = '#6d1f57'; x.beginPath(); x.arc(16, 19, 4, 0, 7); x.fill();
+});
+const PLT = [0, 1, 2, 3].map(k => mk(48, 48, (x) => {
+  x.translate(24, 24); x.beginPath();
+  for (let a = 0; a <= 12; a++) { const ang = a / 12 * Math.PI * 2, r = 13 + Math.sin(ang * (3 + k) + k) * 3 + Math.cos(ang * 2) * 1.5; a ? x.lineTo(Math.cos(ang) * r, Math.sin(ang) * r * 0.75) : x.moveTo(Math.cos(ang) * r, Math.sin(ang) * r * 0.75); }
+  x.closePath();
+  const gr = x.createRadialGradient(-3, -3, 2, 0, 0, 16); gr.addColorStop(0, '#f6e4f2'); gr.addColorStop(1, '#c79ac0');
+  x.fillStyle = gr; x.fill(); x.strokeStyle = '#8d5d88'; x.lineWidth = 2; x.stroke();
+  x.fillStyle = '#9b5f99';
+  for (let i = 0; i < 6; i++) { x.beginPath(); x.arc(Math.cos(i * 2.1 + k) * 6, Math.sin(i * 1.7 + k) * 4, 1.6, 0, 7); x.fill(); }
+}));
+
+// ================= INPUT =================
+const keys = new Set();
+let pointer = null;
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k) && state === 'play') e.preventDefault();
+  if (k === ' ') { if (state === 'play') useAbility(); return; }
+  if (k === 'p' || k === 'פ') { togglePause(); return; }
+  if (k === 'm' || k === 'צ') { setMuted(!muted); return; }
+  keys.add(k);
+});
+addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
+addEventListener('blur', () => keys.clear());
+function toGame(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
+canvas.addEventListener('pointerdown', e => { pointer = toGame(e); try { canvas.setPointerCapture(e.pointerId); } catch (_) {} });
+canvas.addEventListener('pointermove', e => { if (pointer) pointer = toGame(e); });
+const release = () => { pointer = null; };
+canvas.addEventListener('pointerup', release);
+canvas.addEventListener('pointercancel', release);
+$('abilityBtn').addEventListener('pointerdown', e => { e.preventDefault(); useAbility(); });
+
+// ================= RUN + LEVEL STATE =================
+let state = 'title', g = null;
+let run = { type: 'neut', diff: 'normal', level: 0, score: 0, kills: 0, up: {}, levelStart: { score: 0, kills: 0 } };
+const up = k => run.up[k] || 0;
+const D = () => DIFF[run.diff];
+const LV = () => LEVELS[run.level];
+const C = () => CELLS[run.type];
+
+function unlock(key, quiet) {
+  if (!ENCY[key] || unlocked.has(key)) return;
+  unlocked.add(key); store.set('bp2-ency', [...unlocked]);
+  if (!quiet) toast(`נפתח באנציקלופדיה: ${ENCY[key][0]}`);
+}
+let toastT = null, toastQ = [];
+function toast(msg) {
+  toastQ.push(msg);
+  if (toastT) return;
+  const next = () => {
+    const m = toastQ.shift();
+    if (!m) { $('toast').hidden = true; toastT = null; return; }
+    $('toast').textContent = m; $('toast').hidden = false;
+    toastT = setTimeout(next, 2300);
+  };
+  next();
+}
+
+function newLevel() {
+  const lv = LV();
+  g = {
+    t: 0, scroll: 0, wave: 1, waveT: 0, phase: 'waves', banner: 2.6, bannerText: `גל 1`, bannerSub: lv.goal.split('.')[0],
+    shake: 0, score: run.score, kills: run.kills, combo: 0, comboT: 0,
+    maxBlood: 100 + 20 * up('maxb'), blood: 100 + 20 * up('maxb'), bloodCalm: 0,
+    spawnT: 1.5, rbcT: 0, rbcCount: 0, temp: 37, feverSeen: false, arrowSeen: false,
+    p: { x: 230, y: H / 2, vx: 0, vy: 0, face: 1, chomp: -1, abilT: 0, charge: 999, shotT: 0 },
+    en: [], rbcs: [], plts: [], allies: [], sites: [], shots: [], pops: [], texts: [], dots: [], trail: [], cyto: [], bg: [],
+    boss: null, gap: null, net: null, exiting: -1,
+  };
+  g.p.charge = cdTime();
+  for (let i = 0; i < 26; i++) g.rbcs.push(makeRbc(20 + i * 38 + Math.random() * 30));
+  for (let i = 0; i < 3; i++) g.plts.push(makePlatelet(150 + i * 300));
+  for (let i = 0; i < 48; i++) g.bg.push({ x: Math.random() * (W + 100), y: WALL + 10 + Math.random() * (H - WALL * 2 - 20), s: rnd(42, 56), vx: -rnd(40, 65), ph: Math.random() * 8, rot: Math.random() * 6, spin: rnd(-0.4, 0.4) });
+  for (let i = 0; i < 70; i++) g.dots.push({ x: Math.random() * W, y: WALL + Math.random() * (H - WALL * 2), r: rnd(1.2, 3.4), s: rnd(0.6, 1.4), glu: Math.random() < 0.3, rot: Math.random() * 6 });
+}
+const cdTime = () => C().cd * Math.pow(0.8, up('cd'));
+const radius = () => 45 * C().size * (1 + 0.1 * up('size')) * (g.p.abilT > 0 && run.type === 'macro' ? 1.7 : 1);
+const wallY = top => top ? WALL : H - WALL;
+function makeRbc(x = W + 60) {
+  const s = rnd(84, 96);
+  if (g) g.rbcCount++;
+  return { x, y: rnd(WALL + 36, H - WALL - 36), vx: -rnd(65, 105), ph: Math.random() * 8, s, r: s * 0.33, rot: Math.random() * 6, spin: rnd(-0.6, 0.6), tumble: Math.random() * 6, mal: 0, clr: 0, hosted: 0 };
+}
+function makePlatelet(x = W + 30) { return { x, y: rnd(WALL + 30, H - WALL - 30), vx: -rnd(75, 110), k: Math.floor(Math.random() * 4), rot: Math.random() * 6, spin: rnd(-1, 1) }; }
+
+function spawnEnemy(kind, x = W + 40, y = rnd(WALL + 40, H - WALL - 40), goal) {
+  const lv = LV(), ds = D().spd;
+  const e = { kind, x, y, vx: 0, vy: 0, ph: Math.random() * 8, tag: false, host: null, ang: 0, dead: false, rot: 0 };
+  if (kind === 'virus') {
+    e.r = 22; e.sp = (50 + g.wave * 7 + rnd(0, 20)) * ds;
+    e.goal = goal || (lv.id === 'vessel' && Math.random() < 0.45 ? 'wall' : 'rbc');
+    e.top = Math.random() < 0.5;
+    e.dodger = lv.id === 'vessel' && Math.random() < Math.min((g.wave - 1) * 0.12, 0.35);
+  } else if (kind === 'bacteria') {
+    e.r = 17; e.sp = 38 * ds; e.divT = rnd(6, 9); e.vx = -40;
+  } else if (kind === 'sporozoite') {
+    e.r = 16; e.sp = (95 + g.wave * 8) * ds; e.goal = 'wall'; e.top = Math.random() < 0.5;
+  } else if (kind === 'merozoite') {
+    e.r = 11; e.sp = (70 + g.wave * 6) * ds; e.goal = goal || 'rbc';
+  }
+  e.vx = -e.sp;
+  g.en.push(e);
+  return e;
+}
+function pickKind() {
+  const list = LV().enemies; let r = Math.random(), acc = 0;
+  for (const [k, w] of list) { acc += w; if (r <= acc) return k; }
+  return list[0][0];
+}
+function spawnBoss() {
+  const lv = LV();
+  const hp = Math.round(30 * D().boss);
+  g.boss = { kind: lv.boss, x: W + 160, y: H / 2, hp, max: hp, t: 0, hitCd: 0, emitT: 2, r: 95 };
+  g.phase = 'boss'; g.banner = 2.8; g.bannerText = `${lv.bossName} הופיע!`; g.bannerSub = 'שחו לתוכו שוב ושוב כדי לפגוע בו';
+  unlock(lv.boss);
+  sfx.boss();
+}
+
+// ================= SCORING / EVENTS =================
+function addText(x, y, s, c = '#fff6ee') { g.texts.push({ x, y, t: 0, s, c }); }
+function eat(e, by = 'player') {
+  e.dead = true;
+  g.pops.push({ x: e.x, y: e.y, t: 0, small: e.kind !== 'virus' });
+  if (e.host) e.host.hosted = Math.max(0, e.host.hosted - 1);
+  g.kills++;
+  if (by !== 'player') { g.score += 40; sfx.chomp(1); return; }
+  g.combo = g.comboT > 0 ? Math.min(10, g.combo + 1) : 1; g.comboT = 1.6;
+  const base = { virus: 100, bacteria: 80, sporozoite: 150, merozoite: 60 }[e.kind];
+  const mult = (e.kind === 'bacteria' && run.type === 'neut' ? 2 : 1) * (e.tag ? 1.5 : 1);
+  const pts = Math.round(base * g.combo * mult);
+  g.score += pts;
+  g.blood = Math.min(g.maxBlood, g.blood + 1.5);
+  g.p.chomp = 0; g.p.face = e.x < g.p.x ? -1 : 1;
+  sfx.chomp(g.combo);
+  addText(e.x, e.y - 26, g.combo > 1 ? `+${pts} x${g.combo}` : `+${pts}`);
+}
+function hurtBlood(n, why, x, y, color = '#ffd54f') {
+  g.blood -= n * D().dmg; g.bloodCalm = 0;
+  if (why) addText(x, y, why, color);
+}
+function makeSite(kind, x, top) {
+  g.sites.push({ kind, x, top, t: 0, emitT: kind === 'vessel' ? 2 : 0, clr: 0 });
+  hurtBlood(kind === 'vessel' ? 5 : 4, kind === 'vessel' ? 'הדופן נדבקה!' : 'תא כבד נדבק!', x, wallY(top) + (top ? 40 : -40), '#c5e17a');
+  g.shake = 0.15; sfx.infect();
+  unlock(kind === 'vessel' ? 'endothelium' : 'liver');
+}
+function clearSite(s) {
+  s.dead = true; g.score += 200; g.blood = Math.min(g.maxBlood, g.blood + 3);
+  addText(s.x, wallY(s.top) + (s.top ? 46 : -46), '+200 נוקה!', '#c5f7c0'); sfx.clear();
+  for (let i = 0; i < 8; i++) g.pops.push({ x: s.x + rnd(-30, 30), y: wallY(s.top) + rnd(-10, 10), t: rnd(0, 0.1), small: true });
+}
+function killInfectedRbc(c) {
+  c.dead = true; g.score += 150; g.blood = Math.min(g.maxBlood, g.blood + 1);
+  addText(c.x, c.y - 30, '+150 תא נגוע סולק', '#c5f7c0'); sfx.clear(); g.pops.push({ x: c.x, y: c.y, t: 0 });
+}
+
+// ================= ABILITIES =================
+function useAbility() {
+  const p = g.p;
+  if (state !== 'play' || p.abilT > 0 || p.charge < cdTime()) return;
+  p.charge = 0;
+  const t = run.type;
+  if (t === 'neut') {
+    g.net = { x: p.x, y: p.y, t: 0 }; sfx.net();
+    for (const e of g.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < 175) eat(e);
+    if (g.boss && Math.hypot(g.boss.x - p.x, g.boss.y - p.y) < 175 + g.boss.r) damageBoss(3);
+  } else if (t === 'bcell') {
+    sfx.ability();
+    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; g.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, t: 0, rot: a }); }
+  } else {
+    p.abilT = 3; sfx.ability();
+  }
+  addText(p.x, p.y - 80, C().ability + '!', '#ffe082');
+}
+function fireAntibody(tx, ty) {
+  const p = g.p, a = Math.atan2(ty - p.y, tx - p.x);
+  g.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, t: 0, rot: a });
+  sfx.shot();
+}
+function damageBoss(n) {
+  const b = g.boss; if (!b || b.hp <= 0) return;
+  b.hp -= n; g.shake = 0.12; sfx.bossHit();
+  addText(b.x + rnd(-40, 40), b.y - b.r - 10, `-${n % 1 ? n.toFixed(1) : n}`, '#ffe082');
+  if (b.hp <= 0) {
+    sfx.bossDown(); g.score += 2000; addText(b.x, b.y, '+2000', '#ffe082');
+    for (let i = 0; i < 18; i++) g.pops.push({ x: b.x + rnd(-90, 90), y: b.y + rnd(-90, 90), t: rnd(0, 0.3) });
+    g.boss = null; g.phase = 'exit';
+    g.gap = { x: W * 0.5, top: false, t: 0 };
+    g.banner = 3; g.bannerText = 'הבוס הובס!'; g.bannerSub = 'דיאפדזה: שחו לפתח שנפתח בדופן התחתונה';
+    unlock('diapedesis');
+  }
+}
+
+// ================= FLOW =================
+function show(id) {
+  ['titleScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen']
+    .forEach(s => { $(s).hidden = s !== id; });
+  const playing = id === null;
+  $('abilityBtn').hidden = !playing; $('corner').hidden = !playing;
+}
+let encyReturn = 'titleScreen';
+function openEncy(from) { encyReturn = from; renderEncy(); show('encyScreen'); }
+function renderEncy() {
+  const grid = $('encyGrid'); grid.innerHTML = '';
+  const keysAll = Object.keys(ENCY);
+  $('encyCount').textContent = `נפתחו ${keysAll.filter(k => unlocked.has(k)).length} מתוך ${keysAll.length} ערכים`;
+  keysAll.forEach(k => {
+    const b = document.createElement('button'); b.className = 'entry' + (unlocked.has(k) ? '' : ' locked');
+    if (unlocked.has(k)) {
+      b.innerHTML = `<b></b>`; b.querySelector('b').textContent = ENCY[k][0];
+      b.onclick = () => { $('encyDetail').innerHTML = '<h3></h3><p></p>'; $('encyDetail').querySelector('h3').textContent = ENCY[k][0]; $('encyDetail').querySelector('p').textContent = ENCY[k][1]; sfx.click(); };
+    } else { b.innerHTML = '<b>???</b>טרם נפתח'; b.disabled = true; }
+    grid.appendChild(b);
+  });
+}
+function renderSelect() {
+  const box = $('cellPicks'); box.innerHTML = '';
+  for (const [k, c] of Object.entries(CELLS)) {
+    const b = document.createElement('button'); b.className = 'pick'; b.setAttribute('aria-pressed', run.type === k);
+    b.innerHTML = `<div class="sprite wbc" style="filter:${c.filter || 'none'}; transform: scale(${0.7 + c.size * 0.3})"></div><b></b><small class="d"></small><small class="ab"></small><small class="pk"></small>`;
+    b.querySelector('b').textContent = c.name;
+    b.querySelector('.d').textContent = c.desc;
+    b.querySelector('.ab').textContent = `יכולת: ${c.ability}`;
+    b.querySelector('.pk').textContent = c.perk;
+    b.onclick = () => { run.type = k; sfx.click(); renderSelect(); };
+    box.appendChild(b);
+  }
+  document.querySelectorAll('#diffSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.d === run.diff));
+}
+document.querySelectorAll('#diffSeg button').forEach(b => b.onclick = () => { run.diff = b.dataset.d; sfx.click(); renderSelect(); });
+
+function showIntro() {
+  const lv = LV();
+  $('introNum').textContent = `שלב ${run.level + 1} מתוך ${LEVELS.length}`;
+  $('introName').textContent = lv.name;
+  $('introText').textContent = lv.intro;
+  $('introGoal').textContent = lv.goal;
+  state = 'intro'; show('introScreen');
+}
+function startLevel() {
+  initAudio();
+  run.levelStart = { score: run.score, kills: run.kills };
+  newLevel();
+  $('abilityBtn').textContent = C().ability;
+  LV().entries.forEach(k => unlock(k));
+  unlock(run.type);
+  state = 'play'; show(null); last = performance.now();
+  sfx.wave(); startMusic();
+}
+function togglePause() {
+  if (state === 'play') { state = 'pause'; show('pauseScreen'); $('abilityBtn').hidden = true; stopMusic(); }
+  else if (state === 'pause') { state = 'play'; show(null); last = performance.now(); startMusic(); }
+}
+function gameOver(line) {
+  state = 'over'; stopMusic(); sfx.over();
+  best = Math.max(best, g.score); store.set('bp2-best', best);
+  $('finalScore').textContent = g.score.toLocaleString();
+  $('finalLevel').textContent = run.level + 1;
+  $('bestScore').textContent = best.toLocaleString();
+  $('overLine').textContent = line;
+  show('overScreen');
+}
+function finishLevel() {
+  state = 'done'; stopMusic(); sfx.exit();
+  run.score = g.score; run.kills = g.kills;
+  $('doneTitle').textContent = `${LV().name}: הושלם!`;
+  $('doneScore').textContent = run.score.toLocaleString();
+  $('doneKills').textContent = run.kills;
+  show('doneScreen');
+}
+let quizSet = [], quizI = 0;
+function startQuiz() {
+  const pool = QUIZ.map((q, i) => i).sort(() => Math.random() - 0.5);
+  quizSet = pool.slice(0, 2); quizI = 0; renderQuiz(); show('quizScreen'); state = 'quiz';
+}
+function renderQuiz() {
+  const [q, opts, expl] = QUIZ[quizSet[quizI]];
+  $('quizNum').textContent = `שאלה ${quizI + 1} מתוך ${quizSet.length}`;
+  $('quizQ').textContent = q; $('quizFb').textContent = ''; $('quizNext').hidden = true;
+  const box = $('quizOpts'); box.innerHTML = '';
+  opts.map((o, i) => ({ o, ok: i === 0 })).sort(() => Math.random() - 0.5).forEach(({ o, ok }) => {
+    const b = document.createElement('button'); b.textContent = o;
+    b.onclick = () => {
+      [...box.children].forEach(c => { c.disabled = true; if (c.dataset.ok === '1') c.classList.add('right'); });
+      if (ok) { run.score += 300; sfx.right(); $('quizFb').textContent = `נכון! +300. ${expl}`; }
+      else { b.classList.add('wrong'); sfx.wrong(); $('quizFb').textContent = `לא בדיוק. ${expl}`; }
+      $('quizNext').hidden = false; $('quizNext').focus();
+    };
+    b.dataset.ok = ok ? '1' : '0';
+    box.appendChild(b);
+  });
+}
+$('quizNext').onclick = () => { quizI++; if (quizI < quizSet.length) renderQuiz(); else showUpgrades(); };
+function showUpgrades() {
+  if (run.level >= LEVELS.length - 1) { winGame(); return; }
+  state = 'upgrade';
+  const pool = UPGRADES.filter(u => !(u.once && up(u.id))).sort(() => Math.random() - 0.5).slice(0, 3);
+  const box = $('upPicks'); box.innerHTML = '';
+  pool.forEach(u => {
+    const b = document.createElement('button'); b.className = 'pick';
+    b.innerHTML = `<b></b><small class="d"></small><small class="ab"></small>`;
+    b.querySelector('b').textContent = u.name; b.querySelector('.d').textContent = u.desc;
+    b.querySelector('.ab').textContent = up(u.id) ? `כבר יש לכם ${up(u.id)}` : 'חדש';
+    b.onclick = () => { run.up[u.id] = up(u.id) + 1; sfx.right(); run.level++; showIntro(); };
+    box.appendChild(b);
+  });
+  show('upScreen');
+}
+function winGame() {
+  state = 'win'; best = Math.max(best, run.score); store.set('bp2-best', best);
+  $('winScore').textContent = run.score.toLocaleString(); $('winBest').textContent = best.toLocaleString();
+  show('winScreen'); sfx.bossDown();
+}
+function toMenu() { state = 'title'; stopMusic(); show('titleScreen'); run.level = 0; newLevel(); }
+
+$('toSelect').onclick = () => { initAudio(); sfx.click(); renderSelect(); show('selectScreen'); state = 'select'; };
+$('toEncy').onclick = () => { sfx.click(); openEncy('titleScreen'); };
+$('selectBack').onclick = () => { show('titleScreen'); state = 'title'; };
+$('selectGo').onclick = () => { run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
+$('introGo').onclick = startLevel;
+$('resumeBtn').onclick = togglePause;
+$('pauseBtn').onclick = togglePause;
+$('pauseEncy').onclick = () => openEncy('pauseScreen');
+$('pauseMenu').onclick = toMenu;
+$('soundBtn').onclick = () => setMuted(!muted);
+$('toQuiz').onclick = startQuiz;
+$('retryBtn').onclick = () => { run.score = run.levelStart.score; run.kills = run.levelStart.kills; startLevel(); };
+$('overMenu').onclick = toMenu;
+$('winMenu').onclick = toMenu;
+$('winEncy').onclick = () => openEncy('winScreen');
+$('encyClose').onclick = () => show(encyReturn);
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') togglePause(); });
+
+// ================= UPDATE =================
+function update(dt) {
+  const lv = LV(), p = g.p, cell = C();
+  g.t += dt; g.scroll += dt * 90;
+  if (g.banner > 0) g.banner -= dt;
+  if (g.shake > 0) g.shake -= dt;
+  const feverSlow = 1 + Math.max(0, g.temp - 37.5) * 0.35;
+
+  // waves → boss → exit
+  if (g.phase === 'waves') {
+    g.waveT += dt;
+    if (g.waveT > 26) {
+      g.waveT = 0;
+      if (g.wave >= 3) spawnBoss();
+      else {
+        g.wave++; g.banner = 2.4; g.bannerText = `גל ${g.wave}`;
+        g.bannerSub = lv.facts[(g.wave + run.level) % lv.facts.length];
+        g.blood = Math.min(g.maxBlood, g.blood + 20); sfx.wave();
+        addText(p.x, p.y - 70, 'גל הושלם: הדם התאושש', '#c5f7c0');
+      }
+    }
+  }
+
+  // blood recovers while calm
+  g.bloodCalm += dt;
+  if (g.bloodCalm > 1.5 && g.blood < g.maxBlood) g.blood = Math.min(g.maxBlood, g.blood + 3 * (1 + 0.5 * up('regen')) * dt);
+
+  // fever: rises with the infection load
+  const malCount = g.rbcs.filter(c => c.mal > 0).length;
+  const bactCount = g.en.filter(e => e.kind === 'bacteria').length;
+  const load = g.sites.length * 0.6 + malCount * 0.35 + bactCount * 0.06 + (g.boss ? 0.6 : 0) + (g.blood < g.maxBlood * 0.5 ? 0.8 : 0);
+  g.temp += ((37 + Math.min(3, load)) - g.temp) * dt * 0.25;
+  if (g.temp >= 38 && !g.feverSeen) { g.feverSeen = true; addText(p.x, p.y - 90, 'חום! הגוף מגיב לזיהום', '#ffab66'); unlock('fever'); }
+
+  // ability timers
+  if (p.abilT > 0) { p.abilT = Math.max(0, p.abilT - dt); }
+  else if (p.charge < cdTime()) { p.charge += dt; if (p.charge >= cdTime()) sfx.ready(); }
+  const ab = $('abilityBtn');
+  ab.classList.toggle('on', p.abilT > 0);
+  ab.classList.toggle('cool', p.abilT <= 0 && p.charge < cdTime());
+  if (g.net) { g.net.t += dt; if (g.net.t > 0.5) g.net = null; }
+
+  // movement
+  let ax = 0, ay = 0;
+  if (keys.has('arrowleft') || keys.has('a') || keys.has('ש')) ax -= 1;
+  if (keys.has('arrowright') || keys.has('d') || keys.has('ג')) ax += 1;
+  if (keys.has('arrowup') || keys.has('w') || keys.has("'")) ay -= 1;
+  if (keys.has('arrowdown') || keys.has('s') || keys.has('ד')) ay += 1;
+  if (pointer) { const dx = pointer.x - p.x, dy = pointer.y - p.y, l = Math.hypot(dx, dy); if (l > 12) { ax = dx / l * Math.min(1, l / 80); ay = dy / l * Math.min(1, l / 80); } }
+  const abilSpeed = p.abilT > 0 ? (run.type === 'nk' ? 1.9 : 1.25) : 1;
+  const MAX = 300 * cell.spd * (1 + 0.12 * up('spd')) * abilSpeed * (1 + Math.max(0, g.temp - 37.5) * 0.08);
+  p.vx += (ax * MAX - p.vx) * Math.min(1, dt * 7);
+  p.vy += (ay * MAX - p.vy) * Math.min(1, dt * 7);
+  if (Math.abs(ax) > 0.2 && p.chomp < 0) p.face = ax < 0 ? -1 : 1;
+  p.x += (p.vx - 25) * dt; p.y += p.vy * dt;
+  const rad = radius();
+  p.x = Math.max(rad, Math.min(W - rad, p.x));
+  p.y = Math.max(WALL + rad * 0.85, Math.min(H - WALL - rad * 0.85, p.y));
+  if (p.chomp >= 0) { p.chomp += dt; if (p.chomp > 0.4) p.chomp = -1; }
+  if (g.comboT > 0) g.comboT -= dt;
+  if (p.abilT > 0 && Math.random() < 0.7) g.trail.push({ x: p.x - p.face * rad * 0.6 + rnd(-10, 10), y: p.y + rnd(-rad / 2, rad / 2), t: 0 });
+  for (const s of g.trail) s.t += dt;
+  g.trail = g.trail.filter(s => s.t < 0.5);
+
+  // B cell: automatic antibody every second toward the nearest pathogen
+  if (run.type === 'bcell') {
+    p.shotT -= dt;
+    if (p.shotT <= 0) {
+      let tgt = null, bd = 420;
+      for (const e of g.en) { if (e.tag) continue; const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < bd) { bd = d; tgt = e; } }
+      if (!tgt && g.boss && Math.hypot(g.boss.x - p.x, g.boss.y - p.y) < 500) tgt = g.boss;
+      if (tgt) { fireAntibody(tgt.x, tgt.y); p.shotT = 1.0 * Math.pow(0.8, up('cd')); } else p.shotT = 0.2;
+    }
+  }
+  for (const s of g.shots) {
+    s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt;
+    for (const e of g.en) if (!e.dead && !e.tag && Math.hypot(e.x - s.x, e.y - s.y) < e.r + 8) { e.tag = true; s.dead = true; addText(e.x, e.y - 22, 'נוטרל', '#9fd8ff'); break; }
+    if (!s.dead && g.boss && Math.hypot(g.boss.x - s.x, g.boss.y - s.y) < g.boss.r) { s.dead = true; damageBoss(0.5); }
+    if (s.t > 1.4 || s.y < WALL || s.y > H - WALL) s.dead = true;
+  }
+  g.shots = g.shots.filter(s => !s.dead);
+
+  // spawning
+  if (g.phase !== 'exit') {
+    g.spawnT -= dt;
+    if (g.spawnT <= 0) {
+      spawnEnemy(pickKind());
+      if (g.wave >= 3 && Math.random() < 0.25) spawnEnemy(pickKind());
+      const lvMul = lv.id === 'lung' ? 1.35 : lv.id === 'malaria' ? 1.4 : 1;
+      g.spawnT = Math.max(0.6, 1.9 - g.wave * 0.14) * D().spawn * lvMul * (g.boss ? 1.8 : 1) * rnd(0.7, 1.3);
+    }
+  }
+  g.rbcT -= dt;
+  if (g.rbcT <= 0) {
+    g.rbcs.push(makeRbc()); g.rbcT = rnd(0.2, 0.42);
+    // real ratios: ~1 platelet per 15-20 red cells, ~1 white cell per 600-700 red cells
+    if (g.rbcCount % 16 === 0) g.plts.push(makePlatelet());
+    if (lv.allies && g.rbcCount % 650 === 0) { g.allies.push({ x: W + 80, y: rnd(WALL + 70, H - WALL - 70), vx: -55, ph: Math.random() * 8, chomp: -1 }); addText(W - 170, 110, 'תא לבן נוסף הגיע לעזור!', '#d7ccf5'); }
+  }
+  moveBg(dt);
+
+  // platelets
+  for (const q of g.plts) {
+    q.x += q.vx * dt; q.rot += q.spin * dt;
+    if (up('magnet')) { const dx = p.x - q.x, dy = p.y - q.y, l = Math.hypot(dx, dy); if (l < 240) { q.x += dx / l * 160 * dt; q.y += dy / l * 160 * dt; } }
+    if (Math.hypot(q.x - p.x, q.y - p.y) < rad + 10) { q.dead = true; g.blood = Math.min(g.maxBlood, g.blood + 3); sfx.platelet(); addText(q.x, q.y - 20, '+ טסית', '#f6e4f2'); }
+    if (q.x < -30) q.dead = true;
+  }
+  g.plts = g.plts.filter(q => !q.dead);
+
+  for (const a of g.allies) {
+    a.x += a.vx * dt; a.y += Math.sin(g.t * 0.8 + a.ph) * 14 * dt;
+    if (a.chomp >= 0) { a.chomp += dt; if (a.chomp > 0.4) a.chomp = -1; }
+    if (a.x < -100) a.dead = true;
+  }
+  g.allies = g.allies.filter(a => !a.dead);
+
+  // red cells (incl. malaria-infected ones)
+  const instantKill = run.type === 'nk' || run.type === 'macro';
+  g.rbcs = g.rbcs.filter(c => !c.dead);
+  for (const c of g.rbcs) {
+    c.x += c.vx * dt;
+    c.y += Math.sin(g.t * 1.4 + c.ph) * 10 * dt;
+    c.rot += c.spin * dt; c.tumble += dt * 1.3;
+    if (c.mal > 0) {
+      c.mal += dt / feverSlow;
+      if (Math.hypot(c.x - p.x, c.y - p.y) < rad + c.r) {
+        if (instantKill) { killInfectedRbc(c); continue; }
+        c.clr += dt; if (c.clr > 0.5) { killInfectedRbc(c); continue; }
+      }
+      if (c.mal > 8) {
+        c.dead = true; sfx.burst(); g.pops.push({ x: c.x, y: c.y, t: 0 });
+        const meroCount = g.en.filter(e => e.kind === 'merozoite').length;
+        const n = meroCount > 24 ? 1 : 2;
+        for (let i = 0; i < n; i++) spawnEnemy('merozoite', c.x + rnd(-10, 10), c.y + rnd(-10, 10), 'rbc');
+        hurtBlood(2, 'התא התפוצץ!', c.x, c.y - 30, '#e59be0');
+      }
+    }
+    if (c.x < -80) c.dead = true;
+  }
+  // keep dead cells one frame so hitchhikers on them can notice and escape, then drop them
+  for (const e of g.en) if (e.host && e.host.dead && e.host.x >= -70) { e.host = null; }
+
+  // infection sites on the vessel / liver wall (they scroll with the wall)
+  for (const s of g.sites) {
+    s.x -= 90 * dt; s.t += dt / feverSlow;
+    const sy = wallY(s.top);
+    if (Math.hypot(p.x - s.x, p.y - sy) < rad + 34) {
+      if (run.type === 'nk') { clearSite(s); continue; }
+      s.clr += dt; if (s.clr > 0.7) { clearSite(s); continue; }
+    } else s.clr = Math.max(0, s.clr - dt * 0.5);
+    if (s.kind === 'vessel') {
+      s.emitT -= dt / feverSlow;
+      if (s.emitT <= 0) { spawnEnemy('virus', s.x, sy + (s.top ? 34 : -34), 'rbc'); s.emitT = 3.2 * D().spawn; }
+    } else if (s.t > 7) {
+      s.dead = true; sfx.burst();
+      for (let i = 0; i < 4; i++) spawnEnemy('merozoite', s.x + rnd(-20, 20), sy + (s.top ? 34 : -34), 'escape');
+      hurtBlood(4, 'מרוזואיטים השתחררו!', s.x, sy + (s.top ? 50 : -50), '#e59be0');
+    }
+    if (!s.dead && s.x < -50) { s.dead = true; hurtBlood(8, 'הזיהום התפשט!', 60, sy + (s.top ? 50 : -50), '#ff8a80'); }
+  }
+  g.sites = g.sites.filter(s => !s.dead);
+
+  // pathogens
+  for (const e of g.en) {
+    if (e.dead) continue;
+    const sp = e.sp * (e.tag ? 0.45 : 1);
+    const dp = Math.hypot(p.x - e.x, p.y - e.y);
+    if (e.host) {
+      // hitchhiking on a red cell's surface
+      const h = e.host;
+      if (h.dead) {
+        if (h.x < -70) { e.dead = true; hurtBlood(2, 'טרמפיסט ברח!', 50, e.y); sfx.escape(); continue; }
+        e.host = null;
+      } else {
+        e.ang += dt * 0.6;
+        e.x = h.x + Math.cos(e.ang) * h.r * 1.08; e.y = h.y + Math.sin(e.ang) * h.r * 0.95;
+      }
+    }
+    if (!e.host) {
+      let tx = e.x - 200, ty = e.y, flee = false;
+      if (e.kind === 'virus' && e.dodger && !e.tag && dp < 170) { tx = e.x + (e.x - p.x); ty = e.y + (e.y - p.y); flee = true; }
+      else if (e.tag) { /* neutralized: just drifts */ }
+      else if (e.goal === 'wall') { tx = e.x - 120; ty = e.top ? WALL - 10 : H - WALL + 10; }
+      else if (e.goal === 'rbc') {
+        let bd = 300;
+        for (const c of g.rbcs) if (!c.dead && !c.mal && c.x < e.x + 40 && (e.kind !== 'virus' || c.hosted < 2)) { const d = Math.hypot(c.x - e.x, c.y - e.y); if (d < bd) { bd = d; tx = c.x; ty = c.y; } }
+      } else if (e.goal === 'escape') { tx = -100; ty = e.y; }
+      if (e.kind === 'bacteria') {
+        tx = e.x - 100; ty = e.y + Math.sin(g.t * 0.9 + e.ph) * 60;
+        e.divT -= dt / feverSlow;
+        if (e.divT <= 0 && !e.tag) {
+          e.divT = rnd(7, 10);
+          if (bactCount < 40) { const n = spawnEnemy('bacteria', e.x + 12, e.y + 10); n.divT = rnd(7, 10); sfx.divide(); unlock('bacteria'); }
+        }
+      }
+      const dx = tx - e.x, dy = ty - e.y, l = Math.hypot(dx, dy) || 1;
+      const s2 = sp * (flee ? 1.25 : 1);
+      e.vx += (dx / l * s2 - e.vx) * dt * 1.6;
+      e.vy += (dy / l * s2 - e.vy) * dt * 1.6;
+      e.x += (e.vx - 30) * dt; e.y += e.vy * dt;
+      e.y = Math.max(WALL + 10, Math.min(H - WALL - 10, e.y));
+      e.rot = Math.atan2(e.vy, e.vx - 30);
+    }
+
+    // engulfed by touching the white cell
+    if (dp < rad + e.r + 4) { eat(e); continue; }
+    const ally = g.allies.find(a => Math.hypot(a.x - e.x, a.y - e.y) < 70);
+    if (ally) { ally.chomp = 0; eat(e, 'ally'); continue; }
+    if (e.tag) { if (e.x < -50) e.dead = true; continue; } // neutralized pathogens can't infect
+
+    // infection attempts
+    if (!e.host && e.goal === 'wall' && (e.y <= WALL + 14 || e.y >= H - WALL - 14)) {
+      e.dead = true; makeSite(e.kind === 'sporozoite' ? 'liver' : 'vessel', e.x, e.y < H / 2); continue;
+    }
+    if (!e.host && e.goal === 'rbc') {
+      for (const c of g.rbcs) {
+        if (c.dead || c.mal) continue;
+        if (Math.hypot(c.x - e.x, c.y - e.y) < c.r + e.r - 4) {
+          if (e.kind === 'virus') {
+            if (c.hosted >= 2) continue;
+            e.host = c; c.hosted++; e.ang = Math.atan2(e.y - c.y, e.x - c.x);
+            addText(c.x, c.y - 40, 'טרמפיסט!', '#c5e17a'); unlock('hitchhiker');
+          } else if (e.kind === 'merozoite') {
+            e.dead = true; c.mal = 0.001; sfx.infect(); hurtBlood(1, 'תא אדום נדבק!', c.x, c.y - 40, '#e59be0'); unlock('infectedrbc');
+          }
+          break;
+        }
+      }
+    }
+    if (!e.dead && e.x < -50) {
+      e.dead = true; const pen = { virus: 3, bacteria: 2, merozoite: 3, sporozoite: 4 }[e.kind];
+      hurtBlood(pen, 'ברח!', 50, e.y); sfx.escape();
+    }
+  }
+  g.en = g.en.filter(e => !e.dead);
+
+  // boss
+  const b = g.boss;
+  if (b) {
+    b.t += dt; b.hitCd -= dt;
+    b.x += ((W - 200) - b.x) * Math.min(1, dt * 0.8);
+    b.y = H / 2 + Math.sin(b.t * 0.7) * (H / 2 - WALL - b.r - 10);
+    b.emitT -= dt;
+    if (b.emitT <= 0) {
+      b.emitT = 1.9 * D().spawn;
+      const k = { cluster: 'virus', colony: 'bacteria', schizont: 'merozoite', rosette: 'merozoite' }[b.kind];
+      spawnEnemy(k, b.x - b.r, b.y + rnd(-40, 40), b.kind === 'schizont' ? 'escape' : undefined);
+    }
+    const d = Math.hypot(p.x - b.x, p.y - b.y);
+    if (d < rad + b.r && b.hitCd <= 0) {
+      b.hitCd = 0.32;
+      let dmg = run.type === 'macro' ? 2 : 1;
+      if (p.abilT > 0) dmg *= 2;
+      const kx = (p.x - b.x) / (d || 1), ky = (p.y - b.y) / (d || 1);
+      p.vx = kx * 520; p.vy = ky * 520;
+      g.pops.push({ x: (p.x + b.x) / 2, y: (p.y + b.y) / 2, t: 0 });
+      damageBoss(dmg);
+    }
+  }
+
+  // exit through the wall (diapedesis)
+  if (g.gap) {
+    g.gap.t += dt;
+    if (g.exiting < 0 && Math.hypot(p.x - g.gap.x, p.y - (H - WALL)) < rad + 30) { g.exiting = 0; sfx.exit(); }
+  }
+  if (g.exiting >= 0) { g.exiting += dt; p.x += (g.gap.x - p.x) * dt * 6; p.y += ((H - WALL + 20) - p.y) * dt * 4; if (g.exiting > 1.1) { finishLevel(); return; } }
+
+  // cytokine signals (chemotaxis)
+  const sources = alarmSources();
+  if (sources.length && Math.random() < 0.5) {
+    const s = sources[Math.floor(Math.random() * sources.length)], a = Math.random() * Math.PI * 2;
+    g.cyto.push({ x: s.x, y: s.y, vx: Math.cos(a) * 40, vy: Math.sin(a) * 40, t: 0 });
+  }
+  for (const c of g.cyto) { c.t += dt; c.x += (c.vx - 60) * dt; c.y += c.vy * dt; }
+  g.cyto = g.cyto.filter(c => c.t < 1.6);
+
+  if (g.blood <= 0) { g.blood = 0; gameOver(lv.id === 'lung' ? 'החיידקים השתלטו על הדם!' : lv.id === 'liver' ? 'הטפילים יצאו מהכבד לדם!' : 'הזיהום התפשט בכל הגוף!'); return; }
+
+  g.pops.forEach(o => o.t += dt); g.pops = g.pops.filter(o => o.t < 5 / 12);
+  for (const o of g.texts) { o.t += dt; o.y -= 40 * dt; }
+  g.texts = g.texts.filter(o => o.t < 1.1);
+  for (const d of g.dots) { d.x -= 90 * d.s * dt; if (d.x < -5) { d.x = W + 5; d.y = WALL + Math.random() * (H - WALL * 2); } }
+}
+function alarmSources() {
+  const s = [];
+  if (g.gap) s.push({ x: g.gap.x, y: H - WALL, gap: true });
+  for (const x of g.sites) if (x.x > 0 && x.x < W) s.push({ x: x.x, y: wallY(x.top) });
+  for (const c of g.rbcs) if (c.mal > 0 && c.x > 0 && c.x < W) s.push({ x: c.x, y: c.y });
+  if (g.boss) s.push({ x: g.boss.x, y: g.boss.y });
+  return s;
+}
+function moveBg(dt) {
+  for (const c of g.bg) {
+    c.x += c.vx * dt; c.y += Math.sin(g.t + c.ph) * 6 * dt; c.rot += c.spin * dt;
+    if (c.x < -40) { c.x = W + 40; c.y = rnd(WALL + 10, H - WALL - 10); }
+  }
+}
+
+// ================= DRAW =================
+const WALLSTYLE = {
+  vessel: { fill: '#e88a9a', edge: '#8c2a42', cell: 'rgba(140, 42, 66, 0.35)', bg: ['#6e3a12', '#b8792f'] },
+  lung:   { fill: '#f2b0bf', edge: '#9b4060', cell: 'rgba(155, 64, 96, 0.3)', bg: ['#6a3418', '#c08645'] },
+  liver:  { fill: '#b06a45', edge: '#5e2c17', cell: 'rgba(80, 30, 12, 0.45)', bg: ['#5c2a0e', '#a8682a'] },
+};
+function wall(top) {
+  const st = WALLSTYLE[LV().wall], off = g.scroll;
+  const base = wallY(top);
+  if (LV().wall === 'lung') {
+    // alveoli (air sacs) just beyond the capillary wall
+    ctx.fillStyle = 'rgba(200, 225, 245, 0.55)'; ctx.strokeStyle = 'rgba(120, 150, 190, 0.8)'; ctx.lineWidth = 2;
+    for (let x = -(off % 110); x < W + 110; x += 110) {
+      ctx.beginPath(); ctx.arc(x + 55, top ? 8 : H - 8, 34, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, top ? 0 : H);
+  for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, base + Math.sin((x + off) / 70) * 9 + Math.sin((x + off * 0.6) / 33) * 4);
+  ctx.lineTo(W, top ? 0 : H); ctx.closePath();
+  ctx.fillStyle = st.fill; ctx.globalAlpha = LV().wall === 'lung' ? 0.85 : 1; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.strokeStyle = st.edge; ctx.lineWidth = 6; ctx.stroke();
+  if (LV().wall === 'liver') {
+    // hepatocytes: polygonal liver cells with nuclei
+    for (let x = -(off % 70); x < W + 70; x += 70) {
+      const y = top ? 22 : H - 26;
+      ctx.fillStyle = 'rgba(150, 80, 45, 0.9)'; ctx.strokeStyle = st.edge; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.rect(x + 4, y - 16, 60, 34); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(70, 25, 10, 0.75)'; ctx.beginPath(); ctx.arc(x + 34, y + 1, 7, 0, 7); ctx.fill();
+    }
+  } else {
+    ctx.fillStyle = st.cell;
+    for (let x = -(off % 90); x < W + 90; x += 90) {
+      ctx.beginPath(); ctx.ellipse(x + 45, top ? WALL / 2 - 4 : H - WALL / 2 + 4, 26, 12, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+}
+function drawSite(s) {
+  const y = wallY(s.top), pulse = 1 + Math.sin(g.t * 6) * 0.08;
+  ctx.save(); ctx.translate(s.x, y); ctx.scale(pulse, pulse);
+  ctx.fillStyle = s.kind === 'vessel' ? 'rgba(124, 179, 66, 0.85)' : 'rgba(156, 95, 181, 0.85)';
+  ctx.strokeStyle = s.kind === 'vessel' ? '#33691e' : '#4a2160'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(0, 0, 40, 20, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = s.kind === 'vessel' ? '#2e5a12' : '#d06ab0';
+  for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.arc(-24 + i * 12, Math.sin(i * 2 + g.t * 3) * 6, 4, 0, 7); ctx.fill(); }
+  ctx.restore();
+  if (s.kind === 'liver') {
+    // countdown ring until merozoites burst out
+    ctx.strokeStyle = '#ffd54f'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(s.x, y + (s.top ? 34 : -34), 11, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, s.t / 7)); ctx.stroke();
+  }
+  if (s.clr > 0) {
+    ctx.strokeStyle = '#c5f7c0'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(s.x, y, 48, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, s.clr / 0.7)); ctx.stroke();
+  }
+}
+function drawEnemy(e) {
+  if (e.kind === 'virus') sprite(img.virus, Math.floor(g.t * 10 + e.ph), e.x, e.y, 72);
+  else {
+    const spr = e.kind === 'bacteria' ? BACT : e.kind === 'sporozoite' ? SPORO : MERO;
+    const w = e.kind === 'bacteria' ? 56 : e.kind === 'sporozoite' ? 86 : 26;
+    const h = w * spr.height / spr.width;
+    ctx.save(); ctx.translate(e.x, e.y);
+    ctx.rotate(e.kind === 'merozoite' ? e.rot + Math.PI / 2 : e.rot + Math.PI);
+    if (e.kind === 'sporozoite') ctx.scale(1, 1 + Math.sin(g.t * 8 + e.ph) * 0.15);
+    ctx.drawImage(spr, -w / 2, -h / 2, w, h); ctx.restore();
+  }
+  if (e.tag) {
+    // antibodies stuck on the surface (neutralized)
+    ctx.strokeStyle = '#9fd8ff'; ctx.lineWidth = 2.5;
+    for (let k = 0; k < 3; k++) {
+      const a = k * 2.1 + e.ph, rx = e.x + Math.cos(a) * (e.r + 4), ry = e.y + Math.sin(a) * (e.r + 4);
+      drawY(rx, ry, a + Math.PI / 2, 7);
+    }
+  }
+}
+function drawY(x, y, rot, s) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.beginPath(); ctx.moveTo(0, s); ctx.lineTo(0, 0); ctx.lineTo(-s * 0.7, -s); ctx.moveTo(0, 0); ctx.lineTo(s * 0.7, -s); ctx.stroke();
+  ctx.restore();
+}
+function drawBoss(b) {
+  const flash = b.hitCd > 0.2;
+  ctx.save();
+  if (b.kind === 'cluster') {
+    for (let i = 0; i < 6; i++) { const a = b.t * 0.8 + i * 1.05; sprite(img.virus, Math.floor(g.t * 10 + i), b.x + Math.cos(a) * 110, b.y + Math.sin(a) * 95, 70); }
+    sprite(img.virus, Math.floor(g.t * 8), b.x, b.y, 250);
+  } else if (b.kind === 'colony') {
+    ctx.fillStyle = 'rgba(120, 190, 160, 0.35)'; ctx.strokeStyle = 'rgba(40, 100, 80, 0.8)'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.ellipse(b.x, b.y, 110, 92, Math.sin(b.t) * 0.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    for (let i = 0; i < 12; i++) {
+      const a = i * 0.52 + b.t * 0.3, r = 30 + (i % 3) * 22;
+      ctx.save(); ctx.translate(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r * 0.8); ctx.rotate(a * 2);
+      ctx.drawImage(BACT, -28, -12, 56, 25); ctx.restore();
+    }
+  } else if (b.kind === 'schizont') {
+    const gr = ctx.createRadialGradient(b.x - 20, b.y - 20, 10, b.x, b.y, 100);
+    gr.addColorStop(0, '#d9a07a'); gr.addColorStop(1, '#8a4a2a');
+    ctx.fillStyle = gr; ctx.strokeStyle = '#4a1e0c'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(b.x, b.y, 96, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    for (let i = 0; i < 26; i++) { const a = i * 2.4, r = 15 + (i * 37 % 70); ctx.drawImage(MERO, b.x + Math.cos(a + b.t * 0.4) * r - 9, b.y + Math.sin(a + b.t * 0.4) * r - 9, 18, 18); }
+  } else if (b.kind === 'rosette') {
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + b.t * 0.3; sprite(img.rbc, Math.floor(g.t * 6 + i), b.x + Math.cos(a) * 72, b.y + Math.sin(a) * 72, 96, false, 1, a); }
+    sprite(img.rbc, Math.floor(g.t * 6), b.x, b.y, 120);
+    malSpots(b.x, b.y, 40, b.t);
+  }
+  if (flash) { ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 10, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function malSpots(x, y, r, t) {
+  ctx.strokeStyle = '#5b2a86'; ctx.lineWidth = 2.5; ctx.fillStyle = '#5b2a86';
+  for (let i = 0; i < 3; i++) {
+    const a = i * 2.1 + t * 0.5, px = x + Math.cos(a) * r * 0.45, py = y + Math.sin(a) * r * 0.4;
+    ctx.beginPath(); ctx.arc(px, py, r * 0.16, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.arc(px + r * 0.12, py - r * 0.05, r * 0.06, 0, 7); ctx.fill();
+  }
+}
+
+function draw() {
+  const sx = canvas.width / W, sy = canvas.height / H;
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  if (!g) return;
+  if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+  const st = WALLSTYLE[LV().wall];
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, st.bg[0]); grad.addColorStop(0.5, st.bg[1]); grad.addColorStop(1, st.bg[0]);
+  ctx.fillStyle = grad; ctx.fillRect(-20, -20, W + 40, H + 40);
+
+  const canBlur = 'filter' in ctx;
+  if (canBlur) ctx.filter = 'blur(2.5px)';
+  for (const c of g.bg) sprite(img.rbc, Math.floor(g.t * 6 + c.ph), c.x, c.y, c.s, false, 0.55, c.rot, 0.85);
+  if (canBlur) ctx.filter = 'none';
+  ctx.fillStyle = 'rgba(214, 150, 70, 0.2)'; ctx.fillRect(0, 0, W, H);
+
+  for (const d of g.dots) {
+    if (d.glu) {
+      ctx.strokeStyle = 'rgba(255, 245, 210, 0.45)'; ctx.lineWidth = 1.2; ctx.beginPath();
+      for (let k = 0; k <= 6; k++) { const a = d.rot + k * Math.PI / 3; k ? ctx.lineTo(d.x + Math.cos(a) * 3.2, d.y + Math.sin(a) * 3.2) : ctx.moveTo(d.x + Math.cos(a) * 3.2, d.y + Math.sin(a) * 3.2); }
+      ctx.stroke();
+    } else { ctx.fillStyle = 'rgba(255, 236, 190, 0.35)'; ctx.beginPath(); ctx.ellipse(d.x, d.y, d.r * 1.4, d.r, d.rot, 0, Math.PI * 2); ctx.fill(); }
+  }
+  ctx.strokeStyle = 'rgba(255, 240, 210, 0.08)'; ctx.lineWidth = 3;
+  for (let i = 0; i < 6; i++) { const y = WALL + 40 + i * 75, x = W - ((g.scroll * 2.2 + i * 233) % (W + 300)); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 140, y); ctx.stroke(); }
+
+  wall(true); wall(false);
+  if (g.gap) {
+    const gx = g.gap.x, gy = H - WALL, pul = 1 + Math.sin(g.t * 5) * 0.08;
+    const gl = ctx.createRadialGradient(gx, gy, 5, gx, gy, 90 * pul);
+    gl.addColorStop(0, 'rgba(255, 240, 160, 0.9)'); gl.addColorStop(1, 'rgba(255, 240, 160, 0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(gx, gy, 90 * pul, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a1208'; ctx.beginPath(); ctx.ellipse(gx, gy + 6, 46, 18, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  for (const s of g.sites) drawSite(s);
+
+  // cytokines
+  ctx.fillStyle = 'rgba(255, 224, 110, 0.75)';
+  for (const c of g.cyto) { ctx.globalAlpha = Math.max(0, 1 - c.t / 1.6); ctx.beginPath(); ctx.arc(c.x, c.y, 2.6, 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+
+  for (const q of g.plts) { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.drawImage(PLT[q.k], -12, -12, 24, 24); ctx.restore(); }
+  for (const c of g.rbcs) {
+    const syy = 0.72 + 0.28 * Math.abs(Math.cos(c.tumble));
+    sprite(img.rbc, Math.floor(g.t * 8 + c.ph), c.x, c.y, c.s, false, 1, Math.sin(c.rot) * 0.5, syy);
+    if (c.mal > 0) {
+      ctx.fillStyle = `rgba(110, 50, 140, ${Math.min(0.35, c.mal * 0.08)})`;
+      ctx.beginPath(); ctx.ellipse(c.x, c.y, c.s * 0.33, c.s * 0.29 * syy, 0, 0, 7); ctx.fill();
+      malSpots(c.x, c.y, c.s * 0.33, g.t);
+      if (c.clr > 0) { ctx.strokeStyle = '#c5f7c0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(c.x, c.y, c.s * 0.42, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * c.clr / 0.5); ctx.stroke(); }
+    }
+  }
+  for (const e of g.en) drawEnemy(e);
+  if (g.boss) drawBoss(g.boss);
+  for (const o of g.pops) sprite(img.pop, Math.floor(o.t * 12), o.x, o.y, o.small ? 70 : 110);
+
+  // antibodies in flight
+  ctx.strokeStyle = '#9fd8ff'; ctx.lineWidth = 3;
+  for (const s of g.shots) drawY(s.x, s.y, s.rot + Math.PI / 2, 9);
+
+  for (const a of g.allies) {
+    if (a.chomp >= 0) sprite(img.wbcAttack, 2 + Math.min(2, Math.floor(a.chomp * 10)), a.x, a.y, 150, true, 0.92);
+    else sprite(img.wbcIdle, Math.floor(g.t * 8 + a.ph), a.x, a.y, 150, true, 0.92);
+  }
+
+  // NET burst
+  if (g.net) {
+    const r = 175 * Math.min(1, g.net.t / 0.25), al = 1 - g.net.t / 0.5;
+    ctx.strokeStyle = `rgba(230, 240, 255, ${al})`; ctx.lineWidth = 2;
+    for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; ctx.beginPath(); ctx.moveTo(g.net.x, g.net.y); ctx.lineTo(g.net.x + Math.cos(a) * r, g.net.y + Math.sin(a) * r); ctx.stroke(); }
+    for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(g.net.x, g.net.y, r * k / 3, 0, 7); ctx.stroke(); }
+  }
+
+  for (const s of g.trail) { ctx.globalAlpha = Math.max(0, 1 - s.t * 2); ctx.fillStyle = '#ffe082'; ctx.beginPath(); ctx.arc(s.x, s.y, 7 * (1 - s.t), 0, 7); ctx.fill(); }
+  ctx.globalAlpha = 1;
+
+  // player
+  const p = g.p, rad = radius(), size = rad / 45 * 150, sheets = tinted[run.type];
+  if (sheets) {
+    const squeeze = g.exiting >= 0 ? Math.max(0.15, 1 - g.exiting) : 1;
+    if (p.abilT > 0) {
+      const gl = ctx.createRadialGradient(p.x, p.y, size * 0.2, p.x, p.y, size * 0.6);
+      gl.addColorStop(0, 'rgba(255, 224, 130, 0.45)'); gl.addColorStop(1, 'rgba(255, 224, 130, 0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(p.x, p.y, size * 0.6, 0, 7); ctx.fill();
+    }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(squeeze, 1 / Math.max(0.6, squeeze)); ctx.translate(-p.x, -p.y);
+    if (p.chomp >= 0) sprite(sheets.attack, 2 + Math.min(2, Math.floor(p.chomp * 10)), p.x, p.y, size, p.face < 0);
+    else sprite(sheets.idle, Math.floor(g.t * 8), p.x, p.y, size, p.face < 0);
+    ctx.restore();
+  }
+
+  // chemotaxis arrow toward the nearest alarm signal
+  if (state === 'play') {
+    const srcs = alarmSources();
+    let tgt = null, bd = 1e9;
+    for (const s of srcs) { const d = Math.hypot(s.x - p.x, s.y - p.y) - (s.gap ? 1e6 : 0); if (d < bd) { bd = d; tgt = s; } }
+    if (tgt && Math.hypot(tgt.x - p.x, tgt.y - p.y) > 160) {
+      if (!g.arrowSeen) { g.arrowSeen = true; unlock('chemotaxis'); }
+      const a = Math.atan2(tgt.y - p.y, tgt.x - p.x), r = rad + 26;
+      ctx.save(); ctx.translate(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r); ctx.rotate(a);
+      ctx.fillStyle = tgt.gap ? '#fff3a0' : '#ffd54f'; ctx.strokeStyle = '#5a3a00'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-6, -10); ctx.lineTo(-1, 0); ctx.lineTo(-6, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // floating text
+  ctx.direction = 'rtl'; ctx.textAlign = 'center';
+  ctx.font = `22px ${FONT_D}`;
+  for (const o of g.texts) {
+    ctx.globalAlpha = Math.max(0, 1 - o.t);
+    ctx.lineWidth = 5; ctx.strokeStyle = '#2a0c06'; ctx.strokeText(o.s, o.x, o.y);
+    ctx.fillStyle = o.c; ctx.fillText(o.s, o.x, o.y);
+  }
+  ctx.globalAlpha = 1;
+
+  // fever warmth + microscope vignette
+  if (g.temp > 37.4) { ctx.fillStyle = `rgba(255, 110, 40, ${Math.min(0.2, (g.temp - 37.4) * 0.08)})`; ctx.fillRect(0, 0, W, H); }
+  const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.62);
+  vg.addColorStop(0, 'rgba(30, 8, 4, 0)'); vg.addColorStop(1, 'rgba(30, 8, 4, 0.45)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+  // scale bar (red cell 7.5 µm ≈ 60 px)
+  ctx.direction = 'ltr';
+  ctx.fillStyle = 'rgba(255, 244, 240, 0.9)'; ctx.fillRect(W - 104, H - 26, 80, 4);
+  ctx.fillRect(W - 104, H - 31, 2, 14); ctx.fillRect(W - 26, H - 31, 2, 14);
+  ctx.font = `600 13px ${FONT_B}`; ctx.textAlign = 'right'; ctx.fillText('10 µm', W - 112, H - 19);
+
+  if (state === 'play' || state === 'pause') hud();
+}
+
+function bar(x, w, label, frac, color) {
+  ctx.fillStyle = 'rgba(42, 12, 6, 0.75)'; roundRect(x, 19, w, 22, 11); ctx.fill();
+  ctx.fillStyle = color; roundRect(x + 3, 22, Math.max(0, (w - 6) * Math.min(1, frac)), 16, 8); ctx.fill();
+  ctx.font = `600 12px ${FONT_B}`; ctx.textAlign = 'right'; ctx.fillStyle = '#fff6ee'; ctx.direction = 'rtl';
+  ctx.fillText(label, x + w - 10, 35);
+}
+function hud() {
+  const p = g.p, lv = LV();
+  // right side (RTL): blood, ability, temperature
+  bar(W - 220, 200, `בריאות הדם ${Math.round(g.blood)}`, g.blood / g.maxBlood, g.blood > g.maxBlood * 0.4 ? '#ff5252' : '#ffd54f');
+  const cdT = cdTime(), ready = p.charge >= cdT;
+  const abFrac = p.abilT > 0 ? p.abilT / 3 : p.charge / cdT;
+  bar(W - 420, 186, `${C().ability}: ${p.abilT > 0 ? 'פעיל' : ready ? 'מוכן' : 'נטען'}`, abFrac, p.abilT > 0 || ready ? '#ffe082' : '#8a76c4');
+  // thermometer
+  const tx = W - 470, hot = g.temp >= 38;
+  ctx.fillStyle = 'rgba(42, 12, 6, 0.75)'; roundRect(tx - 36, 17, 72, 26, 13); ctx.fill();
+  ctx.fillStyle = hot ? '#ff7043' : '#ffcc80'; ctx.beginPath(); ctx.arc(tx + 22, 34, 5, 0, 7); ctx.fill(); ctx.fillRect(tx + 20, 22, 4, 10);
+  ctx.font = `600 14px ${FONT_B}`; ctx.textAlign = 'right'; ctx.fillStyle = hot ? '#ffab91' : '#fff6ee';
+  ctx.direction = 'ltr'; ctx.fillText(`${g.temp.toFixed(1)}°C`, tx + 12, 36);
+  // score and stage
+  ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#2a0c06';
+  ctx.font = `28px ${FONT_D}`;
+  const sc = g.score.toLocaleString();
+  ctx.strokeText(sc, 380, 41); ctx.fillStyle = '#fff6ee'; ctx.fillText(sc, 380, 41);
+  ctx.font = `18px ${FONT_D}`;
+  const stage = g.phase === 'waves' ? `שלב ${run.level + 1} · גל ${g.wave}/3` : g.phase === 'boss' ? `שלב ${run.level + 1} · בוס` : `שלב ${run.level + 1} · יציאה`;
+  ctx.strokeText(stage, 250, 39); ctx.fillStyle = '#d7ccf5'; ctx.fillText(stage, 250, 39);
+
+  if (g.boss) {
+    const bw = 380, bx = W / 2 - bw / 2;
+    ctx.fillStyle = 'rgba(42, 12, 6, 0.8)'; roundRect(bx, 52, bw, 18, 9); ctx.fill();
+    ctx.fillStyle = '#c62828'; roundRect(bx + 3, 55, (bw - 6) * Math.max(0, g.boss.hp / g.boss.max), 12, 6); ctx.fill();
+    ctx.font = `600 12px ${FONT_B}`; ctx.fillStyle = '#fff6ee'; ctx.textAlign = 'center'; ctx.fillText(lv.bossName, W / 2, 66);
+  }
+
+  if (g.banner > 0) {
+    ctx.globalAlpha = Math.min(1, g.banner); ctx.textAlign = 'center';
+    ctx.font = `56px ${FONT_D}`; ctx.lineWidth = 10; ctx.strokeStyle = '#2a0c06';
+    ctx.strokeText(g.bannerText, W / 2, H / 2 - 12); ctx.fillStyle = '#fff6ee'; ctx.fillText(g.bannerText, W / 2, H / 2 - 12);
+    ctx.font = `600 19px ${FONT_B}`; ctx.lineWidth = 6;
+    ctx.strokeText(g.bannerSub, W / 2, H / 2 + 24); ctx.fillStyle = '#f0c9a8'; ctx.fillText(g.bannerSub, W / 2, H / 2 + 24);
+    ctx.globalAlpha = 1;
+  } else if (state === 'play') {
+    ctx.font = `600 14px ${FONT_B}`; ctx.textAlign = 'right'; ctx.direction = 'rtl'; ctx.fillStyle = 'rgba(42, 12, 6, 0.8)';
+    ctx.fillText(lv.facts[Math.floor(g.t / 9) % lv.facts.length], W - 190, H - 19);
+  }
+}
+function roundRect(x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+// ================= LOOP =================
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  if (state === 'play') update(dt);
+  else if (g && state !== 'pause') { g.t += dt; g.scroll += dt * 90; moveBg(dt); for (const d of g.dots) { d.x -= 90 * d.s * dt; if (d.x < -5) d.x = W + 5; } }
+  draw();
+  requestAnimationFrame(loop);
+}
+function boot() {
+  fit();
+  setMuted(muted);
+  newLevel();
+  Promise.all(loads).then(() => {
+    for (const [k, c] of Object.entries(CELLS)) if (img.wbcIdle && img.wbcAttack) tinted[k] = { idle: tintSheet(img.wbcIdle, c.filter, c.tint), attack: tintSheet(img.wbcAttack, c.filter, c.tint) };
+  });
+  requestAnimationFrame(loop);
+}
+window.__bp = { get g() { return g; }, get state() { return state; }, run, startLevel, update, draw, useAbility, spawnBoss, damageBoss, finishLevel, startQuiz, showUpgrades, LEVELS };
+window.claude && window.claude.hot && window.claude.hot.ready ? window.claude.hot.ready(boot) : boot();
+})();
+</script>
