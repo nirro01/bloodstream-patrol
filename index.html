@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bloodstream Patrol</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;600;800&display=swap">
 <style>
@@ -15,6 +17,7 @@
   --body: "Rubik", "Arial Hebrew", "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
 }
+[hidden] { display: none !important; }
 html, body { height: 100%; }
 body {
   background: radial-gradient(ellipse at 50% 40%, #44160c 0%, var(--plasma) 70%);
@@ -134,6 +137,26 @@ canvas { display: block; width: 100%; height: 100%; }
   background: var(--panel); border: 2px solid #ffe082; color: var(--ink); border-radius: 999px;
   padding: 6px 16px; font-size: clamp(0.72rem, 1.5vw, 0.92rem); font-weight: 600; pointer-events: none; white-space: nowrap;
 }
+.map { display: grid; grid-template-columns: minmax(110px, 0.8fr) 2fr; gap: 12px; width: 100%; align-items: center; }
+@media (max-width: 560px) { .map { grid-template-columns: 1fr; } .map .body { max-height: 160px; } }
+.map .body { width: 100%; max-height: 52vh; }
+.map-side { display: grid; gap: 8px; min-width: 0; }
+.worlds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.wpick { display: flex; align-items: center; gap: 8px; text-align: start; padding: 6px 10px; background: rgba(255,255,255,.04); color: var(--ink); border: 2px solid rgba(180,154,232,.35); border-radius: 12px; cursor: pointer; font-family: var(--body); min-width: 0; }
+.wpick .ic { font-size: 1.3rem; flex: none; }
+.wpick b { font-family: var(--display); font-weight: 400; font-size: clamp(0.85rem, 1.8vw, 1.05rem); display: block; }
+.wpick small { color: var(--muted); font-size: 0.7rem; }
+.wpick[aria-pressed="true"] { border-color: var(--defender); background: rgba(180,154,232,.18); }
+.wpick:disabled { opacity: .45; cursor: default; }
+.wpick:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.route { font-size: clamp(0.75rem, 1.5vw, 0.9rem); color: var(--muted); line-height: 1.45; text-align: start; min-height: 3em; }
+.route b { color: var(--ink); }
+.linkish { background: none; border: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-family: var(--body); font-size: 0.72rem; }
+.organ { transition: opacity .2s; }
+.organ.locked { opacity: .25; }
+.organ.sel { animation: organPulse 0.9s ease-in-out infinite; }
+@keyframes organPulse { 50% { opacity: .55; } }
+.heroThumb { width: clamp(70px, 12vw, 120px); height: clamp(70px, 12vw, 120px); }
 @media (prefers-reduced-motion: reduce) { .brain-idle, .brain-hurt, .wbc { animation-duration: 3s; } }
 </style>
 
@@ -152,10 +175,10 @@ canvas { display: block; width: 100%; height: 100%; }
       <div class="card">
         <div class="hero">
           <div class="sprite brain-idle" role="img" aria-label="המוח מנופף"></div>
-          <div class="speech">פולשים בגוף! בחרו תא לבן וצאו לסייר בדם, בריאות ובכבד.</div>
+          <div class="speech">ברוכים הבאים לגוף האדם! אני המוח, ואני אהיה המדריך שלכם.</div>
         </div>
         <h1>סיירת <span>זרם הדם</span></h1>
-        <p>4 שלבים באיברים שונים, 4 סוגי תאים לבנים, בוסים בסוף כל שלב. התאים מצוירים בגודל יחסי אמיתי וביחסי הכמויות האמיתיים בדם.</p>
+        <p>8 עולמות, כל אחד איבר אחר בגוף: הדם, הלב, הריאות, מערכת העיכול, הכליות, העור, מח העצם והמוח. בכל עולם משחקים בתא שבאמת עושה שם את העבודה, ולומדים איך הגוף עובד.</p>
         <div class="row">
           <button class="btn" id="toSelect">התחילו</button>
           <button class="btn ghost" id="toEncy">אנציקלופדיה</button>
@@ -163,10 +186,31 @@ canvas { display: block; width: 100%; height: 100%; }
       </div>
     </div>
 
+    <!-- body map: world select -->
+    <div class="overlay" id="mapScreen" hidden>
+      <div class="card wide map-card">
+        <h2>מפת הגוף</h2>
+        <div class="map">
+          <svg class="body" id="bodySvg" viewBox="0 0 200 400" role="img" aria-label="מפת גוף האדם"></svg>
+          <div class="map-side">
+            <div class="worlds" id="worldPicks"></div>
+            <div class="route" id="mapRoute"></div>
+          </div>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="mapBack">חזרה</button>
+          <button class="btn ghost" id="mapEncy">אנציקלופדיה</button>
+          <button class="btn" id="mapGo">לעולם הזה</button>
+        </div>
+        <button class="linkish" id="mapUnlock">פתיחת כל העולמות (להורים ולמורים)</button>
+      </div>
+    </div>
+
     <!-- cell + difficulty select -->
     <div class="overlay" id="selectScreen" hidden>
       <div class="card wide">
-        <h2>בחרו תא לבן</h2>
+        <h2 id="selectTitle">בחרו תא לבן</h2>
+        <p id="selectSub" hidden></p>
         <div class="cells" id="cellPicks"></div>
         <div class="row" style="align-items:center">
           <span class="eyebrow">רמת קושי</span>
@@ -177,7 +221,7 @@ canvas { display: block; width: 100%; height: 100%; }
           </div>
         </div>
         <div class="row">
-          <button class="btn ghost" id="selectBack">חזרה</button>
+          <button class="btn ghost" id="selectBack">למפה</button>
           <button class="btn" id="selectGo">לשלב הראשון</button>
         </div>
       </div>
@@ -208,9 +252,9 @@ canvas { display: block; width: 100%; height: 100%; }
     <!-- level complete -->
     <div class="overlay" id="doneScreen" hidden>
       <div class="card">
-        <span class="eyebrow">דיאפדזה הצליחה</span>
+        <span class="eyebrow" id="doneEyebrow">דיאפדזה הצליחה</span>
         <h2 id="doneTitle">השלב הושלם!</h2>
-        <p>התא השתחל בין תאי הדופן ויצא לרקמה. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.</p>
+        <p id="doneText"></p>
         <div class="stats">
           <div><small>ניקוד</small><span id="doneScore">0</span></div>
           <div><small>פתוגנים שחוסלו</small><span id="doneKills">0</span></div>
@@ -260,15 +304,16 @@ canvas { display: block; width: 100%; height: 100%; }
       <div class="card">
         <div class="hero">
           <div class="sprite brain-idle" role="img" aria-label="המוח שמח"></div>
-          <div class="speech">ניצחנו! הגוף נקי מפולשים. תודה, סיירת!</div>
+          <div class="speech" id="winLine">ניצחנו! הגוף נקי מפולשים. תודה, סיירת!</div>
         </div>
-        <h2>כל השלבים הושלמו</h2>
+        <h2 id="winTitle">כל השלבים הושלמו</h2>
+        <p id="winNext"></p>
         <div class="stats">
           <div><small>ניקוד סופי</small><span id="winScore">0</span></div>
           <div><small>שיא</small><span id="winBest">0</span></div>
         </div>
         <div class="row">
-          <button class="btn" id="winMenu">לתפריט</button>
+          <button class="btn" id="winMenu">למפת הגוף</button>
           <button class="btn ghost" id="winEncy">אנציקלופדיה</button>
         </div>
       </div>
@@ -291,7 +336,7 @@ canvas { display: block; width: 100%; height: 100%; }
 (() => {
 const W = 960, H = 540, WALL = 62;
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');
 const $ = id => document.getElementById(id);
 const rnd = (a, b) => a + Math.random() * (b - a);
 const FONT_D = '"Secular One", "Arial Hebrew", sans-serif';
@@ -315,13 +360,13 @@ const unlocked = new Set(store.get('bp2-ency', []));
 
 // ================= CONTENT =================
 const CELLS = {
-  neut:  { name: 'נויטרופיל', spd: 1.2, size: 1, filter: '', tint: null, ability: 'רשת NET', cd: 7,
+  neut:  { name: 'נויטרופיל', spd: 1.2, size: 1, filter: '', tint: null, ability: 'רשת NET', cd: 7, abil: 'net', perks: { bact2: 1 },
            desc: 'הנפוץ ביותר: 50–70% מהתאים הלבנים. מהיר ומצטיין בבליעת חיידקים.', perk: 'נקודות כפולות על חיידקים' },
-  macro: { name: "מקרופאג'", spd: 0.8, size: 1.4, filter: 'hue-rotate(136deg) saturate(2.2)', tint: '#f0a040', ability: 'בליעה ענקית', cd: 7,
+  macro: { name: "מקרופאג'", spd: 0.8, size: 1.4, filter: 'hue-rotate(136deg) saturate(2.2)', tint: '#f0a040', ability: 'בליעה ענקית', cd: 7, abil: 'grow', perks: { instant: 1, boss2: 1 },
            desc: 'הבולען הגדול. איטי וענק, בולע תאים אדומים נגועים במגע אחד.', perk: 'נזק כפול לבוסים' },
-  bcell: { name: 'תא B', spd: 1, size: 0.85, filter: 'hue-rotate(-47deg) saturate(2.2)', tint: '#4f8de8', ability: 'מטח נוגדנים', cd: 5,
+  bcell: { name: 'תא B', spd: 1, size: 0.85, filter: 'hue-rotate(-47deg) saturate(2.2)', tint: '#4f8de8', ability: 'מטח נוגדנים', cd: 5, abil: 'antibody', perks: { autoAb: 1 },
            desc: 'מייצר נוגדנים שננעלים על פתוגנים, מאטים אותם ומונעים מהם להדביק.', perk: 'יורה נוגדן אוטומטית' },
-  nk:    { name: 'תא NK', spd: 1.1, size: 0.9, filter: 'hue-rotate(-95deg) saturate(2.2)', tint: '#2fbf9f', ability: 'פרץ פרפורין', cd: 6,
+  nk:    { name: 'תא NK', spd: 1.1, size: 0.9, filter: 'hue-rotate(-95deg) saturate(2.2)', tint: '#2fbf9f', ability: 'פרץ פרפורין', cd: 6, abil: 'burst', perks: { instant: 1, site1: 1 },
            desc: 'הרוצח הטבעי. מזהה תאים נגועים ומשמיד אותם.', perk: 'מנקה אזורים ותאים נגועים במגע אחד' },
 };
 const DIFF = {
@@ -335,7 +380,7 @@ const LEVELS = [
     goal: 'בלעו וירוסים, קלפו טרמפיסטים מהתאים האדומים, ונקו אזורים נגועים בדופן לפני שהם נעלמים בזרם.',
     entries: ['plasma', 'rbc', 'platelet', 'virus', 'hitchhiker', 'endothelium'],
     facts: ['תאים אדומים: 4–6 מיליון בכל מיקרוליטר דם', 'תאים לבנים: רק 4,000–11,000 במיקרוליטר', 'טסיות: 150,000–450,000 במיקרוליטר', 'פלזמה היא כ־55% מנפח הדם, ו־90–92% ממנה מים', 'אלבומין (3.5–5.0 גרם לדציליטר) שומר נוזלים בתוך כלי הדם', 'גלוקוז בצום: בדרך כלל 70–99 מ״ג לדציליטר'] },
-  { id: 'lung', name: 'נימי הריאות', wall: 'lung', enemies: [['bacteria', 0.65], ['virus', 0.35]], boss: 'colony', bossName: 'מושבת חיידקים', allies: false,
+  { id: 'lung', name: 'נימי הריאות', wall: 'lung', enemies: [['bacteria', 0.65], ['virus', 0.35]], boss: 'colony', bossName: 'מושבת חיידקים', allies: false, spawnMul: 1.35,
     intro: 'הנימים האלה עוטפים את נאדיות הריאה. חיידקים מדלקת ריאות חדרו לדם. חיידק הוא תא חי שמתרבה בחלוקה לשניים, ולכן אם לא תבלעו אותם מהר הם יכפילו את עצמם.',
     goal: 'בלעו חיידקים לפני שהם מתחלקים, ואל תשכחו את וירוסי השפעת שנצמדים לתאים אדומים.',
     entries: ['alveoli', 'bacteria'],
@@ -345,7 +390,7 @@ const LEVELS = [
     goal: 'עצרו ספורוזואיטים לפני שהם חודרים לדופן. אם תא כבד נדבק, נקו אותו מהר לפני שהוא משחרר מרוזואיטים.',
     entries: ['liver', 'sporozoite', 'merozoite'],
     facts: ['הכבד מקבל כ־1.5 ליטר דם בדקה', 'ספורוזואיט מגיע לכבד תוך פחות משעה מהעקיצה', 'שלב הכבד של המלריה נמשך כשבוע, בלי תסמינים', 'ספורוזואיט ארוך כ־10 מיקרון'] },
-  { id: 'malaria', name: 'מלריה בזרם הדם', wall: 'vessel', enemies: [['merozoite', 1]], boss: 'rosette', bossName: 'רוזטה', allies: true,
+  { id: 'malaria', name: 'מלריה בזרם הדם', wall: 'vessel', enemies: [['merozoite', 1]], boss: 'rosette', bossName: 'רוזטה', allies: true, spawnMul: 1.4,
     intro: 'זה המקרה שבו פולש באמת חודר לתאים אדומים: מרוזואיטים של מלריה. בתוך התא הטפיל גדל, מתחלק, ואז מפוצץ את התא ומשחרר עוד מרוזואיטים. מלריה נגרמת על ידי טפיל, לא וירוס.',
     goal: 'בלעו מרוזואיטים, והשמידו תאים אדומים נגועים (עם הנקודות הסגולות) לפני שהם מתפוצצים.',
     entries: ['infectedrbc'],
@@ -398,6 +443,17 @@ const UPGRADES = [
   { id: 'regen', name: 'ייצור טסיות מוגבר', desc: 'הדם מתאושש מהר יותר ב־50%' },
   { id: 'magnet', name: 'קולטני כימוקינים', desc: 'טסיות נמשכות אליכם', once: true },
   { id: 'maxb', name: 'אריתרופויאטין (EPO)', desc: 'בריאות דם מקסימלית +20' },
+];
+// Heroes: the playable character of each world. The four white cells are the blood world's picks.
+const HEROES = { ...CELLS };
+// Worlds: each is a body region with its own levels, hero, meter, quiz bank and mechanic (MECH[level.mech]).
+const WORLDS = [
+  { id: 'blood', name: 'זרם הדם', icon: '🩸', organ: 'blood', meter: 'בריאות הדם', fever: true, heroPick: true,
+    levels: LEVELS, quiz: QUIZ,
+    route: 'הלב שולח את הדם לכל הגוף. כאן הכול מתחיל: בכלי דם בזרוע.',
+    blurb: 'תא לבן נלחם בווירוסים, חיידקים וטפילי מלריה.',
+    win: 'הדם נקי מפולשים. כל הכבוד, סיירת!',
+    done: { eyebrow: 'דיאפדזה הצליחה', text: 'התא השתחל בין תאי הדופן ויצא לרקמה. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.' } },
 ];
 
 // ================= AUDIO =================
@@ -569,6 +625,46 @@ const PLT = [0, 1, 2, 3].map(k => mk(48, 48, (x) => {
   for (let i = 0; i < 6; i++) { x.beginPath(); x.arc(Math.cos(i * 2.1 + k) * 6, Math.sin(i * 1.7 + k) * 4, 1.6, 0, 7); x.fill(); }
 }));
 
+// ================= WORLD REGISTRIES =================
+// Each world adds entries here: KINDS (things that move in the flow), BOSSES, SITES (things stuck on a wall),
+// PICKUPS (healing items) and MECH (the level's special mechanic: init/update/draw/hud hooks).
+const KINDS = {}, BOSSES = {}, SITES = {}, MECH = {};
+const PICKUPS = { platelet: { name: 'טסית', draw: q => ctx.drawImage(PLT[q.k], -12, -12, 24, 24) } };
+// cartoon face, matching the sprite characters
+function face(x, y, s, o = {}) {
+  const ey = y - s * 0.12, dx = s * 0.2, er = s * 0.11;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(x - dx, ey, er, er * 1.2, 0, 0, 7); ctx.ellipse(x + dx, ey, er, er * 1.2, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = o.ink || '#2a1010';
+  const look = o.look || 0;
+  ctx.beginPath(); ctx.arc(x - dx + look * er * 0.4, ey + er * 0.15, er * 0.55, 0, 7); ctx.arc(x + dx + look * er * 0.4, ey + er * 0.15, er * 0.55, 0, 7); ctx.fill();
+  ctx.strokeStyle = o.ink || '#2a1010'; ctx.lineWidth = Math.max(1.5, s * 0.05); ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (o.mad) { ctx.moveTo(x - s * 0.14, y + s * 0.2); ctx.quadraticCurveTo(x, y + s * 0.1, x + s * 0.14, y + s * 0.2); }
+  else ctx.arc(x, y + s * 0.08, s * 0.14, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+  if (o.mad) { ctx.beginPath(); ctx.moveTo(x - dx - er, ey - er * 1.6); ctx.lineTo(x - dx + er, ey - er * 0.9); ctx.moveTo(x + dx + er, ey - er * 1.6); ctx.lineTo(x + dx - er, ey - er * 0.9); ctx.stroke(); }
+  if (o.blush !== false) { ctx.fillStyle = 'rgba(255, 120, 140, 0.45)'; ctx.beginPath(); ctx.ellipse(x - dx * 1.6, y + s * 0.08, er, er * 0.6, 0, 0, 7); ctx.ellipse(x + dx * 1.6, y + s * 0.08, er, er * 0.6, 0, 0, 7); ctx.fill(); }
+}
+function circle(x, y, r, fill, stroke, lw = 2) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); if (fill) { ctx.fillStyle = fill; ctx.fill(); } if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); } }
+function label(txt, x, y, size = 14, color = '#fff6ee') {
+  ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = `600 ${size}px ${FONT_B}`;
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(30, 8, 4, 0.85)'; ctx.strokeText(txt, x, y); ctx.fillStyle = color; ctx.fillText(txt, x, y);
+}
+function banner(text, sub, t = 2.6) { g.banner = t; g.bannerText = text; g.bannerSub = sub || ''; }
+// headless bot (tools/harness.js) and nothing else: where would a player head next?
+function botTarget() {
+  const p = g.p;
+  if (M() && M().botTarget) { const t = M().botTarget(); if (t) return t; }
+  if (g.gap) return { x: g.gap.x, y: H - WALL };
+  let best = null, bd = 1e9;
+  const consider = (x, y, w = 1) => { const d = Math.hypot(x - p.x, y - p.y) * w; if (d < bd && x > 0 && x < W) { bd = d; best = { x, y }; } };
+  for (const e of g.en) consider(e.x, e.y);
+  for (const s of g.sites) consider(s.x, wallY(s.top));
+  if (g.boss) consider(g.boss.x, g.boss.y, 0.6);
+  return best;
+}
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
@@ -592,11 +688,16 @@ $('abilityBtn').addEventListener('pointerdown', e => { e.preventDefault(); useAb
 
 // ================= RUN + LEVEL STATE =================
 let state = 'title', g = null;
-let run = { type: 'neut', diff: 'normal', level: 0, score: 0, kills: 0, up: {}, levelStart: { score: 0, kills: 0 } };
+let run = { world: 0, type: 'neut', diff: 'normal', level: 0, score: 0, kills: 0, up: {}, levelStart: { score: 0, kills: 0 } };
 const up = k => run.up[k] || 0;
 const D = () => DIFF[run.diff];
-const LV = () => LEVELS[run.level];
-const C = () => CELLS[run.type];
+const WD = () => WORLDS[run.world];
+const LV = () => WD().levels[run.level];
+const heroKey = () => LV().hero || WD().hero || run.type;
+const C = () => HEROES[g ? g.hero : heroKey()];
+const M = () => MECH[LV().mech] || null;
+const perk = k => !!(C().perks && C().perks[k]);
+const fevers = () => LV().fever ?? WD().fever ?? false;
 
 function unlock(key, quiet) {
   if (!ENCY[key] || unlocked.has(key)) return;
@@ -619,6 +720,7 @@ function toast(msg) {
 function newLevel() {
   const lv = LV();
   g = {
+    hero: heroKey(), flow: lv.flow ?? 90, pickT: 3,
     t: 0, scroll: 0, wave: 1, waveT: 0, phase: 'waves', banner: 2.6, bannerText: `גל 1`, bannerSub: lv.goal.split('.')[0],
     shake: 0, score: run.score, kills: run.kills, combo: 0, comboT: 0,
     maxBlood: 100 + 20 * up('maxb'), blood: 100 + 20 * up('maxb'), bloodCalm: 0,
@@ -628,20 +730,21 @@ function newLevel() {
     boss: null, gap: null, net: null, exiting: -1,
   };
   g.p.charge = cdTime();
-  for (let i = 0; i < 26; i++) g.rbcs.push(makeRbc(20 + i * 38 + Math.random() * 30));
-  for (let i = 0; i < 3; i++) g.plts.push(makePlatelet(150 + i * 300));
+  if (lv.rbcFlow !== false) for (let i = 0; i < 26; i++) g.rbcs.push(makeRbc(20 + i * 38 + Math.random() * 30));
+  if (lv.pickup !== false) for (let i = 0; i < 3; i++) g.plts.push(makePlatelet(150 + i * 300));
   for (let i = 0; i < 48; i++) g.bg.push({ x: Math.random() * (W + 100), y: WALL + 10 + Math.random() * (H - WALL * 2 - 20), s: rnd(42, 56), vx: -rnd(40, 65), ph: Math.random() * 8, rot: Math.random() * 6, spin: rnd(-0.4, 0.4) });
   for (let i = 0; i < 70; i++) g.dots.push({ x: Math.random() * W, y: WALL + Math.random() * (H - WALL * 2), r: rnd(1.2, 3.4), s: rnd(0.6, 1.4), glu: Math.random() < 0.3, rot: Math.random() * 6 });
+  if (M() && M().init) M().init(lv);
 }
 const cdTime = () => C().cd * Math.pow(0.8, up('cd'));
-const radius = () => 45 * C().size * (1 + 0.1 * up('size')) * (g.p.abilT > 0 && run.type === 'macro' ? 1.7 : 1);
+const radius = () => 45 * C().size * (1 + 0.1 * up('size')) * (g.p.abilT > 0 && C().abil === 'grow' ? 1.7 : 1);
 const wallY = top => top ? WALL : H - WALL;
 function makeRbc(x = W + 60) {
   const s = rnd(84, 96);
   if (g) g.rbcCount++;
   return { x, y: rnd(WALL + 36, H - WALL - 36), vx: -rnd(65, 105), ph: Math.random() * 8, s, r: s * 0.33, rot: Math.random() * 6, spin: rnd(-0.6, 0.6), tumble: Math.random() * 6, mal: 0, clr: 0, hosted: 0 };
 }
-function makePlatelet(x = W + 30) { return { x, y: rnd(WALL + 30, H - WALL - 30), vx: -rnd(75, 110), k: Math.floor(Math.random() * 4), rot: Math.random() * 6, spin: rnd(-1, 1) }; }
+function makePlatelet(x = W + 30) { return { x, y: rnd(WALL + 30, H - WALL - 30), vx: -rnd(75, 110), k: Math.floor(Math.random() * 4), rot: Math.random() * 6, spin: rnd(-1, 1), type: LV().pickup || 'platelet' }; }
 
 function spawnEnemy(kind, x = W + 40, y = rnd(WALL + 40, H - WALL - 40), goal) {
   const lv = LV(), ds = D().spd;
@@ -657,6 +760,10 @@ function spawnEnemy(kind, x = W + 40, y = rnd(WALL + 40, H - WALL - 40), goal) {
     e.r = 16; e.sp = (95 + g.wave * 8) * ds; e.goal = 'wall'; e.top = Math.random() < 0.5;
   } else if (kind === 'merozoite') {
     e.r = 11; e.sp = (70 + g.wave * 6) * ds; e.goal = goal || 'rbc';
+  } else if (KINDS[kind]) {
+    const K = KINDS[kind];
+    e.r = K.r; e.sp = (K.sp + g.wave * (K.spW ?? 5)) * ds * rnd(0.85, 1.15); e.goal = goal; e.hitCd = 0; e.pushT = 0;
+    if (K.init) K.init(e);
   }
   e.vx = -e.sp;
   g.en.push(e);
@@ -668,10 +775,11 @@ function pickKind() {
   return list[0][0];
 }
 function spawnBoss() {
-  const lv = LV();
-  const hp = Math.round(30 * D().boss);
-  g.boss = { kind: lv.boss, x: W + 160, y: H / 2, hp, max: hp, t: 0, hitCd: 0, emitT: 2, r: 95 };
-  g.phase = 'boss'; g.banner = 2.8; g.bannerText = `${lv.bossName} הופיע!`; g.bannerSub = 'שחו לתוכו שוב ושוב כדי לפגוע בו';
+  const lv = LV(), B = BOSSES[lv.boss];
+  const hp = Math.max(1, Math.round(30 * (B && B.hp || 1) * D().boss));
+  g.boss = { kind: lv.boss, x: W + 160, y: H / 2, hp, max: hp, t: 0, hitCd: 0, emitT: 2, r: B && B.r || 95, sh: 0 };
+  g.phase = 'boss'; g.banner = 2.8; g.bannerText = `${lv.bossName} הופיע!`; g.bannerSub = lv.bossHint || 'שחו לתוכו שוב ושוב כדי לפגוע בו';
+  if (B && B.init) B.init(g.boss);
   unlock(lv.boss);
   sfx.boss();
 }
@@ -680,19 +788,27 @@ function spawnBoss() {
 function addText(x, y, s, c = '#fff6ee') { g.texts.push({ x, y, t: 0, s, c }); }
 function eat(e, by = 'player') {
   e.dead = true;
-  g.pops.push({ x: e.x, y: e.y, t: 0, small: e.kind !== 'virus' });
+  if (!(KINDS[e.kind] && KINDS[e.kind].noPop)) g.pops.push({ x: e.x, y: e.y, t: 0, small: e.kind !== 'virus' });
   if (e.host) e.host.hosted = Math.max(0, e.host.hosted - 1);
   g.kills++;
   if (by !== 'player') { g.score += 40; sfx.chomp(1); return; }
   g.combo = g.comboT > 0 ? Math.min(10, g.combo + 1) : 1; g.comboT = 1.6;
-  const base = { virus: 100, bacteria: 80, sporozoite: 150, merozoite: 60 }[e.kind];
-  const mult = (e.kind === 'bacteria' && run.type === 'neut' ? 2 : 1) * (e.tag ? 1.5 : 1);
+  const base = KINDS[e.kind] ? KINDS[e.kind].pts : { virus: 100, bacteria: 80, sporozoite: 150, merozoite: 60 }[e.kind];
+  const mult = (e.kind === 'bacteria' && perk('bact2') ? 2 : 1) * (e.tag ? 1.5 : 1);
   const pts = Math.round(base * g.combo * mult);
   g.score += pts;
-  g.blood = Math.min(g.maxBlood, g.blood + 1.5);
+  heal(1.5);
   g.p.chomp = 0; g.p.face = e.x < g.p.x ? -1 : 1;
   sfx.chomp(g.combo);
   addText(e.x, e.y - 26, g.combo > 1 ? `+${pts} x${g.combo}` : `+${pts}`);
+}
+function heal(n) { g.blood = Math.min(g.maxBlood, g.blood + n); }
+// score + combo for non-eating good actions (deliveries, sorting, clearing)
+function award(pts, x, y, label, color = '#c5f7c0') {
+  g.combo = g.comboT > 0 ? Math.min(10, g.combo + 1) : 1; g.comboT = 1.6;
+  const v = Math.round(pts * g.combo); g.score += v;
+  addText(x, y, `${label ? label + ' ' : ''}+${v}${g.combo > 1 ? ' x' + g.combo : ''}`, color);
+  return v;
 }
 function hurtBlood(n, why, x, y, color = '#ffd54f') {
   g.blood -= n * D().dmg; g.bloodCalm = 0;
@@ -719,16 +835,17 @@ function useAbility() {
   const p = g.p;
   if (state !== 'play' || p.abilT > 0 || p.charge < cdTime()) return;
   p.charge = 0;
-  const t = run.type;
-  if (t === 'neut') {
+  const t = C().abil;
+  if (C().useAbility) { C().useAbility(p); addText(p.x, p.y - 80, C().ability + '!', '#ffe082'); return; }
+  if (t === 'net') {
     g.net = { x: p.x, y: p.y, t: 0 }; sfx.net();
     for (const e of g.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < 175) eat(e);
     if (g.boss && Math.hypot(g.boss.x - p.x, g.boss.y - p.y) < 175 + g.boss.r) damageBoss(3);
-  } else if (t === 'bcell') {
+  } else if (t === 'antibody') {
     sfx.ability();
     for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; g.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, t: 0, rot: a }); }
   } else {
-    p.abilT = 3; sfx.ability();
+    p.abilT = t === 'dash' ? 1.4 : 3; sfx.ability();
   }
   addText(p.x, p.y - 80, C().ability + '!', '#ffe082');
 }
@@ -746,14 +863,14 @@ function damageBoss(n) {
     for (let i = 0; i < 18; i++) g.pops.push({ x: b.x + rnd(-90, 90), y: b.y + rnd(-90, 90), t: rnd(0, 0.3) });
     g.boss = null; g.phase = 'exit';
     g.gap = { x: W * 0.5, top: false, t: 0 };
-    g.banner = 3; g.bannerText = 'הבוס הובס!'; g.bannerSub = 'דיאפדזה: שחו לפתח שנפתח בדופן התחתונה';
-    unlock('diapedesis');
+    g.banner = 3; g.bannerText = 'הבוס הובס!'; g.bannerSub = LV().exitSub || 'דיאפדזה: שחו לפתח שנפתח בדופן התחתונה';
+    if (!LV().exitSub) unlock('diapedesis');
   }
 }
 
 // ================= FLOW =================
 function show(id) {
-  ['titleScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen']
+  ['titleScreen', 'mapScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen']
     .forEach(s => { $(s).hidden = s !== id; });
   const playing = id === null;
   $('abilityBtn').hidden = !playing; $('corner').hidden = !playing;
@@ -773,9 +890,31 @@ function renderEncy() {
     grid.appendChild(b);
   });
 }
+function heroThumb(key, size = 120) {
+  const c = document.createElement('canvas'); c.width = size; c.height = size; c.className = 'heroThumb';
+  const h = HEROES[key];
+  if (h && h.draw) { const keep = ctx; ctx = c.getContext('2d'); try { h.draw(size / 2, size / 2, size * 0.8, 0, 1); } catch (_) {} ctx = keep; }
+  return c;
+}
 function renderSelect() {
   const box = $('cellPicks'); box.innerHTML = '';
-  for (const [k, c] of Object.entries(CELLS)) {
+  const wd = WD();
+  $('selectTitle').textContent = wd.heroPick ? 'בחרו תא לבן' : `${wd.icon} ${wd.name}`;
+  $('selectSub').hidden = wd.heroPick; $('selectSub').textContent = wd.route || '';
+  box.style.gridTemplateColumns = wd.heroPick ? '' : '1fr';
+  if (!wd.heroPick) {
+    const keysH = [...new Set(wd.levels.map(l => l.hero || wd.hero))];
+    box.style.gridTemplateColumns = `repeat(${keysH.length}, minmax(0, 1fr))`;
+    for (const k of keysH) {
+      const c = HEROES[k], b = document.createElement('div'); b.className = 'pick'; b.setAttribute('aria-pressed', 'true');
+      if (c.draw) b.appendChild(heroThumb(k)); else { const sp = document.createElement('div'); sp.className = 'sprite wbc'; sp.style.filter = c.filter || 'none'; b.appendChild(sp); }
+      b.insertAdjacentHTML('beforeend', '<b></b><small class="d"></small><small class="ab"></small>');
+      b.querySelector('b').textContent = keysH.length > 1 ? `${c.name} (שלב ${wd.levels.findIndex(l => (l.hero || wd.hero) === k) + 1})` : c.name;
+      b.querySelector('.d').textContent = c.desc;
+      b.querySelector('.ab').textContent = `יכולת: ${c.ability}`;
+      box.appendChild(b);
+    }
+  } else for (const [k, c] of Object.entries(CELLS)) {
     const b = document.createElement('button'); b.className = 'pick'; b.setAttribute('aria-pressed', run.type === k);
     b.innerHTML = `<div class="sprite wbc" style="filter:${c.filter || 'none'}; transform: scale(${0.7 + c.size * 0.3})"></div><b></b><small class="d"></small><small class="ab"></small><small class="pk"></small>`;
     b.querySelector('b').textContent = c.name;
@@ -791,7 +930,7 @@ document.querySelectorAll('#diffSeg button').forEach(b => b.onclick = () => { ru
 
 function showIntro() {
   const lv = LV();
-  $('introNum').textContent = `שלב ${run.level + 1} מתוך ${LEVELS.length}`;
+  $('introNum').textContent = `${WD().icon} ${WD().name} · שלב ${run.level + 1} מתוך ${WD().levels.length}`;
   $('introName').textContent = lv.name;
   $('introText').textContent = lv.intro;
   $('introGoal').textContent = lv.goal;
@@ -803,7 +942,7 @@ function startLevel() {
   newLevel();
   $('abilityBtn').textContent = C().ability;
   LV().entries.forEach(k => unlock(k));
-  unlock(run.type);
+  unlock(g.hero);
   state = 'play'; show(null); last = performance.now();
   sfx.wave(); startMusic();
 }
@@ -815,7 +954,7 @@ function gameOver(line) {
   state = 'over'; stopMusic(); sfx.over();
   best = Math.max(best, g.score); store.set('bp2-best', best);
   $('finalScore').textContent = g.score.toLocaleString();
-  $('finalLevel').textContent = run.level + 1;
+  $('finalLevel').textContent = `${WD().name} ${run.level + 1}`;
   $('bestScore').textContent = best.toLocaleString();
   $('overLine').textContent = line;
   show('overScreen');
@@ -824,17 +963,19 @@ function finishLevel() {
   state = 'done'; stopMusic(); sfx.exit();
   run.score = g.score; run.kills = g.kills;
   $('doneTitle').textContent = `${LV().name}: הושלם!`;
+  const dn = LV().done || WD().done;
+  $('doneEyebrow').textContent = dn.eyebrow; $('doneText').textContent = dn.text;
   $('doneScore').textContent = run.score.toLocaleString();
   $('doneKills').textContent = run.kills;
   show('doneScreen');
 }
 let quizSet = [], quizI = 0;
 function startQuiz() {
-  const pool = QUIZ.map((q, i) => i).sort(() => Math.random() - 0.5);
+  const pool = WD().quiz.map((q, i) => i).sort(() => Math.random() - 0.5);
   quizSet = pool.slice(0, 2); quizI = 0; renderQuiz(); show('quizScreen'); state = 'quiz';
 }
 function renderQuiz() {
-  const [q, opts, expl] = QUIZ[quizSet[quizI]];
+  const [q, opts, expl] = WD().quiz[quizSet[quizI]];
   $('quizNum').textContent = `שאלה ${quizI + 1} מתוך ${quizSet.length}`;
   $('quizQ').textContent = q; $('quizFb').textContent = ''; $('quizNext').hidden = true;
   const box = $('quizOpts'); box.innerHTML = '';
@@ -852,7 +993,7 @@ function renderQuiz() {
 }
 $('quizNext').onclick = () => { quizI++; if (quizI < quizSet.length) renderQuiz(); else showUpgrades(); };
 function showUpgrades() {
-  if (run.level >= LEVELS.length - 1) { winGame(); return; }
+  if (run.level >= WD().levels.length - 1) { winGame(); return; }
   state = 'upgrade';
   const pool = UPGRADES.filter(u => !(u.once && up(u.id))).sort(() => Math.random() - 0.5).slice(0, 3);
   const box = $('upPicks'); box.innerHTML = '';
@@ -868,14 +1009,71 @@ function showUpgrades() {
 }
 function winGame() {
   state = 'win'; best = Math.max(best, run.score); store.set('bp2-best', best);
+  const wd = WD(), last = run.world >= WORLDS.length - 1;
+  prog.done[wd.id] = Math.max(prog.done[wd.id] || 0, run.score);
+  prog.open = Math.max(prog.open, Math.min(WORLDS.length - 1, run.world + 1));
+  store.set('bp3-prog', prog);
+  $('winTitle').textContent = last ? 'כל הגוף נחקר!' : `העולם "${wd.name}" הושלם!`;
+  $('winLine').textContent = last ? 'עברתם בכל הגוף: מהדם ועד המוח. עכשיו אתם יודעים איך הצוות הענק הזה עובד יחד!' : wd.win;
+  $('winNext').textContent = last ? '' : `נפתח עולם חדש במפת הגוף: ${WORLDS[run.world + 1].icon} ${WORLDS[run.world + 1].name}`;
   $('winScore').textContent = run.score.toLocaleString(); $('winBest').textContent = best.toLocaleString();
+  if (!last) mapSel = run.world + 1;
   show('winScreen'); sfx.bossDown();
 }
-function toMenu() { state = 'title'; stopMusic(); show('titleScreen'); run.level = 0; newLevel(); }
+function toMenu() { stopMusic(); openMap(); }
 
-$('toSelect').onclick = () => { initAudio(); sfx.click(); renderSelect(); show('selectScreen'); state = 'select'; };
+// ---- body map
+const prog = Object.assign({ open: 0, done: {} }, store.get('bp3-prog', {}));
+let mapSel = 0;
+const ORGANS = {
+  blood:  '<path d="M106 132 L100 70 M106 132 L60 120 L40 230 M106 132 L140 120 L162 230 M106 132 L95 230 L74 380 M106 132 L110 230 L128 380" fill="none" stroke="#e53950" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  heart:  '<path d="M106 145 C92 134 92 120 100 118 C104 117 106 121 106 123 C106 121 108 117 112 118 C120 120 120 134 106 145 Z" fill="#e0304a" stroke="#7a1020" stroke-width="1.5"/>',
+  lungs:  '<ellipse cx="82" cy="122" rx="13" ry="25" fill="#f4a6b8" stroke="#9b4060" stroke-width="1.5"/><ellipse cx="122" cy="120" rx="12" ry="24" fill="#f4a6b8" stroke="#9b4060" stroke-width="1.5"/>',
+  gut:    '<path d="M104 152 C122 150 126 166 112 170 C100 173 96 164 100 158" fill="#f0a35a" stroke="#8a4a1a" stroke-width="1.5"/><path d="M80 182 C100 176 120 180 122 190 C124 200 80 196 80 206 C80 214 120 210 122 218 C110 224 90 224 82 216" fill="none" stroke="#e08a4a" stroke-width="5" stroke-linecap="round"/>',
+  kidney: '<ellipse cx="74" cy="172" rx="6" ry="10" fill="#a0523d" stroke="#5a2414" stroke-width="1.5"/><ellipse cx="128" cy="172" rx="6" ry="10" fill="#a0523d" stroke="#5a2414" stroke-width="1.5"/>',
+  skin:   '<g transform="rotate(-20 163 236)"><rect x="152" y="230" width="22" height="11" rx="4" fill="#f5d3a6" stroke="#9a6a3a" stroke-width="1.5"/><rect x="159" y="232" width="8" height="7" fill="#e6b88a"/></g>',
+  marrow: '<path d="M73 248 L77 330" stroke="#f3eadb" stroke-width="6" stroke-linecap="round"/><circle cx="72" cy="248" r="5" fill="#f3eadb"/><circle cx="78" cy="331" r="5" fill="#f3eadb"/><path d="M74 262 L76 316" stroke="#c84a4a" stroke-width="2"/>',
+  brain:  '<ellipse cx="100" cy="40" rx="22" ry="17" fill="#f2a7c3" stroke="#a04070" stroke-width="1.5"/><path d="M84 38 C90 30 96 46 100 36 C104 28 110 44 116 36" fill="none" stroke="#a04070" stroke-width="1.5"/>',
+};
+const ORGAN_AT = { blood: [60, 190], heart: [106, 132], lungs: [82, 122], gut: [104, 195], kidney: [74, 172], skin: [163, 236], marrow: [75, 290], brain: [100, 40] };
+function renderMap() {
+  const svg = $('bodySvg');
+  let h = '<g fill="#5a2a22" stroke="#7a3a30" stroke-width="2"><circle cx="100" cy="42" r="30"/><rect x="90" y="68" width="20" height="20"/><rect x="58" y="84" width="84" height="150" rx="30"/></g>' +
+    '<g stroke="#5a2a22" stroke-linecap="round" fill="none"><path d="M64 96 L40 160 L36 238" stroke-width="20"/><path d="M136 96 L160 160 L164 238" stroke-width="20"/><path d="M80 220 L74 385" stroke-width="28"/><path d="M120 220 L126 385" stroke-width="28"/></g>';
+  WORLDS.forEach((w, i) => { h += `<g class="organ${i > prog.open ? ' locked' : ''}${i === mapSel ? ' sel' : ''}">${ORGANS[w.organ] || ''}</g>`; });
+  const sel = WORLDS[mapSel], to = ORGAN_AT[sel.organ] || [106, 132];
+  h += `<path id="routePath" d="M106 132 Q${(106 + to[0]) / 2 + 18} ${(132 + to[1]) / 2} ${to[0]} ${to[1]}" fill="none" stroke="#ffe082" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+  h += '<circle r="4" fill="#ffe082" stroke="#5a3a00"><animateMotion dur="1.4s" repeatCount="indefinite"><mpath href="#routePath"/></animateMotion></circle>';
+  svg.innerHTML = h;
+  const box = $('worldPicks'); box.innerHTML = '';
+  WORLDS.forEach((w, i) => {
+    const b = document.createElement('button'); b.className = 'wpick'; b.setAttribute('aria-pressed', i === mapSel);
+    b.disabled = i > prog.open;
+    b.innerHTML = '<span class="ic"></span><span><b></b><small></small></span>';
+    b.querySelector('.ic').textContent = i > prog.open ? '🔒' : w.icon;
+    b.querySelector('b').textContent = `${i + 1}. ${w.name}`;
+    b.querySelector('small').textContent = prog.done[w.id] != null ? `✓ הושלם · ${prog.done[w.id].toLocaleString()}` : i > prog.open ? 'נעול' : `${w.levels.length} שלבים`;
+    b.onclick = () => { mapSel = i; sfx.click(); renderMap(); };
+    box.appendChild(b);
+  });
+  $('mapRoute').innerHTML = '<b></b><br><span></span>';
+  $('mapRoute').querySelector('b').textContent = `${sel.icon} ${sel.name}: ${sel.blurb}`;
+  $('mapRoute').querySelector('span').textContent = sel.route;
+  $('mapGo').disabled = mapSel > prog.open;
+  $('mapUnlock').hidden = prog.open >= WORLDS.length - 1;
+}
+function openMap() { state = 'map'; renderMap(); show('mapScreen'); }
+
+$('toSelect').onclick = () => { initAudio(); sfx.click(); openMap(); };
 $('toEncy').onclick = () => { sfx.click(); openEncy('titleScreen'); };
-$('selectBack').onclick = () => { show('titleScreen'); state = 'title'; };
+$('mapBack').onclick = () => { show('titleScreen'); state = 'title'; };
+$('mapEncy').onclick = () => { sfx.click(); openEncy('mapScreen'); };
+$('mapUnlock').onclick = () => { prog.open = WORLDS.length - 1; store.set('bp3-prog', prog); sfx.click(); renderMap(); };
+$('mapGo').onclick = () => {
+  if (mapSel > prog.open) return;
+  run.world = mapSel; run.level = 0; sfx.click(); newLevel(); renderSelect(); show('selectScreen'); state = 'select';
+};
+$('selectBack').onclick = openMap;
 $('selectGo').onclick = () => { run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
 $('introGo').onclick = startLevel;
 $('resumeBtn').onclick = togglePause;
@@ -893,8 +1091,11 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && sta
 
 // ================= UPDATE =================
 function update(dt) {
-  const lv = LV(), p = g.p, cell = C();
-  g.t += dt; g.scroll += dt * 90;
+  const lv = LV(), p = g.p, cell = C(), mech = M();
+  g.flow = lv.flow ?? 90;
+  if (mech && mech.flow) g.flow = mech.flow(dt);
+  const fl = g.flow / 90;
+  g.t += dt; g.scroll += dt * g.flow;
   if (g.banner > 0) g.banner -= dt;
   if (g.shake > 0) g.shake -= dt;
   const feverSlow = 1 + Math.max(0, g.temp - 37.5) * 0.35;
@@ -902,7 +1103,7 @@ function update(dt) {
   // waves → boss → exit
   if (g.phase === 'waves') {
     g.waveT += dt;
-    if (g.waveT > 26) {
+    if (g.waveT > (lv.waveLen || 26)) {
       g.waveT = 0;
       if (g.wave >= 3) spawnBoss();
       else {
@@ -919,10 +1120,11 @@ function update(dt) {
   if (g.bloodCalm > 1.5 && g.blood < g.maxBlood) g.blood = Math.min(g.maxBlood, g.blood + 3 * (1 + 0.5 * up('regen')) * dt);
 
   // fever: rises with the infection load
+  if (!fevers()) g.temp = 37;
   const malCount = g.rbcs.filter(c => c.mal > 0).length;
   const bactCount = g.en.filter(e => e.kind === 'bacteria').length;
   const load = g.sites.length * 0.6 + malCount * 0.35 + bactCount * 0.06 + (g.boss ? 0.6 : 0) + (g.blood < g.maxBlood * 0.5 ? 0.8 : 0);
-  g.temp += ((37 + Math.min(3, load)) - g.temp) * dt * 0.25;
+  if (fevers()) g.temp += ((37 + Math.min(3, load)) - g.temp) * dt * 0.25;
   if (g.temp >= 38 && !g.feverSeen) { g.feverSeen = true; addText(p.x, p.y - 90, 'חום! הגוף מגיב לזיהום', '#ffab66'); unlock('fever'); }
 
   // ability timers
@@ -940,13 +1142,15 @@ function update(dt) {
   if (keys.has('arrowup') || keys.has('w') || keys.has("'")) ay -= 1;
   if (keys.has('arrowdown') || keys.has('s') || keys.has('ד')) ay += 1;
   if (pointer) { const dx = pointer.x - p.x, dy = pointer.y - p.y, l = Math.hypot(dx, dy); if (l > 12) { ax = dx / l * Math.min(1, l / 80); ay = dy / l * Math.min(1, l / 80); } }
-  const abilSpeed = p.abilT > 0 ? (run.type === 'nk' ? 1.9 : 1.25) : 1;
-  const MAX = 300 * cell.spd * (1 + 0.12 * up('spd')) * abilSpeed * (1 + Math.max(0, g.temp - 37.5) * 0.08);
+  const abilSpeed = p.abilT > 0 ? (cell.abil === 'burst' || cell.abil === 'dash' ? 1.9 : 1.25) : 1;
+  const MAX = 300 * cell.spd * (1 + 0.12 * up('spd')) * abilSpeed * (1 + Math.max(0, g.temp - 37.5) * 0.08) * (p.slow > 0 ? 0.55 : 1);
+  if (p.slow > 0) p.slow -= dt;
   p.vx += (ax * MAX - p.vx) * Math.min(1, dt * 7);
   p.vy += (ay * MAX - p.vy) * Math.min(1, dt * 7);
   if (Math.abs(ax) > 0.2 && p.chomp < 0) p.face = ax < 0 ? -1 : 1;
-  p.x += (p.vx - 25) * dt; p.y += p.vy * dt;
+  p.x += (p.vx - 25 * fl) * dt; p.y += p.vy * dt;
   const rad = radius();
+  if (mech && mech.bound) mech.bound(p, rad);
   p.x = Math.max(rad, Math.min(W - rad, p.x));
   p.y = Math.max(WALL + rad * 0.85, Math.min(H - WALL - rad * 0.85, p.y));
   if (p.chomp >= 0) { p.chomp += dt; if (p.chomp > 0.4) p.chomp = -1; }
@@ -956,7 +1160,7 @@ function update(dt) {
   g.trail = g.trail.filter(s => s.t < 0.5);
 
   // B cell: automatic antibody every second toward the nearest pathogen
-  if (run.type === 'bcell') {
+  if (perk('autoAb')) {
     p.shotT -= dt;
     if (p.shotT <= 0) {
       let tgt = null, bd = 420;
@@ -973,18 +1177,23 @@ function update(dt) {
   }
   g.shots = g.shots.filter(s => !s.dead);
 
+  if (mech && mech.update) { mech.update(dt, rad); if (state !== 'play') return; }
+
   // spawning
-  if (g.phase !== 'exit') {
+  if (g.phase !== 'exit' && lv.enemies.length) {
     g.spawnT -= dt;
     if (g.spawnT <= 0) {
       spawnEnemy(pickKind());
       if (g.wave >= 3 && Math.random() < 0.25) spawnEnemy(pickKind());
-      const lvMul = lv.id === 'lung' ? 1.35 : lv.id === 'malaria' ? 1.4 : 1;
+      const lvMul = lv.spawnMul || 1;
       g.spawnT = Math.max(0.6, 1.9 - g.wave * 0.14) * D().spawn * lvMul * (g.boss ? 1.8 : 1) * rnd(0.7, 1.3);
     }
   }
   g.rbcT -= dt;
-  if (g.rbcT <= 0) {
+  if (lv.rbcFlow === false) {
+    g.pickT -= dt;
+    if (g.pickT <= 0 && lv.pickup !== false) { g.plts.push(makePlatelet()); g.pickT = rnd(4, 6); }
+  } else if (g.rbcT <= 0) {
     g.rbcs.push(makeRbc()); g.rbcT = rnd(0.2, 0.42);
     // real ratios: ~1 platelet per 15-20 red cells, ~1 white cell per 600-700 red cells
     if (g.rbcCount % 16 === 0) g.plts.push(makePlatelet());
@@ -994,9 +1203,9 @@ function update(dt) {
 
   // platelets
   for (const q of g.plts) {
-    q.x += q.vx * dt; q.rot += q.spin * dt;
+    q.x += q.vx * dt * (lv.flow === 0 ? 0.6 : fl); q.rot += q.spin * dt;
     if (up('magnet')) { const dx = p.x - q.x, dy = p.y - q.y, l = Math.hypot(dx, dy); if (l < 240) { q.x += dx / l * 160 * dt; q.y += dy / l * 160 * dt; } }
-    if (Math.hypot(q.x - p.x, q.y - p.y) < rad + 10) { q.dead = true; g.blood = Math.min(g.maxBlood, g.blood + 3); sfx.platelet(); addText(q.x, q.y - 20, '+ טסית', '#f6e4f2'); }
+    if (Math.hypot(q.x - p.x, q.y - p.y) < rad + 10) { q.dead = true; heal(3); sfx.platelet(); addText(q.x, q.y - 20, '+ ' + PICKUPS[q.type].name, '#f6e4f2'); if (PICKUPS[q.type].ency) unlock(PICKUPS[q.type].ency); }
     if (q.x < -30) q.dead = true;
   }
   g.plts = g.plts.filter(q => !q.dead);
@@ -1009,10 +1218,10 @@ function update(dt) {
   g.allies = g.allies.filter(a => !a.dead);
 
   // red cells (incl. malaria-infected ones)
-  const instantKill = run.type === 'nk' || run.type === 'macro';
+  const instantKill = perk('instant');
   g.rbcs = g.rbcs.filter(c => !c.dead);
   for (const c of g.rbcs) {
-    c.x += c.vx * dt;
+    c.x += c.vx * dt * fl;
     c.y += Math.sin(g.t * 1.4 + c.ph) * 10 * dt;
     c.rot += c.spin * dt; c.tumble += dt * 1.3;
     if (c.mal > 0) {
@@ -1036,10 +1245,11 @@ function update(dt) {
 
   // infection sites on the vessel / liver wall (they scroll with the wall)
   for (const s of g.sites) {
-    s.x -= 90 * dt; s.t += dt / feverSlow;
+    s.x -= g.flow * dt; s.t += dt / feverSlow;
+    if (SITES[s.kind]) { SITES[s.kind].update(s, dt, rad); continue; }
     const sy = wallY(s.top);
     if (Math.hypot(p.x - s.x, p.y - sy) < rad + 34) {
-      if (run.type === 'nk') { clearSite(s); continue; }
+      if (perk('site1')) { clearSite(s); continue; }
       s.clr += dt; if (s.clr > 0.7) { clearSite(s); continue; }
     } else s.clr = Math.max(0, s.clr - dt * 0.5);
     if (s.kind === 'vessel') {
@@ -1059,6 +1269,7 @@ function update(dt) {
     if (e.dead) continue;
     const sp = e.sp * (e.tag ? 0.45 : 1);
     const dp = Math.hypot(p.x - e.x, p.y - e.y);
+    if (KINDS[e.kind]) { genericEnemy(e, KINDS[e.kind], dt, rad, dp, fl); continue; }
     if (e.host) {
       // hitchhiking on a red cell's surface
       const h = e.host;
@@ -1091,7 +1302,7 @@ function update(dt) {
       const s2 = sp * (flee ? 1.25 : 1);
       e.vx += (dx / l * s2 - e.vx) * dt * 1.6;
       e.vy += (dy / l * s2 - e.vy) * dt * 1.6;
-      e.x += (e.vx - 30) * dt; e.y += e.vy * dt;
+      e.x += (e.vx - 30 * fl) * dt; e.y += e.vy * dt;
       e.y = Math.max(WALL + 10, Math.min(H - WALL - 10, e.y));
       e.rot = Math.atan2(e.vy, e.vx - 30);
     }
@@ -1131,24 +1342,33 @@ function update(dt) {
   // boss
   const b = g.boss;
   if (b) {
+    const B = BOSSES[b.kind] || {};
     b.t += dt; b.hitCd -= dt;
-    b.x += ((W - 200) - b.x) * Math.min(1, dt * 0.8);
-    b.y = H / 2 + Math.sin(b.t * 0.7) * (H / 2 - WALL - b.r - 10);
-    b.emitT -= dt;
-    if (b.emitT <= 0) {
-      b.emitT = 1.9 * D().spawn;
-      const k = { cluster: 'virus', colony: 'bacteria', schizont: 'merozoite', rosette: 'merozoite' }[b.kind];
-      spawnEnemy(k, b.x - b.r, b.y + rnd(-40, 40), b.kind === 'schizont' ? 'escape' : undefined);
+    if (B.move) B.move(b, dt);
+    else {
+      b.x += ((W - 200) - b.x) * Math.min(1, dt * 0.8);
+      b.y = H / 2 + Math.sin(b.t * 0.7) * (H / 2 - WALL - b.r - 10);
     }
+    b.emitT -= dt;
+    const k = { cluster: 'virus', colony: 'bacteria', schizont: 'merozoite', rosette: 'merozoite' }[b.kind] || B.emit;
+    if (b.emitT <= 0 && k) {
+      b.emitT = (B.emitEvery || 1.9) * D().spawn;
+      spawnEnemy(k, b.x - b.r, b.y + rnd(-40, 40), b.kind === 'schizont' ? 'escape' : B.emitGoal);
+    }
+    if (B.update) B.update(b, dt, rad);
     const d = Math.hypot(p.x - b.x, p.y - b.y);
-    if (d < rad + b.r && b.hitCd <= 0) {
+    if (g.boss && !B.noBump && d < rad + b.r && b.hitCd <= 0) {
       b.hitCd = 0.32;
-      let dmg = run.type === 'macro' ? 2 : 1;
-      if (p.abilT > 0) dmg *= 2;
       const kx = (p.x - b.x) / (d || 1), ky = (p.y - b.y) / (d || 1);
       p.vx = kx * 520; p.vy = ky * 520;
-      g.pops.push({ x: (p.x + b.x) / 2, y: (p.y + b.y) / 2, t: 0 });
-      damageBoss(dmg);
+      const shield = B.shield && B.shield(b);
+      if (shield) { addText(b.x, b.y - b.r - 10, shield, '#ffab91'); sfx.wrong(); b.hitCd = 0.5; }
+      else {
+        let dmg = perk('boss2') ? 2 : 1;
+        if (p.abilT > 0) dmg *= 2;
+        g.pops.push({ x: (p.x + b.x) / 2, y: (p.y + b.y) / 2, t: 0 });
+        damageBoss(dmg);
+      }
     }
   }
 
@@ -1168,12 +1388,12 @@ function update(dt) {
   for (const c of g.cyto) { c.t += dt; c.x += (c.vx - 60) * dt; c.y += c.vy * dt; }
   g.cyto = g.cyto.filter(c => c.t < 1.6);
 
-  if (g.blood <= 0) { g.blood = 0; gameOver(lv.id === 'lung' ? 'החיידקים השתלטו על הדם!' : lv.id === 'liver' ? 'הטפילים יצאו מהכבד לדם!' : 'הזיהום התפשט בכל הגוף!'); return; }
+  if (g.blood <= 0) { g.blood = 0; gameOver(lv.lose || (lv.id === 'lung' ? 'החיידקים השתלטו על הדם!' : lv.id === 'liver' ? 'הטפילים יצאו מהכבד לדם!' : 'הזיהום התפשט בכל הגוף!')); return; }
 
   g.pops.forEach(o => o.t += dt); g.pops = g.pops.filter(o => o.t < 5 / 12);
   for (const o of g.texts) { o.t += dt; o.y -= 40 * dt; }
   g.texts = g.texts.filter(o => o.t < 1.1);
-  for (const d of g.dots) { d.x -= 90 * d.s * dt; if (d.x < -5) { d.x = W + 5; d.y = WALL + Math.random() * (H - WALL * 2); } }
+  for (const d of g.dots) { d.x -= g.flow * d.s * dt; if (d.x < -5) { d.x = W + 5; d.y = WALL + Math.random() * (H - WALL * 2); } }
 }
 function alarmSources() {
   const s = [];
@@ -1181,8 +1401,53 @@ function alarmSources() {
   for (const x of g.sites) if (x.x > 0 && x.x < W) s.push({ x: x.x, y: wallY(x.top) });
   for (const c of g.rbcs) if (c.mal > 0 && c.x > 0 && c.x < W) s.push({ x: c.x, y: c.y });
   if (g.boss) s.push({ x: g.boss.x, y: g.boss.y });
+  if (M() && M().alarms) M().alarms(s);
   return s;
 }
+// generic behaviour for the kinds defined in KINDS (every world after the blood world)
+function genericEnemy(e, K, dt, rad, dp, fl) {
+  const p = g.p;
+  if (e.hitCd > 0) e.hitCd -= dt;
+  if (e.pushT > 0) {
+    e.pushT -= dt;
+    e.x += (e.vx - 30 * fl) * dt; e.y += e.vy * dt;
+    const k = Math.max(0, 1 - dt * 1.8); e.vx *= k; e.vy *= k;
+    if (e.y < WALL + e.r) { e.y = WALL + e.r; e.vy = Math.abs(e.vy) * 0.6; if (K.onWall) K.onWall(e, true); }
+    else if (e.y > H - WALL - e.r) { e.y = H - WALL - e.r; e.vy = -Math.abs(e.vy) * 0.6; if (K.onWall) K.onWall(e, false); }
+    e.rot += dt * 4;
+  } else {
+    let tx = e.x - 200, ty = e.y + Math.sin(g.t * (K.wob || 1) + e.ph) * (K.wobA ?? 40);
+    if (K.ai) { const t = K.ai(e, dt); if (t) { tx = t.x; ty = t.y; } }
+    const sp = e.sp * (e.tag ? 0.45 : 1);
+    const dx = tx - e.x, dy = ty - e.y, l = Math.hypot(dx, dy) || 1, turn = K.turn || 1.6;
+    e.vx += (dx / l * sp - e.vx) * Math.min(1, dt * turn);
+    e.vy += (dy / l * sp - e.vy) * Math.min(1, dt * turn);
+    e.x += (e.vx - 30 * fl) * dt; e.y += e.vy * dt;
+    e.y = Math.max(WALL + e.r * 0.6, Math.min(H - WALL - e.r * 0.6, e.y));
+    if (!K.noRot) e.rot = Math.atan2(e.vy, e.vx - 30 * fl);
+  }
+  if (K.tick) { K.tick(e, dt, rad); if (e.dead) return; }
+  if (dp < rad + e.r + 4) {
+    const t = typeof K.touch === 'function' ? K.touch(e, rad, dp) : K.touch;
+    if (t === 'eat') { eat(e); if (K.onEat) K.onEat(e); return; }
+    if (t === 'collect') { e.dead = true; K.onCollect(e); return; }
+    if (t === 'push' && e.pushT < 0.6) push(e, rad, dp);
+    else if (t === 'hazard' && e.hitCd <= 0) {
+      e.hitCd = 0.8; knock(e, dp);
+      if (K.onHit) K.onHit(e); else hurtBlood(K.dmg || 3, K.hitText || 'אאוץ׳!', p.x, p.y - 50, '#ff8a80');
+    }
+  }
+  if (e.dead) return;
+  if (e.x < -50 || e.x > W + 260) { e.dead = true; if (e.x < 0 && K.escape) K.escape(e); }
+}
+function push(e, rad, dp) {
+  const p = g.p, dx = e.x - p.x, dy = e.y - p.y, l = dp || 1;
+  const sp = Math.max(300, Math.hypot(p.vx, p.vy) * 1.3);
+  e.vx = dx / l * sp + p.vx * 0.35; e.vy = dy / l * sp + p.vy * 0.35; e.pushT = 1.2;
+  e.x = p.x + dx / l * (rad + e.r + 6); e.y = p.y + dy / l * (rad + e.r + 6);
+  e.pushedBy = true; sfx.shot();
+}
+function knock(e, dp) { const p = g.p, l = dp || 1; p.vx = (p.x - e.x) / l * 380; p.vy = (p.y - e.y) / l * 380; g.shake = 0.1; }
 function moveBg(dt) {
   for (const c of g.bg) {
     c.x += c.vx * dt; c.y += Math.sin(g.t + c.ph) * 6 * dt; c.rot += c.spin * dt;
@@ -1228,6 +1493,7 @@ function wall(top) {
   }
 }
 function drawSite(s) {
+  if (SITES[s.kind]) { SITES[s.kind].draw(s); return; }
   const y = wallY(s.top), pulse = 1 + Math.sin(g.t * 6) * 0.08;
   ctx.save(); ctx.translate(s.x, y); ctx.scale(pulse, pulse);
   ctx.fillStyle = s.kind === 'vessel' ? 'rgba(124, 179, 66, 0.85)' : 'rgba(156, 95, 181, 0.85)';
@@ -1247,7 +1513,8 @@ function drawSite(s) {
   }
 }
 function drawEnemy(e) {
-  if (e.kind === 'virus') sprite(img.virus, Math.floor(g.t * 10 + e.ph), e.x, e.y, 72);
+  if (KINDS[e.kind]) KINDS[e.kind].draw(e);
+  else if (e.kind === 'virus') sprite(img.virus, Math.floor(g.t * 10 + e.ph), e.x, e.y, 72);
   else {
     const spr = e.kind === 'bacteria' ? BACT : e.kind === 'sporozoite' ? SPORO : MERO;
     const w = e.kind === 'bacteria' ? 56 : e.kind === 'sporozoite' ? 86 : 26;
@@ -1291,6 +1558,7 @@ function drawBoss(b) {
     ctx.fillStyle = gr; ctx.strokeStyle = '#4a1e0c'; ctx.lineWidth = 5;
     ctx.beginPath(); ctx.arc(b.x, b.y, 96, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     for (let i = 0; i < 26; i++) { const a = i * 2.4, r = 15 + (i * 37 % 70); ctx.drawImage(MERO, b.x + Math.cos(a + b.t * 0.4) * r - 9, b.y + Math.sin(a + b.t * 0.4) * r - 9, 18, 18); }
+  } else if (BOSSES[b.kind]) { BOSSES[b.kind].draw(b);
   } else if (b.kind === 'rosette') {
     for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + b.t * 0.3; sprite(img.rbc, Math.floor(g.t * 6 + i), b.x + Math.cos(a) * 72, b.y + Math.sin(a) * 72, 96, false, 1, a); }
     sprite(img.rbc, Math.floor(g.t * 6), b.x, b.y, 120);
@@ -1313,18 +1581,21 @@ function draw() {
   ctx.setTransform(sx, 0, 0, sy, 0, 0);
   if (!g) return;
   if (g.shake > 0) ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
-  const st = WALLSTYLE[LV().wall];
+  const lv = LV(), st = WALLSTYLE[lv.wall], mech = M();
   const grad = ctx.createLinearGradient(0, 0, 0, H);
   grad.addColorStop(0, st.bg[0]); grad.addColorStop(0.5, st.bg[1]); grad.addColorStop(1, st.bg[0]);
   ctx.fillStyle = grad; ctx.fillRect(-20, -20, W + 40, H + 40);
+  if (st.back) st.back();
 
   const canBlur = 'filter' in ctx;
-  if (canBlur) ctx.filter = 'blur(2.5px)';
-  for (const c of g.bg) sprite(img.rbc, Math.floor(g.t * 6 + c.ph), c.x, c.y, c.s, false, 0.55, c.rot, 0.85);
-  if (canBlur) ctx.filter = 'none';
-  ctx.fillStyle = 'rgba(214, 150, 70, 0.2)'; ctx.fillRect(0, 0, W, H);
+  if (lv.bgCells !== false) {
+    if (canBlur) ctx.filter = 'blur(2.5px)';
+    for (const c of g.bg) sprite(img.rbc, Math.floor(g.t * 6 + c.ph), c.x, c.y, c.s, false, 0.55, c.rot, 0.85);
+    if (canBlur) ctx.filter = 'none';
+  }
+  ctx.fillStyle = st.wash || 'rgba(214, 150, 70, 0.2)'; ctx.fillRect(0, 0, W, H);
 
-  for (const d of g.dots) {
+  if (lv.dots !== false) for (const d of g.dots) {
     if (d.glu) {
       ctx.strokeStyle = 'rgba(255, 245, 210, 0.45)'; ctx.lineWidth = 1.2; ctx.beginPath();
       for (let k = 0; k <= 6; k++) { const a = d.rot + k * Math.PI / 3; k ? ctx.lineTo(d.x + Math.cos(a) * 3.2, d.y + Math.sin(a) * 3.2) : ctx.moveTo(d.x + Math.cos(a) * 3.2, d.y + Math.sin(a) * 3.2); }
@@ -1334,7 +1605,8 @@ function draw() {
   ctx.strokeStyle = 'rgba(255, 240, 210, 0.08)'; ctx.lineWidth = 3;
   for (let i = 0; i < 6; i++) { const y = WALL + 40 + i * 75, x = W - ((g.scroll * 2.2 + i * 233) % (W + 300)); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 140, y); ctx.stroke(); }
 
-  wall(true); wall(false);
+  if (st.draw) { st.draw(true); st.draw(false); } else { wall(true); wall(false); }
+  if (mech && mech.drawBack) mech.drawBack();
   if (g.gap) {
     const gx = g.gap.x, gy = H - WALL, pul = 1 + Math.sin(g.t * 5) * 0.08;
     const gl = ctx.createRadialGradient(gx, gy, 5, gx, gy, 90 * pul);
@@ -1349,7 +1621,7 @@ function draw() {
   for (const c of g.cyto) { ctx.globalAlpha = Math.max(0, 1 - c.t / 1.6); ctx.beginPath(); ctx.arc(c.x, c.y, 2.6, 0, 7); ctx.fill(); }
   ctx.globalAlpha = 1;
 
-  for (const q of g.plts) { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); ctx.drawImage(PLT[q.k], -12, -12, 24, 24); ctx.restore(); }
+  for (const q of g.plts) { ctx.save(); ctx.translate(q.x, q.y); ctx.rotate(q.rot); PICKUPS[q.type].draw(q); ctx.restore(); }
   for (const c of g.rbcs) {
     const syy = 0.72 + 0.28 * Math.abs(Math.cos(c.tumble));
     sprite(img.rbc, Math.floor(g.t * 8 + c.ph), c.x, c.y, c.s, false, 1, Math.sin(c.rot) * 0.5, syy);
@@ -1362,6 +1634,7 @@ function draw() {
   }
   for (const e of g.en) drawEnemy(e);
   if (g.boss) drawBoss(g.boss);
+  if (mech && mech.drawMid) mech.drawMid();
   for (const o of g.pops) sprite(img.pop, Math.floor(o.t * 12), o.x, o.y, o.small ? 70 : 110);
 
   // antibodies in flight
@@ -1385,8 +1658,18 @@ function draw() {
   ctx.globalAlpha = 1;
 
   // player
-  const p = g.p, rad = radius(), size = rad / 45 * 150, sheets = tinted[run.type];
-  if (sheets) {
+  const p = g.p, rad = radius(), size = rad / 45 * 150, hero = C(), sheets = tinted[hero.tintOf || g.hero];
+  if (hero.draw) {
+    const squeeze = g.exiting >= 0 ? Math.max(0.15, 1 - g.exiting) : 1;
+    if (p.abilT > 0) {
+      const gl = ctx.createRadialGradient(p.x, p.y, rad * 0.4, p.x, p.y, rad * 1.5);
+      gl.addColorStop(0, 'rgba(255, 224, 130, 0.45)'); gl.addColorStop(1, 'rgba(255, 224, 130, 0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(p.x, p.y, rad * 1.5, 0, 7); ctx.fill();
+    }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(squeeze, 1 / Math.max(0.6, squeeze)); ctx.translate(-p.x, -p.y);
+    hero.draw(p.x, p.y, rad * 2, g.t, p.face, p);
+    ctx.restore();
+  } else if (sheets) {
     const squeeze = g.exiting >= 0 ? Math.max(0.15, 1 - g.exiting) : 1;
     if (p.abilT > 0) {
       const gl = ctx.createRadialGradient(p.x, p.y, size * 0.2, p.x, p.y, size * 0.6);
@@ -1399,6 +1682,7 @@ function draw() {
     ctx.restore();
   }
 
+  if (mech && mech.drawFront) mech.drawFront();
   // chemotaxis arrow toward the nearest alarm signal
   if (state === 'play') {
     const srcs = alarmSources();
@@ -1427,16 +1711,19 @@ function draw() {
   // fever warmth + microscope vignette
   if (g.temp > 37.4) { ctx.fillStyle = `rgba(255, 110, 40, ${Math.min(0.2, (g.temp - 37.4) * 0.08)})`; ctx.fillRect(0, 0, W, H); }
   const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.62);
-  vg.addColorStop(0, 'rgba(30, 8, 4, 0)'); vg.addColorStop(1, 'rgba(30, 8, 4, 0.45)');
+  vg.addColorStop(0, 'rgba(30, 8, 4, 0)'); vg.addColorStop(1, st.vig || 'rgba(30, 8, 4, 0.45)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
   // scale bar (red cell 7.5 µm ≈ 60 px)
+  if (lv.scale !== false) scaleBar(lv.scale);
+
+  if (state === 'play' || state === 'pause') hud();
+}
+function scaleBar(label = '10 µm') {
   ctx.direction = 'ltr';
   ctx.fillStyle = 'rgba(255, 244, 240, 0.9)'; ctx.fillRect(W - 104, H - 26, 80, 4);
   ctx.fillRect(W - 104, H - 31, 2, 14); ctx.fillRect(W - 26, H - 31, 2, 14);
-  ctx.font = `600 13px ${FONT_B}`; ctx.textAlign = 'right'; ctx.fillText('10 µm', W - 112, H - 19);
-
-  if (state === 'play' || state === 'pause') hud();
+  ctx.font = `600 13px ${FONT_B}`; ctx.textAlign = 'right'; ctx.fillText(label, W - 112, H - 19);
 }
 
 function bar(x, w, label, frac, color) {
@@ -1448,16 +1735,19 @@ function bar(x, w, label, frac, color) {
 function hud() {
   const p = g.p, lv = LV();
   // right side (RTL): blood, ability, temperature
-  bar(W - 220, 200, `בריאות הדם ${Math.round(g.blood)}`, g.blood / g.maxBlood, g.blood > g.maxBlood * 0.4 ? '#ff5252' : '#ffd54f');
+  bar(W - 220, 200, `${WD().meter} ${Math.round(g.blood)}`, g.blood / g.maxBlood, g.blood > g.maxBlood * 0.4 ? '#ff5252' : '#ffd54f');
   const cdT = cdTime(), ready = p.charge >= cdT;
   const abFrac = p.abilT > 0 ? p.abilT / 3 : p.charge / cdT;
   bar(W - 420, 186, `${C().ability}: ${p.abilT > 0 ? 'פעיל' : ready ? 'מוכן' : 'נטען'}`, abFrac, p.abilT > 0 || ready ? '#ffe082' : '#8a76c4');
   // thermometer
   const tx = W - 470, hot = g.temp >= 38;
+  if (fevers()) {
   ctx.fillStyle = 'rgba(42, 12, 6, 0.75)'; roundRect(tx - 36, 17, 72, 26, 13); ctx.fill();
   ctx.fillStyle = hot ? '#ff7043' : '#ffcc80'; ctx.beginPath(); ctx.arc(tx + 22, 34, 5, 0, 7); ctx.fill(); ctx.fillRect(tx + 20, 22, 4, 10);
   ctx.font = `600 14px ${FONT_B}`; ctx.textAlign = 'right'; ctx.fillStyle = hot ? '#ffab91' : '#fff6ee';
   ctx.direction = 'ltr'; ctx.fillText(`${g.temp.toFixed(1)}°C`, tx + 12, 36);
+  }
+  if (M() && M().hud) M().hud();
   // score and stage
   ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#2a0c06';
   ctx.font = `28px ${FONT_D}`;
@@ -1498,7 +1788,7 @@ let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
   if (state === 'play') update(dt);
-  else if (g && state !== 'pause') { g.t += dt; g.scroll += dt * 90; moveBg(dt); for (const d of g.dots) { d.x -= 90 * d.s * dt; if (d.x < -5) d.x = W + 5; } }
+  else if (g && state !== 'pause') { const f = LV().flow ?? 90; g.t += dt; g.scroll += dt * f; moveBg(dt); for (const d of g.dots) { d.x -= f * d.s * dt; if (d.x < -5) d.x = W + 5; } }
   draw();
   requestAnimationFrame(loop);
 }
@@ -1507,11 +1797,14 @@ function boot() {
   setMuted(muted);
   newLevel();
   Promise.all(loads).then(() => {
-    for (const [k, c] of Object.entries(CELLS)) if (img.wbcIdle && img.wbcAttack) tinted[k] = { idle: tintSheet(img.wbcIdle, c.filter, c.tint), attack: tintSheet(img.wbcAttack, c.filter, c.tint) };
+    for (const [k, c] of Object.entries(HEROES)) if (!c.draw && !c.tintOf && img.wbcIdle && img.wbcAttack) tinted[k] = { idle: tintSheet(img.wbcIdle, c.filter, c.tint), attack: tintSheet(img.wbcAttack, c.filter, c.tint) };
   });
   requestAnimationFrame(loop);
 }
-window.__bp = { get g() { return g; }, get state() { return state; }, run, startLevel, update, draw, useAbility, spawnBoss, damageBoss, finishLevel, startQuiz, showUpgrades, LEVELS };
+window.__bp = {
+  get g() { return g; }, get state() { return state; }, run, startLevel, update, draw, useAbility, spawnBoss, damageBoss, finishLevel, startQuiz, showUpgrades,
+  LEVELS, WORLDS, renderMap, renderSelect, setPointer(x, y) { pointer = { x, y }; }, botTarget,
+};
 window.claude && window.claude.hot && window.claude.hot.ready ? window.claude.hot.ready(boot) : boot();
 })();
 </script>
