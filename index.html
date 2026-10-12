@@ -2248,6 +2248,295 @@ WALLSTYLE.marrow = {
   },
 };
 
+// ================= WORLD 8: BRAIN =================
+HEROES.astro = {
+  name: 'אסטרוציט', spd: 1, size: 0.9, ability: 'רגלי קצה', cd: 6, abil: 'pump', perks: {},
+  desc: 'תא תמיכה בצורת כוכב. "רגלי הקצה" שלו עוטפות את כלי הדם במוח ועוזרות לשמור על מחסום דם־מוח.',
+  useAbility(p) { p.abilT = 3; sfx.ability(); },
+  draw(x, y, s, t) {
+    const r = s / 2;
+    ctx.strokeStyle = '#8fa8e8'; ctx.lineCap = 'round';
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + Math.sin(t + i) * 0.1; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + Math.cos(a + 0.3) * r * 0.9, y + Math.sin(a + 0.3) * r * 0.9, x + Math.cos(a) * r * 1.35, y + Math.sin(a) * r * 1.35); ctx.stroke(); }
+    ctx.lineCap = 'butt';
+    circle(x, y, r * 0.72, '#b8c8f4', '#4a5a9a', 4);
+    face(x, y, r * 0.9, { ink: '#1a2a5a' });
+  },
+};
+HEROES.signal = {
+  name: 'אות עצבי', spd: 1.15, size: 0.6, ability: 'קפיצה', cd: 0.3, abil: 'jump', perks: {},
+  desc: 'דחף חשמלי שרץ לאורך תא העצב. במיאלין הוא קופץ מצומת לצומת, וכך הוא מהיר מאוד.',
+  useAbility(p) { g.jumpT = 0.35; sfx.shot(); },
+  draw(x, y, s, t) {
+    const r = s / 2;
+    const gl = ctx.createRadialGradient(x, y, 2, x, y, r * 2); gl.addColorStop(0, 'rgba(255, 250, 200, 0.95)'); gl.addColorStop(0.4, 'rgba(255, 220, 90, 0.6)'); gl.addColorStop(1, 'rgba(255, 200, 60, 0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, r * 2, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#fff6b0'; ctx.lineWidth = 2.5;
+    for (let i = 0; i < 4; i++) { const a = t * 6 + i * 1.57; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r * 1.2, y + Math.sin(a) * r * 1.2); ctx.lineTo(x + Math.cos(a + 0.4) * r * 1.6, y + Math.sin(a + 0.4) * r * 1.6); ctx.stroke(); }
+    circle(x, y, r * 0.85, '#ffe45a', '#b08a00', 3);
+    face(x, y, r * 1.1, { ink: '#5a4000' });
+  },
+};
+WORLDS.push({
+  id: 'brain', name: 'המוח', icon: '🧠', organ: 'brain', meter: 'עוצמת האות', hero: 'astro',
+  route: 'סוף סוף אתם מבקרים אצלי, בבית! הדם מגיע למוח דרך עורקי הצוואר. כאן אני חושב, זוכר ושולט בכל הגוף.',
+  blurb: 'מחסום דם־מוח, קפיצות לאורך האקסון וסינפסות.',
+  win: 'עברתם בכל הגוף: מהדם ועד המוח!',
+  done: { eyebrow: 'האות עבר', text: 'המסר החשמלי ממשיך לתא העצב הבא. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.' },
+  levels: [
+    { id: 'bbb', name: 'מחסום דם־מוח', hero: 'astro', wall: 'bbb', mech: 'bbb', enemies: [['bglu', 0.3], ['bo2', 0.28], ['btox', 0.22], ['bbac', 0.2]], spawnMul: 0.55, flow: 80,
+      boss: 'toxcloud', bossName: 'ענן רעלנים', bossHint: 'התנגשו בו כדי לפזר אותו, ואל תכניסו את הרעלנים', pickup: false, bgCells: true, bgCount: 20, rbcEvery: 2.4, dots: true,
+      exitSub: 'שחו לפתח: אל רקמת המוח', lose: 'רעלנים חדרו למוח, או שהמוח נשאר בלי אנרגיה!',
+      intro: 'אהלן, זה אני, המוח! הנימים שלי מיוחדים: התאים בדופן צמודים מאוד זה לזה, ואסטרוציטים עוטפים אותם. זה מחסום דם־מוח: רק חומרים שהמוח צריך, כמו חמצן וגלוקוז, עוברים. חיידקים ורעלנים נשארים בחוץ.',
+      goal: 'געו בחמצן ובגלוקוז כדי להעביר אותם למוח (למטה). אל תגעו ברעלנים ובחיידקים: תנו להם לעבור הלאה.',
+      entries: ['brain', 'bbb', 'astrocyte'],
+      facts: ['המוח שוקל כ־2% ממשקל הגוף', 'המוח צורך כ־20% מהאנרגיה של הגוף', 'המוח משתמש בעיקר בגלוקוז כדלק', 'בלי חמצן תאי המוח נפגעים תוך דקות', 'יש במוח בערך כמה תאי תמיכה כמו נוירונים'] },
+    { id: 'axon', name: 'האקסון', hero: 'signal', wall: 'axon', mech: 'axon', enemies: [['noise', 1]], spawnMul: 1.6, flow: 170, ymax: 410,
+      boss: 'reflex', bossName: 'מבחן הרפלקס', bossHint: 'עברו בכמה שיותר צמתים לפני שהזמן נגמר!', pickup: false, rbcFlow: false, bgCells: false, dots: false, scale: false,
+      exitSub: 'שחו לפתח: האות הגיע לקצה האקסון', lose: 'האות דעך באמצע הדרך!',
+      intro: 'נוירון שולח מסר כדחף חשמלי לאורך זרוע ארוכה, האקסון. האקסון עטוף במיאלין, שכבה מבודדת, ויש בה רווחים קטנים: צמתי רנווייה. האות "קופץ" מצומת לצומת, ולכן הוא מגיע למהירות של עד כ־120 מטר בשנייה.',
+      goal: 'עברו דרך כל טבעת זוהרת (צומת) כדי לחדש את האות. לחצו רווח בדיוק בצומת לקפיצה מושלמת. היזהרו מרעש חשמלי.',
+      entries: ['neuron', 'myelin', 'reflex'],
+      facts: ['אות עצבי נע עד כ־120 מטר בשנייה', 'בלי מיאלין האות איטי בהרבה', 'האקסון הארוך ביותר מגיע מחוט השדרה עד בוהן הרגל', 'במחלת טרשת נפוצה המיאלין נפגע', 'רפלקס עובר דרך חוט השדרה ולא דרך המוח'] },
+    { id: 'synapse', name: 'הסינפסה', hero: 'signal', wall: 'synapse', mech: 'synapse', enemies: [['noise', 1]], spawnMul: 3.2, flow: 60,
+      boss: 'memory', bossName: 'זיכרון חדש נוצר!', bossHint: 'התאימו מוליכים לקולטנים כדי לחזק את הקשר', pickup: 'bglupick', rbcFlow: false, bgCells: false, dots: false, scale: false,
+      exitSub: 'הקשר התחזק! שחו לפתח: המסר עובר לנוירון הבא', lose: 'המסר לא עבר!',
+      intro: 'בקצה האקסון יש רווח זעיר בין תא עצב לתא הבא: הסינפסה. החשמל לא קופץ את הרווח. במקום זה התא משחרר מולקולות, מוליכים עצביים, ולכל אחד יש קולטן בצורה מתאימה בתא הבא, כמו מפתח ומנעול.',
+      goal: 'הדפו כל מוליך עצבי אל הקולטן בצורה המתאימה לו בדופן התחתונה. צורה לא מתאימה לא תיכנס.',
+      entries: ['synapse', 'neurotransmitter', 'plasticity'],
+      facts: ['הרווח בסינפסה רוחבו כ־20 ננומטר', 'לכל נוירון יכולות להיות אלפי סינפסות', 'גלוטמט הוא המוליך המעורר הנפוץ במוח', 'GABA הוא המוליך המרגיע הנפוץ', 'כשלומדים, סינפסות מתחזקות'] },
+  ],
+  quiz: [
+    ['כמה נוירונים יש במוח בערך?', ['כ־86 מיליארד', 'כ־1,000', 'כ־86 מיליון', 'כ־10'], 'וכל אחד מחובר לאלפי נוירונים אחרים.'],
+    ['כמה מהאנרגיה של הגוף צורך המוח?', ['כ־20%', 'כ־2%', 'כ־80%', 'כ־50%'], 'אף שהוא שוקל רק כ־2% ממשקל הגוף.'],
+    ['מה התפקיד של המיאלין?', ['מבודד את האקסון ומאיץ את האות', 'מייצר דם', 'מפרק סוכר', 'נושא חמצן'], 'האות קופץ בין הרווחים שבמיאלין.'],
+    ['מה עובר בסינפסה מתא עצב אחד לבא?', ['מוליכים עצביים (חומרים כימיים)', 'דם', 'אוויר', 'תאי דם לבנים'], 'כל מוליך נקשר לקולטן בצורה המתאימה לו.'],
+    ['למה רפלקס מהיר כל כך?', ['האות עובר דרך חוט השדרה בלי לחכות למוח', 'כי הרגל חזקה', 'כי הלב פועם', 'כי אין בו עצבים'], 'המוח מקבל דיווח רק אחרי שהרגל כבר זזה.'],
+    ['מה התפקיד של מחסום דם־מוח?', ['לא לתת לחומרים מזיקים להגיע למוח', 'לייצר חמצן', 'לחמם את המוח', 'לסנן שתן'], 'חמצן וגלוקוז עוברים, רוב החיידקים והרעלנים לא.'],
+    ['באיזו מהירות יכול אות עצבי לנוע?', ['עד כ־120 מטר בשנייה', 'סנטימטר בשנה', 'מהירות האור', 'מטר ביום'], 'מהר מספיק כדי לחצות את הגוף בפחות משנייה.'],
+    ['מה קורה במוח כשלומדים משהו חדש?', ['קשרים בין נוירונים מתחזקים', 'נוצר עוד דם', 'הגולגולת גדלה', 'שום דבר'], 'זו גמישות מוחית, והיא קורה גם עכשיו, כשאתם עונים על החידון!'],
+  ],
+});
+Object.assign(ENCY, {
+  brain: ['המוח', 'מרכז הבקרה של הגוף: כ־86 מיליארד נוירונים. הוא שוקל כ־2% ממשקל הגוף אבל צורך כ־20% מהאנרגיה, בעיקר מגלוקוז.'],
+  bbb: ['מחסום דם־מוח', 'בנימי המוח התאים בדופן צמודים מאוד, ואסטרוציטים עוטפים אותם. כך עוברים בעיקר חומרים שהמוח צריך, כמו חמצן וגלוקוז, ורוב החיידקים והרעלנים לא.'],
+  astrocyte: ['אסטרוציט', 'תא תמיכה בצורת כוכב במוח. הוא מזין נוירונים, מנקה עודפי מוליכים עצביים ועוזר לשמור על מחסום דם־מוח.'],
+  neuron: ['נוירון', 'תא עצב. הוא מקבל מסרים בזרועות קצרות (דנדריטים) ושולח מסר חשמלי לאורך זרוע ארוכה (אקסון).'],
+  myelin: ['מיאלין וצמתי רנווייה', 'שכבה שומנית שעוטפת את האקסון ומבודדת אותו. האות קופץ בין הרווחים (צמתי רנווייה), ולכן הוא מהיר פי עשרות.'],
+  reflex: ['רפלקס', 'תגובה מהירה ואוטומטית. כשהרופא מקיש על הברך, האות מגיע לחוט השדרה וחוזר ישר לשריר, בלי לחכות למוח.'],
+  synapse: ['סינפסה', 'המקום שבו נוירון מעביר מסר לתא הבא. החשמל הופך לחומר כימי שחוצה רווח זעיר ונקשר לקולטנים.'],
+  neurotransmitter: ['מוליכים עצביים', 'מולקולות שנוירונים משחררים בסינפסה, כמו גלוטמט (מעורר), GABA (מרגיע) ודופמין. כל אחד נקשר לקולטן בצורה המתאימה לו.'],
+  plasticity: ['גמישות מוחית', 'כשמשתמשים בקשר בין נוירונים שוב ושוב, הוא מתחזק. כך לומדים וזוכרים.'],
+});
+// ---- level 1: the blood-brain barrier lets only what the brain needs pass (touch = let it in, downward)
+function gateKind(good, name, draw) {
+  return {
+    r: 15, sp: 46, spW: 4, pts: 0, wobA: 55, noPop: true, noRot: true, touch: 'collect', good,
+    onCollect(e) {
+      g.fly.push({ x: e.x, y: e.y, kind: e.kind, t: 0, down: true });
+      if (good) { award(80, e.x, e.y - 26, 'נכנס למוח'); heal(2); sfx.platelet(); unlock('bbb'); }
+      else { hurtBlood(6, `${name} חדר למוח!`, e.x, e.y - 26, '#ff8a80'); sfx.wrong(); g.combo = 0; }
+    },
+    escape(e) { if (good) hurtBlood(2, `המוח צריך ${name}`, 60, e.y, '#ffab91'); else { g.score += 20; addText(80, e.y, '+20 נחסם', '#c5f7c0'); } },
+    draw(e) { draw(e); label(name, e.x, e.y + 28, 11, good ? '#e8fff0' : '#ffe0c0'); },
+  };
+}
+KINDS.bglu = gateKind(true, 'גלוקוז', e => KINDS.glu.draw === undefined ? null : (ctx.fillStyle = '#fff4c8', ctx.strokeStyle = '#a08a30', ctx.lineWidth = 3, ctx.beginPath(), [0, 1, 2, 3, 4, 5, 6].forEach(k => { const a = k * Math.PI / 3; k ? ctx.lineTo(e.x + Math.cos(a) * 14, e.y + Math.sin(a) * 14) : ctx.moveTo(e.x + Math.cos(a) * 14, e.y + Math.sin(a) * 14); }), ctx.fill(), ctx.stroke()));
+KINDS.bo2 = gateKind(true, 'חמצן', e => drawO2(e.x, e.y));
+KINDS.btox = gateKind(false, 'רעלן', e => KINDS.toxin.draw({ x: e.x, y: e.y }) );
+KINDS.btox.draw = e => { ctx.fillStyle = '#9a5ad0'; ctx.strokeStyle = '#3a1a60'; ctx.lineWidth = 2.5; ctx.beginPath(); for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2, r = k % 2 ? 9 : 16; k ? ctx.lineTo(e.x + Math.cos(a + g.t) * r, e.y + Math.sin(a + g.t) * r) : ctx.moveTo(e.x + Math.cos(a + g.t) * r, e.y + Math.sin(a + g.t) * r); } ctx.closePath(); ctx.fill(); ctx.stroke(); label('רעלן', e.x, e.y + 28, 11, '#ffe0c0'); };
+KINDS.bbac = gateKind(false, 'חיידק', e => { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.ph); ctx.drawImage(BACT, -26, -12, 52, 23); ctx.restore(); });
+MECH.bbb = {
+  init() { g.fly = []; },
+  update(dt) {
+    const p = g.p;
+    for (const f of g.fly) { f.t += dt; f.y += 240 * dt; }
+    g.fly = g.fly.filter(f => f.t < 1 && f.y < H + 20);
+    if (p.abilT > 0) for (const e of g.en) { if (!KINDS[e.kind] || !KINDS[e.kind].good) continue; const dx = p.x - e.x, dy = p.y - e.y, l = Math.hypot(dx, dy); if (l < 190) { e.x += dx / l * 220 * dt; e.y += dy / l * 220 * dt; } }
+  },
+  drawMid() { for (const f of g.fly) { ctx.globalAlpha = Math.max(0, 1 - f.t); KINDS[f.kind].draw({ x: f.x, y: f.y, ph: 0, rot: 0 }); ctx.globalAlpha = 1; } },
+  hud() { label('↓ אל המוח', 250, H - WALL - 16, 14, '#e0d0ff'); },
+  botTarget: () => g.boss || kidneyBot(() => true),
+};
+BOSSES.toxcloud = {
+  r: 95, hp: 0.6, emit: 'btox', emitEvery: 1.6,
+  draw(b) {
+    for (let i = 0; i < 9; i++) { const a = i * 0.7 + b.t * 0.4, r = 38 + (i % 3) * 22; circle(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r * 0.7, 40 + (i % 2) * 8, `rgba(${110 + i * 6}, ${60 + i * 4}, ${150 + i * 6}, 0.88)`); }
+    face(b.x, b.y, 66, { mad: true, ink: '#1a0a2a', blush: false });
+  },
+};
+// ---- level 2: saltatory conduction along a myelinated axon
+const AX_T = 150, AX_B = 390, NODE = 230;
+KINDS.noise = {
+  r: 14, sp: 60, spW: 6, pts: 0, touch: 'hazard', dmg: 6, hitText: 'רעש חשמלי!', wobA: 70,
+  init(e) { e.y = rnd(AX_T + 20, AX_B - 20); if (M() === MECH.synapse) e.y = rnd(WALL + 60, H - WALL - 80); },
+  ai(e) { const lo = M() === MECH.axon ? AX_T + 15 : WALL + 30, hi = M() === MECH.axon ? AX_B - 15 : H - WALL - 50; return { x: e.x - 200, y: Math.max(lo, Math.min(hi, e.y + Math.sin(g.t * 2 + e.ph) * 60)) }; },
+  draw(e) {
+    ctx.strokeStyle = '#ff5a6a'; ctx.lineWidth = 3; ctx.beginPath();
+    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2 + g.t * 4 + e.ph, r = k % 2 ? 6 : 16; k ? ctx.lineTo(e.x + Math.cos(a) * r, e.y + Math.sin(a) * r) : ctx.moveTo(e.x + Math.cos(a) * r, e.y + Math.sin(a) * r); }
+    ctx.closePath(); ctx.stroke(); circle(e.x, e.y, 4, '#ffb0b8');
+  },
+};
+MECH.axon = {
+  init() { g.rings = []; g.nextNode = W + 60; g.jumpT = 0; g.reflexT = 0; },
+  bound(p, rad) { p.y = Math.max(AX_T + rad * 0.6, Math.min(AX_B - rad * 0.6, p.y)); },
+  update(dt, rad) {
+    const p = g.p;
+    if (g.jumpT > 0) g.jumpT -= dt;
+    // the signal fades between nodes and is renewed at each one
+    if (g.phase !== 'exit') { g.blood -= 3 * dt * D().dmg; g.bloodCalm = 0; }
+    while (g.nextNode - g.scroll < W + 60) {
+      const x = g.nextNode - g.scroll;
+      g.rings.push({ x, y: rnd(AX_T + 45, AX_B - 45), done: false });
+      g.nextNode += (g.boss ? NODE * 0.8 : NODE) * rnd(0.85, 1.15);
+    }
+    for (const r of g.rings) {
+      r.x -= g.flow * dt;
+      if (r.done) continue;
+      if (r.x < p.x) {
+        r.done = true;
+        if (Math.abs(r.y - p.y) < 42) {
+          const perfect = g.jumpT > 0;
+          r.hit = true; award(perfect ? 160 : 80, p.x, p.y - 50, perfect ? 'קפיצה מושלמת!' : 'צומת'); heal(perfect ? 12 : 8); sfx.clear(); unlock('myelin');
+          if (g.boss) damageBoss(perfect ? 2 : 1);
+        } else { hurtBlood(4, 'האות נחלש', p.x, p.y - 50, '#ff8a80'); r.miss = true; }
+      }
+    }
+    g.rings = g.rings.filter(r => r.x > -40);
+    if (g.boss) { // reflex test: the clock runs
+      g.reflexT += dt;
+      if (g.reflexT > 14) { g.reflexT = 0; hurtBlood(12, 'איטי מדי! הרפלקס נכשל', W / 2, H / 2, '#ff8a80'); g.boss.hp = Math.min(g.boss.max, g.boss.hp + 3); }
+    }
+  },
+  drawBack() {
+    // myelin sheath segments with gaps where the rings (nodes of Ranvier) are
+    const nodes = g.rings.map(r => r.x).concat([g.nextNode - g.scroll]).sort((a, b) => a - b);
+    let prev = -400;
+    for (const x of nodes.concat([W + 400])) {
+      if (x - prev > 40) for (const y of [AX_T - 22, AX_B + 22]) { ctx.fillStyle = '#f4f0e6'; ctx.strokeStyle = '#a89a80'; ctx.lineWidth = 3; roundRect(prev + 14, y - 20, x - prev - 28, 40, 18); ctx.fill(); ctx.stroke(); }
+      prev = x;
+    }
+    ctx.strokeStyle = 'rgba(255, 220, 150, 0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, AX_T); ctx.lineTo(W, AX_T); ctx.moveTo(0, AX_B); ctx.lineTo(W, AX_B); ctx.stroke();
+    for (const r of g.rings) {
+      const col = r.hit ? 'rgba(160, 255, 160, 0.9)' : r.miss ? 'rgba(255, 120, 120, 0.6)' : 'rgba(255, 230, 120, 0.95)';
+      ctx.strokeStyle = col; ctx.lineWidth = 5; ctx.beginPath(); ctx.ellipse(r.x, r.y, 14, 40, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255, 230, 120, 0.25)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(r.x, AX_T - 40); ctx.lineTo(r.x, AX_B + 40); ctx.stroke();
+    }
+  },
+  drawFront() { // the electric trail of the signal
+    const p = g.p;
+    ctx.strokeStyle = 'rgba(255, 230, 120, 0.5)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    for (let i = 1; i < 8; i++) ctx.lineTo(p.x - i * 22, p.y + Math.sin(g.t * 20 + i) * 8); ctx.stroke();
+  },
+  hud() {
+    if (g.boss) {
+      const left = Math.max(0, 14 - g.reflexT);
+      label(`⏱ ${left.toFixed(1)} שניות`, 120, 100, 18, left < 4 ? '#ff8a80' : '#fff6ee');
+      ctx.save(); ctx.translate(W - 120, 120); ctx.rotate(Math.sin(g.t * 6) * 0.5 - 0.3); // the reflex hammer
+      ctx.fillStyle = '#a07040'; ctx.fillRect(-4, 0, 8, 60); ctx.fillStyle = '#d04040'; roundRect(-22, -12, 44, 22, 8); ctx.fill(); ctx.restore();
+    }
+  },
+  alarms(s) { const r = g.rings.find(r => !r.done && r.x > g.p.x); if (r) s.push({ x: r.x, y: r.y }); },
+  botTarget() { const p = g.p, r = g.rings.find(r => !r.done && r.x > p.x); if (r) { if (Math.abs(r.x - p.x) < 40) useAbility(); return { x: Math.min(r.x, p.x + 40), y: r.y }; } return null; },
+};
+BOSSES.reflex = { r: 1, hp: 10 / 30, noBump: true, move(b) { b.x = W / 2; b.y = -300; }, draw() {} };
+// ---- level 3: the synapse, a lock-and-key match
+const NT = {
+  glu: { name: 'גלוטמט', color: '#ff8a5a' }, gaba: { name: 'GABA', color: '#5ab0ff' }, dop: { name: 'דופמין', color: '#c87af0' },
+};
+function ntShape(shape, x, y, r, fill, stroke) {
+  ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 2.5; ctx.beginPath();
+  if (shape === 'glu') { ctx.moveTo(x, y - r); ctx.lineTo(x + r, y + r * 0.8); ctx.lineTo(x - r, y + r * 0.8); ctx.closePath(); }
+  else if (shape === 'gaba') ctx.rect(x - r * 0.85, y - r * 0.85, r * 1.7, r * 1.7);
+  else ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (fill) ctx.fill(); ctx.stroke();
+}
+KINDS.nt = {
+  r: 14, sp: 26, spW: 2, pts: 0, wobA: 25, noPop: true, noRot: true, touch: 'push',
+  init(e) { e.shape = ['glu', 'gaba', 'dop'][Math.floor(Math.random() * 3)]; e.age = 0; },
+  ai(e) { return { x: e.x - 60, y: e.y + 80 }; },
+  tick(e, dt) {
+    e.age += dt;
+    if (e.age > 14) { e.dead = true; return; }
+    if (e.y >= H - WALL - e.r - 6) synBind(e, e.pushT > 0);
+  },
+  onWall(e, top) { if (!top) synBind(e, true); },
+  draw(e) { ntShape(e.shape, e.x, e.y, 13, NT[e.shape].color, '#1a0a2a'); label(NT[e.shape].name, e.x, e.y - 20, 11, NT[e.shape].color); },
+};
+function synBind(e, pushed) {
+  const r = g.recs.find(r => Math.abs(r.x - e.x) < 34 && !r.lit);
+  if (r && r.shape === e.shape) {
+    e.dead = true; r.lit = 2; award(pushed ? 150 : 50, r.x, H - WALL - 60, 'נקשר לקולטן!'); heal(pushed ? 6 : 2); sfx.clear(); unlock('neurotransmitter'); unlock('synapse');
+    if (g.boss) damageBoss(1);
+  } else if (!e.bounced) {
+    e.bounced = true; e.pushT = 0.6; e.vy = -200; e.vx = rnd(-60, 60);
+    if (pushed) addText(e.x, H - WALL - 50, 'צורה לא מתאימה', '#ffe082');
+  } else { e.dead = true; addText(e.x, H - WALL - 40, 'נספג חזרה', '#c8b8e0'); }
+}
+MECH.synapse = {
+  init() { g.recs = []; g.recNext = 40; g.ntT = 0.5; for (let x = 40; x < W + 100; x += 120) g.recs.push({ x, shape: ['glu', 'gaba', 'dop'][Math.floor(Math.random() * 3)], lit: 0 }); g.recNext = g.recs[g.recs.length - 1].x + 120 + g.scroll; },
+  update(dt) {
+    for (const r of g.recs) { r.x -= g.flow * dt; if (r.lit > 0) r.lit -= dt; }
+    g.recs = g.recs.filter(r => r.x > -60);
+    while (g.recNext - g.scroll < W + 80) { g.recs.push({ x: g.recNext - g.scroll, shape: ['glu', 'gaba', 'dop'][Math.floor(Math.random() * 3)], lit: 0 }); g.recNext += 120; }
+    g.ntT -= dt;
+    if (g.ntT <= 0 && g.phase !== 'exit') { const n = spawnEnemy('nt', rnd(W * 0.25, W * 0.95), WALL + 30); n.vy = 40; g.ntT = g.boss ? 0.8 : rnd(1.1, 1.6); }
+    if (g.phase !== 'exit') { g.blood -= 1.1 * dt * D().dmg; g.bloodCalm = 0; }
+  },
+  drawBack() {
+    for (const r of g.recs) { // receptors on the next neuron, shaped like their transmitter
+      const y = H - WALL - 6;
+      ctx.fillStyle = r.lit > 0 ? 'rgba(255, 240, 150, 0.9)' : '#d8c0e8'; ctx.strokeStyle = '#5a3a7a'; ctx.lineWidth = 3;
+      roundRect(r.x - 26, y - 4, 52, 30, 8); ctx.fill(); ctx.stroke();
+      ntShape(r.shape, r.x, y - 4, 15, r.lit > 0 ? NT[r.shape].color : '#3a2050', NT[r.shape].color);
+    }
+  },
+  hud() { label('הדפו כל מולקולה אל הקולטן בצורה שלה', W / 2, WALL + 64, 14, '#e0d0ff'); },
+  botTarget() {
+    const p = g.p;
+    if (g.boss && Math.random() < 0.001) return null;
+    let best = null, bd = 1e9;
+    for (const e of g.en) {
+      if (e.kind !== 'nt' || e.pushT > 0) continue;
+      const r = g.recs.filter(r => r.shape === e.shape && !r.lit && r.x > 40).sort((a, b) => Math.abs(a.x - e.x) - Math.abs(b.x - e.x))[0];
+      if (!r) continue;
+      const dx = r.x - e.x, dy = (H - WALL) - e.y, l = Math.hypot(dx, dy) || 1, t = { x: e.x - dx / l * 40, y: e.y - dy / l * 40 };
+      const d = Math.hypot(t.x - p.x, t.y - p.y); if (d < bd) { bd = d; best = d < 25 ? e : t; }
+    }
+    return best;
+  },
+};
+BOSSES.memory = { r: 1, hp: 10 / 30, noBump: true, move(b) { b.x = W / 2; b.y = -300; }, draw() {} };
+PICKUPS.bglupick = { name: 'גלוקוז למוח', draw() { ctx.fillStyle = '#fff4c8'; ctx.strokeStyle = '#a08a30'; ctx.lineWidth = 2; ctx.beginPath(); for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3; k ? ctx.lineTo(Math.cos(a) * 10, Math.sin(a) * 10) : ctx.moveTo(Math.cos(a) * 10, Math.sin(a) * 10); } ctx.fill(); ctx.stroke(); } };
+WALLSTYLE.bbb = {
+  fill: '#e88a9a', edge: '#8c2a42', bg: ['#6e3a12', '#b8792f'],
+  draw(top) {
+    wallShape(top, '#d88a9a', '#7a2a42');
+    ctx.strokeStyle = '#5a1a32'; ctx.lineWidth = 3; // tight junctions between endothelial cells
+    for (let x = -(g.scroll % 90); x < W + 90; x += 90) { const y = top ? WALL - 14 : H - WALL + 14; ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10); ctx.stroke(); circle(x, y, 3, '#5a1a32'); }
+    ctx.strokeStyle = 'rgba(143, 168, 232, 0.8)'; ctx.lineWidth = 6; ctx.lineCap = 'round'; // astrocyte end-feet wrapping the vessel
+    for (let x = -(g.scroll % 130); x < W + 130; x += 130) { const y = top ? 12 : H - 12; ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 30, top ? WALL - 24 : H - WALL + 24, x + 70, y); ctx.stroke(); }
+    ctx.lineCap = 'butt';
+  },
+};
+WALLSTYLE.axon = {
+  fill: '#2a2a50', edge: '#14142a', bg: ['#0e0e24', '#26264a'], wash: 'rgba(120, 120, 255, 0.04)', vig: 'rgba(0, 0, 10, 0.6)',
+  back() { // a web of other neurons in the distance
+    ctx.strokeStyle = 'rgba(160, 140, 255, 0.15)'; ctx.lineWidth = 2;
+    for (let i = 0; i < 14; i++) { const x = ((i * 173 - g.scroll * 0.3) % (W + 200) + W + 200) % (W + 200) - 100, y = (i * 97) % H; ctx.beginPath(); ctx.moveTo(x, y); ctx.bezierCurveTo(x + 60, y - 40, x + 120, y + 60, x + 200, y + 10); ctx.stroke(); circle(x, y, 6, 'rgba(160, 140, 255, 0.2)'); }
+  },
+  draw() {},
+};
+WALLSTYLE.synapse = {
+  fill: '#e0c0e8', edge: '#5a3a7a', bg: ['#1a0e2a', '#3a2650'], wash: 'rgba(200, 160, 255, 0.04)', vig: 'rgba(5, 0, 15, 0.6)',
+  draw(top) {
+    if (top) { // the axon terminal, full of vesicles
+      wallShape(true, '#e8d090', '#8a7030');
+      for (let x = -(g.scroll % 60); x < W + 60; x += 60) circle(x + 30, WALL * 0.72, 9, 'rgba(255, 250, 220, 0.8)', '#a08a40', 2);
+      label('קצה האקסון', 100, WALL + 22, 13, '#ffe8b0');
+    } else { wallShape(false, '#c8a8e0', '#5a3a7a'); label('הנוירון הבא', W - 100, H - 20, 13, '#f0e0ff'); }
+  },
+};
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
