@@ -1845,6 +1845,223 @@ WALLSTYLE.tubule = {
   },
 };
 
+// ================= WORLD 6: SKIN AND WOUND =================
+HEROES.plt = {
+  name: 'טסית דם', spd: 1.1, size: 0.6, ability: 'הפעלה', cd: 6, abil: 'pump', perks: {},
+  desc: 'שבר תא קטן בלי גרעין. כשנוצר פצע הטסיות נדבקות אליו, נעשות קוצניות ודביקות, וגויסות עוד טסיות.',
+  useAbility(p) { p.abilT = 3; sfx.ability(); },
+  draw(x, y, s, t, f, p) {
+    const act = p && p.abilT > 0;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(t * 2) * 0.15);
+    if (act) { ctx.strokeStyle = '#c79ac0'; ctx.lineWidth = 4; for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + t; ctx.beginPath(); ctx.moveTo(Math.cos(a) * s * 0.4, Math.sin(a) * s * 0.3); ctx.lineTo(Math.cos(a) * s * 0.68, Math.sin(a) * s * 0.52); ctx.stroke(); } }
+    ctx.drawImage(PLT[1], -s * 0.6, -s * 0.6, s * 1.2, s * 1.2);
+    face(0, 2, s * 0.55, { ink: '#5a2a50' });
+    ctx.restore();
+  },
+};
+WORLDS.push({
+  id: 'skin', name: 'העור והפצע', icon: '🩹', organ: 'skin', meter: 'שלמות העור', fever: true, hero: 'plt',
+  route: 'נחתכתם באצבע! כלי דם קטנים בעור נקרעו, והדם מתחיל לצאת. הטסיות שבדם הן הראשונות להגיע.',
+  blurb: 'טסית סוגרת חתך, ונויטרופיל מנקה את הזיהום.',
+  win: 'הדימום נעצר, הזיהום נוקה, ועור חדש יסגור את הפצע.',
+  done: { eyebrow: 'הפצע בטיפול', text: 'השלב הזה בריפוי הושלם. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.' },
+  levels: [
+    { id: 'bleed', name: 'עצירת הדימום', hero: 'plt', wall: 'skin', mech: 'bleed', enemies: [['pltA', 0.72], ['fibrin', 0.28]], spawnMul: 0.42, flow: 0,
+      boss: 'bigcut', bossName: 'חתך עמוק', bossHint: 'סגרו כל חלק בחתך: טסיות קודם, ואז פיברין', pickup: false, rbcFlow: false, bgCells: false, scale: '10 µm',
+      exitSub: 'הדימום נעצר! שחו לפתח בדופן התחתונה', lose: 'אובדן דם רב מדי!',
+      intro: 'החתך פתח חור בכלי דם שבעור. טסיות נצמדות לקצוות ויוצרות פקק, אבל פקק של טסיות לבד חלש. אחר כך חלבון בשם פיברינוגן הופך לחוטי פיברין, שיוצרים רשת ומחזקים את הפקק. זה הקריש, ומבחוץ הוא מתייבש לגלד.',
+      goal: 'אספו טסיות (געו בהן) והביאו אותן לחתך שבדופן העליונה. אחר כך הביאו חוטי פיברין כדי לחזק כל פקק.',
+      entries: ['skin', 'hemostasis', 'fibrin'],
+      facts: ['טסיות מגיעות לפצע תוך שניות', 'דימום מחתך קטן נעצר בדרך כלל תוך כמה דקות', 'פיברין נוצר מחלבון בדם בשם פיברינוגן', 'הגלד הוא קריש שהתייבש', 'ויטמין K חיוני לקרישת הדם'] },
+    { id: 'clean', name: 'ניקוי הפצע', hero: 'neut', wall: 'skin', mech: 'clean', enemies: [['staph', 1]], spawnMul: 1.2, flow: 0, pus: true,
+      boss: 'staphcol', bossName: 'מושבת סטפילוקוקים', pickup: 'platelet', rbcFlow: false, bgCells: false,
+      exitSub: 'הפצע נקי! שחו לפתח: עכשיו תאי עור חדשים יסגרו אותו', lose: 'הזיהום השתלט על הפצע!',
+      intro: 'הדימום נעצר, אבל חיידקים מהעור נכנסו לפצע לפני שנסגר. נויטרופילים יוצאים מכלי הדם ומגיעים ראשונים. הם בולעים חיידקים, ורבים מהם מתים בקרב: מוגלה היא בעיקר נויטרופילים מתים.',
+      goal: 'בלעו את הסטפילוקוקים (גושים כמו אשכול ענבים), ונקו את אזורי הזיהום ליד החתך.',
+      entries: ['staph', 'pus', 'healing'],
+      facts: ['נויטרופילים מגיעים לפצע תוך שעות', 'מוגלה היא בעיקר נויטרופילים מתים', 'שכבת העור החיצונית מתחדשת בערך כל חודש', 'צלקת היא רקמה חדשה שנבנתה במקום הפגוע', 'שטיפת פצע במים מורידה הרבה חיידקים'] },
+  ],
+  quiz: [
+    ['מהו האיבר הגדול ביותר בגוף?', ['העור', 'הכבד', 'המוח', 'הריאות'], 'אצל מבוגר הוא שוקל כמה קילוגרמים.'],
+    ['מה עושות הטסיות כשנוצר פצע?', ['נצמדות לפצע ויוצרות פקק', 'נושאות חמצן', 'מייצרות נוגדנים', 'מפרקות שומן'], 'הן גם משחררות חומרים שמגייסים עוד טסיות.'],
+    ['מה התפקיד של הפיברין?', ['יוצר רשת שמחזקת את הקריש', 'מפרק קרישים', 'הורג חיידקים', 'צובע את העור'], 'הרשת לוכדת גם כדוריות אדומות, ולכן קריש אדום.'],
+    ['ממה מורכבת בעיקר מוגלה?', ['נויטרופילים שמתו בקרב', 'מים בלבד', 'שומן', 'סוכר'], 'לצד חיידקים ושאריות רקמה.'],
+    ['כל כמה זמן מתחדשת שכבת העור החיצונית?', ['בערך חודש', 'כל יום', 'פעם בשנה', 'אף פעם'], 'תאים חדשים נוצרים למטה ונדחפים כלפי מעלה.'],
+    ['מה הסדר הנכון בריפוי פצע?', ['עצירת דימום, ניקוי זיהום, בניית רקמה', 'בניית רקמה, עצירת דימום, ניקוי', 'ניקוי, בניית רקמה, עצירת דימום', 'הכול קורה בבת אחת'], 'השלבים חופפים קצת, אבל זה הסדר הכללי.'],
+    ['מה זה גלד?', ['קריש שהתייבש ומגן על הפצע', 'עור מת', 'מושבת חיידקים', 'שריר'], 'עדיף לא לקלף אותו: מתחתיו נבנה עור חדש.'],
+  ],
+});
+Object.assign(ENCY, {
+  skin: ['העור', 'האיבר הגדול ביותר בגוף וקו ההגנה הראשון מפני חיידקים. שכבת העור החיצונית (האפידרמיס) מתחדשת בערך כל חודש.'],
+  hemostasis: ['עצירת דימום', 'כלי הדם מתכווץ, טסיות נדבקות לקצוות ויוצרות פקק, ואז רשת פיברין מחזקת אותו לקריש יציב.'],
+  fibrin: ['פיברין', 'חלבון בצורת חוטים שנוצר מפיברינוגן בדם בזמן קרישה. הרשת שלו מחזקת את פקק הטסיות ולוכדת כדוריות אדומות.'],
+  scab: ['גלד', 'קריש שהתייבש על פני הפצע. הוא מגן על הפצע בזמן שמתחתיו נבנים תאי עור חדשים.'],
+  staph: ['סטפילוקוק', 'חיידק עגול שמתקבץ בגושים כמו אשכול ענבים. חי על העור של רוב האנשים בלי לגרום נזק, אבל בפצע הוא יכול לגרום לזיהום.'],
+  pus: ['מוגלה', 'נוזל צהבהב שמצטבר בפצע מזוהם. הוא מורכב בעיקר מנויטרופילים שמתו אחרי שבלעו חיידקים.'],
+  healing: ['ריפוי פצע', 'שלושה שלבים עיקריים: עצירת הדימום, ניקוי הזיהום, ובניית רקמה חדשה. בסוף יכולה להישאר צלקת.'],
+});
+// a cut in the top wall is split into slots: 0 open, 1 platelet plug, 2 sealed with fibrin
+function makeCut(x, n, boss) { return { x, n, slots: Array(n).fill(0), washT: Array(n).fill(0), boss, done: false, t: 0 }; }
+const SLOT = 34;
+const cutX = (c, i) => c.x - (c.n * SLOT) / 2 + SLOT / 2 + i * SLOT;
+KINDS.pltA = {
+  r: 12, sp: 30, pts: 0, wobA: 50, noPop: true,
+  touch: () => g.carry < 4 ? 'collect' : null,
+  init(e) { e.k = Math.floor(Math.random() * 4); },
+  onCollect() { g.carry++; sfx.platelet(); unlock('hemostasis'); },
+  draw(e) { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.ph + g.t * 0.5); ctx.drawImage(PLT[e.k], -15, -15, 30, 30); ctx.restore(); },
+};
+KINDS.fibrin = {
+  r: 14, sp: 28, pts: 0, wobA: 40, noPop: true,
+  touch: () => g.fib < 3 ? 'collect' : null,
+  onCollect() { g.fib++; sfx.shot(); unlock('fibrin'); },
+  draw(e) {
+    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.ph + g.t * 0.3);
+    ctx.strokeStyle = '#fff4dc'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(-16, -6 + i * 6); ctx.bezierCurveTo(-5, -14 + i * 6, 5, 2 + i * 6, 16, -6 + i * 6); ctx.stroke(); }
+    ctx.lineCap = 'butt'; ctx.restore(); label('פיברין', e.x, e.y + 24, 11, '#fff4dc');
+  },
+};
+KINDS.staph = {
+  r: 16, sp: 40, spW: 3, pts: 90, touch: 'eat', noRot: true,
+  init(e) { e.divT = rnd(7, 10); e.tx = rnd(100, W - 100); e.ty = rnd(WALL + 60, H - WALL - 60); e.wT = 2; },
+  ai(e, dt) { e.wT -= dt; if (e.wT <= 0) { e.wT = rnd(1.5, 3); e.tx = rnd(60, W - 60); e.ty = rnd(WALL + 50, H - WALL - 50); } return { x: e.tx, y: e.ty }; },
+  tick(e, dt) {
+    e.divT -= dt;
+    if (e.divT <= 0) { e.divT = rnd(8, 11); if (g.en.filter(x => x.kind === 'staph').length < 32) { spawnEnemy('staph', e.x + 12, e.y + 10); sfx.divide(); } }
+    if (!e.hurtT || g.t - e.hurtT > 4) { e.hurtT = g.t; hurtBlood(0.6, null); } // bacteria in the wound keep doing damage
+  },
+  draw(e) { const k = e.ph; [[0, 0], [-9, -6], [9, -5], [-5, 8], [7, 8], [0, -12]].forEach(([dx, dy], i) => circle(e.x + dx, e.y + dy, 7, i % 2 ? '#f0c040' : '#e8b030', '#8a6a10', 1.5)); },
+};
+KINDS.staphIn = { ...KINDS.staph, touch: 'push', pts: 0,
+  init(e) { e.vy = 60; },
+  ai(e) { return { x: e.x + Math.sin(g.t + e.ph) * 40, y: H - WALL }; },
+  tick(e) {
+    if (e.pushT > 0 && e.y < WALL + 30) { e.dead = true; award(80, e.x, WALL + 50, 'נהדף החוצה'); sfx.clear(); unlock('staph'); }
+    else if (e.pushT <= 0 && e.y > H - WALL - 30) { e.dead = true; hurtBlood(3, 'חיידק חדר לרקמה', e.x, e.y - 30, '#ff8a80'); unlock('staph'); }
+  },
+};
+SITES.woundinf = infSite({ fill: 'rgba(230, 200, 90, 0.85)', edge: '#8a6a10', emit: 'staph', every: 5, clear: siteCleared });
+MECH.bleed = {
+  init() { g.cuts = []; g.carry = 0; g.fib = 0; g.leaks = []; g.lastWave = 0; g.inT = 4; },
+  update(dt, rad) {
+    const p = g.p;
+    if (g.wave !== g.lastWave && g.phase === 'waves') {
+      g.lastWave = g.wave;
+      const xs = [W * 0.5, W * 0.2, W * 0.8];
+      g.cuts.push(makeCut(xs[g.wave - 1], 2 + g.wave));
+      if (g.wave > 1) addText(xs[g.wave - 1], WALL + 70, 'חתך חדש!', '#ff8a80');
+    }
+    if (g.boss && !g.cuts.some(c => c.boss)) { g.cuts = g.cuts.filter(c => Math.abs(c.x - W * 0.5) > 200); g.cuts.push(makeCut(W * 0.5, g.boss.hp, true)); }
+    // recruited platelets follow the player
+    if (p.abilT > 0) for (const e of g.en) if (e.kind === 'pltA') { const dx = p.x - e.x, dy = p.y - e.y, l = Math.hypot(dx, dy); if (l < 220) { e.x += dx / l * 200 * dt; e.y += dy / l * 200 * dt; } }
+    for (const c of g.cuts) {
+      if (c.done) continue;
+      c.t += dt;
+      const open = c.slots.filter(v => v === 0).length, plug = c.slots.filter(v => v === 1).length;
+      // bleeding: open slots leak a lot, plugged slots a little
+      const leak = (open + plug * 0.25) * 0.55 * D().dmg;
+      g.blood -= leak * dt; if (leak > 0) g.bloodCalm = 0;
+      if (Math.random() < (open + plug * 0.25) * dt * 1.4) g.leaks.push({ x: cutX(c, Math.floor(Math.random() * c.n)), y: WALL + 10, vx: rnd(-30, 30), vy: -rnd(90, 160), t: 0 });
+      // bacteria slip in through open slots
+      if (g.wave >= 2 || c.boss) { g.inT -= dt * open * 0.3; if (g.inT <= 0 && open) { g.inT = 4; const i = c.slots.indexOf(0); spawnEnemy('staphIn', cutX(c, i), WALL + 20); } }
+      // a platelet plug without fibrin can wash out
+      c.slots.forEach((v, i) => { if (v === 1) { c.washT[i] += dt; if (c.washT[i] > 9) { c.slots[i] = 0; c.washT[i] = 0; addText(cutX(c, i), WALL + 50, 'הפקק נשטף!', '#ffab91'); } } });
+      // depositing at the cut
+      const near = Math.abs(p.x - c.x) < (c.n * SLOT) / 2 + rad * 0.6 && p.y - rad < WALL + 40;
+      if (near) {
+        if (g.carry > 0 && c.slots.includes(0)) { const i = c.slots.indexOf(0); c.slots[i] = 1; c.washT[i] = 0; g.carry--; award(100, cutX(c, i), WALL + 60, 'פקק טסיות'); sfx.platelet(); }
+        else if (g.fib > 0 && c.slots.includes(1)) {
+          const i = c.slots.indexOf(1); c.slots[i] = 2; g.fib--; award(150, cutX(c, i), WALL + 60, 'רשת פיברין'); sfx.clear(); heal(3);
+          if (c.boss) damageBoss(1);
+        }
+        if (c.slots.every(v => v === 2) && !c.done) { c.done = true; award(500, c.x, WALL + 90, 'הפצע נסגר!'); heal(10); unlock('scab'); sfx.wave(); }
+      }
+    }
+    for (const l of g.leaks) { l.t += dt; l.x += l.vx * dt; l.y += l.vy * dt; }
+    g.leaks = g.leaks.filter(l => l.t < 0.8);
+  },
+  drawBack() {
+    for (const c of g.cuts) {
+      if (!c.done) { // blood welling up under an open cut
+        const open = c.slots.filter(v => v < 2).length / c.n, r = c.n * SLOT / 2 + 50;
+        const gl = ctx.createRadialGradient(c.x, WALL, 10, c.x, WALL, r);
+        gl.addColorStop(0, `rgba(200, 20, 40, ${0.55 * open + 0.1})`); gl.addColorStop(1, 'rgba(200, 20, 40, 0)');
+        ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(c.x, WALL, r, 0, Math.PI); ctx.fill();
+      }
+      for (let i = 0; i < c.n; i++) {
+        const x = cutX(c, i), v = c.slots[i];
+        if (c.done) { ctx.fillStyle = '#7a2a1a'; roundRect(x - SLOT / 2, 0, SLOT, WALL + 6, 6); ctx.fill(); continue; } // scab
+        if (v === 0) { const gr = ctx.createLinearGradient(0, 0, 0, WALL); gr.addColorStop(0, '#fff4e0'); gr.addColorStop(1, '#c03040'); ctx.fillStyle = gr; ctx.fillRect(x - SLOT / 2, 0, SLOT, WALL + 6); }
+        else {
+          ctx.fillStyle = '#c03040'; ctx.fillRect(x - SLOT / 2, 0, SLOT, WALL + 6);
+          for (let k = 0; k < 3; k++) ctx.drawImage(PLT[(i + k) % 4], x - 14 + (k % 2) * 6, 6 + k * 18, 24, 24);
+          if (v === 2) { ctx.strokeStyle = '#fff4dc'; ctx.lineWidth = 2; for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(x - SLOT / 2, k * 14); ctx.lineTo(x + SLOT / 2, k * 14 + 10); ctx.moveTo(x + SLOT / 2, k * 14); ctx.lineTo(x - SLOT / 2, k * 14 + 10); ctx.stroke(); } }
+        }
+      }
+      if (!c.done) { const left = c.slots.filter(v => v < 2).length; label(c.boss ? `חתך עמוק: נשארו ${left}` : `חתך: נשארו ${left}`, c.x, WALL + 52, 14, '#fff'); }
+    }
+    for (const l of g.leaks) sprite(img.rbc, 0, l.x, l.y, 34, false, Math.max(0, 1 - l.t / 0.8));
+  },
+  drawMid() {
+    const p = g.p;
+    for (let i = 0; i < g.carry; i++) { const a = g.t * 2.5 + i * Math.PI / 2, r = radius() + 14; ctx.drawImage(PLT[i % 4], p.x + Math.cos(a) * r - 11, p.y + Math.sin(a) * r - 11, 22, 22); }
+    for (let i = 0; i < g.fib; i++) { const a = -g.t * 2 + i * 2.1, r = radius() + 26; ctx.strokeStyle = '#fff4dc'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 6, 0, 5); ctx.stroke(); }
+  },
+  hud() { label(`טסיות: ${g.carry}/4   פיברין: ${g.fib}/3`, 140, 92, 15, '#f6e4f2'); },
+  alarms(s) { for (const c of g.cuts) if (!c.done) s.push({ x: c.x, y: WALL }); },
+  botTarget() {
+    const p = g.p, open = g.cuts.find(c => !c.done && ((g.carry && c.slots.includes(0)) || (g.fib && c.slots.includes(1))));
+    if (open) return { x: open.x, y: WALL + 20 };
+    const want = g.cuts.some(c => !c.done && c.slots.includes(1)) && g.fib < 2 ? 'fibrin' : 'pltA';
+    let best = null, bd = 1e9;
+    for (const e of g.en) { const d = Math.hypot(e.x - p.x, e.y - p.y) * (e.kind === want ? 1 : 2.5); if (d < bd) { bd = d; best = e; } }
+    return best;
+  },
+};
+BOSSES.bigcut = {
+  r: 1, hp: 8 / 30, noBump: true,
+  move(b) { b.x = W * 0.5; b.y = -200; },
+  draw() {},
+};
+MECH.clean = {
+  init() { g.allyT = 3; g.lastWave = 0; },
+  update(dt) {
+    if (g.wave !== g.lastWave && g.phase === 'waves') {
+      g.lastWave = g.wave;
+      for (let i = 0; i < 2; i++) g.sites.push({ kind: 'woundinf', x: rnd(W * 0.25, W * 0.85), top: true, t: 0, clr: 0, emitT: 2 + i });
+    }
+    g.allyT -= dt;
+    if (g.allyT <= 0 && g.allies.filter(a => !a.pus).length < 3) { g.allyT = 7; g.allies.push({ x: rnd(200, W - 100), y: H - WALL - 40, vx: 0, ph: Math.random() * 8, chomp: -1 }); addText(W / 2, H - WALL - 60, 'נויטרופיל יצא מכלי הדם לעזור!', '#d7ccf5'); }
+    for (const a of g.allies) {
+      if (a.pus) { a.vx = -40; continue; }
+      let t = null, bd = 1e9; for (const e of g.en) { const d = Math.hypot(e.x - a.x, e.y - a.y); if (d < bd) { bd = d; t = e; } }
+      if (t) { const dx = t.x - a.x, dy = t.y - a.y, l = Math.hypot(dx, dy) || 1; a.vx = dx / l * 70; a.y += dy / l * 70 * dt; } else a.vx = 0;
+    }
+  },
+  drawBack() { const c = W * 0.55; ctx.fillStyle = '#7a2a1a'; roundRect(c - 80, 0, 160, WALL + 6, 8); ctx.fill(); label('גלד', c, 26, 13, '#ffd0c0'); },
+};
+BOSSES.staphcol = {
+  r: 95, hp: 0.9, emit: 'staph', emitEvery: 2.2,
+  draw(b) {
+    ctx.fillStyle = 'rgba(240, 200, 60, 0.2)'; ctx.beginPath(); ctx.arc(b.x, b.y, 112, 0, 7); ctx.fill();
+    for (let i = 0; i < 12; i++) { const a = i * 0.52 + b.t * 0.3, r = 25 + (i % 3) * 25; KINDS.staph.draw({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, ph: a }); }
+    face(b.x, b.y, 60, { mad: true });
+  },
+};
+WALLSTYLE.skin = {
+  fill: '#f2c4a8', edge: '#9a5a3a', bg: ['#6e3a12', '#b8792f'], vig: 'rgba(30, 8, 4, 0.45)',
+  draw(top) {
+    if (top) { // layers of skin: dead outer layer, living epidermis, dermis
+      ctx.fillStyle = '#f7dcc4'; ctx.fillRect(0, 0, W, 14);
+      ctx.fillStyle = '#eab8a0'; ctx.fillRect(0, 14, W, 22);
+      ctx.fillStyle = '#e09a90'; ctx.fillRect(0, 36, W, WALL - 36);
+      ctx.fillStyle = 'rgba(150, 80, 60, 0.35)'; for (let x = 10; x < W; x += 26) { ctx.beginPath(); ctx.ellipse(x, 25, 9, 6, 0, 0, 7); ctx.fill(); }
+      ctx.strokeStyle = '#9a5a3a'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(0, WALL); ctx.lineTo(W, WALL); ctx.stroke();
+    } else wallShape(false, '#f0d890', '#a08a40');
+  },
+};
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
@@ -2620,6 +2837,14 @@ function genericEnemy(e, K, dt, rad, dp, fl) {
     }
   }
   if (e.dead) return;
+  if (K.touch === 'eat' && g.allies.length) {
+    const a = g.allies.find(a => !a.pus && Math.hypot(a.x - e.x, a.y - e.y) < 70);
+    if (a) {
+      a.chomp = 0; a.eaten = (a.eaten || 0) + 1; eat(e, 'ally');
+      if (LV().pus && a.eaten >= 3) { a.pus = true; addText(a.x, a.y - 60, 'התא מת בקרב: מוגלה', '#fff0b0'); unlock('pus'); }
+      return;
+    }
+  }
   if (e.x < -50 || e.x > W + 260) { e.dead = true; if (e.x < 0 && K.escape) K.escape(e); }
 }
 function push(e, rad, dp) {
@@ -2826,8 +3051,10 @@ function draw() {
   for (const s of g.shots) drawY(s.x, s.y, s.rot + Math.PI / 2, 9);
 
   for (const a of g.allies) {
-    if (a.chomp >= 0) sprite(img.wbcAttack, 2 + Math.min(2, Math.floor(a.chomp * 10)), a.x, a.y, 150, true, 0.92);
-    else sprite(img.wbcIdle, Math.floor(g.t * 8 + a.ph), a.x, a.y, 150, true, 0.92);
+    if (a.pus && 'filter' in ctx) ctx.filter = 'sepia(1) saturate(1.6) brightness(1.1)';
+    if (a.chomp >= 0) sprite(img.wbcAttack, 2 + Math.min(2, Math.floor(a.chomp * 10)), a.x, a.y, 150, true, a.pus ? 0.6 : 0.92);
+    else sprite(img.wbcIdle, a.pus ? 0 : Math.floor(g.t * 8 + a.ph), a.x, a.y, 150, true, a.pus ? 0.6 : 0.92);
+    if (a.pus) { if ('filter' in ctx) ctx.filter = 'none'; label('מוגלה', a.x, a.y + 62, 12, '#fff0b0'); }
   }
 
   // NET burst
@@ -2857,6 +3084,7 @@ function draw() {
     hero.draw(p.x, p.y, rad * 2, g.t, p.face, p);
     ctx.restore();
   } else if (sheets) {
+    if (g.allies.length) { ctx.save(); ctx.setLineDash && ctx.setLineDash([8, 7]); ctx.lineDashOffset = -g.t * 30; circle(p.x, p.y, rad * 1.18, null, 'rgba(255, 236, 150, 0.85)', 3); ctx.restore(); }
     const squeeze = g.exiting >= 0 ? Math.max(0.15, 1 - g.exiting) : 1;
     if (p.abilT > 0) {
       const gl = ctx.createRadialGradient(p.x, p.y, size * 0.2, p.x, p.y, size * 0.6);
