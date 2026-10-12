@@ -1223,6 +1223,433 @@ function wallShape(top, fill, edge) {
   ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = edge; ctx.lineWidth = 6; ctx.stroke();
 }
 
+// ================= WORLD 4: DIGESTIVE SYSTEM =================
+const ENZ = {
+  amy: { name: 'עמילאז', food: 'starch', foodName: 'עמילן', color: '#5aa0ff', dark: '#1a4a90' },
+  pro: { name: 'פרוטאז', food: 'protein', foodName: 'חלבון', color: '#ff6a7a', dark: '#8a1a2a' },
+  lip: { name: 'ליפאז', food: 'fat', foodName: 'שומן', color: '#ffd04a', dark: '#8a6a00' },
+};
+const enzName = m => m === 'pro' ? (LV().proName || 'פרוטאז') : ENZ[m].name;
+HEROES.enzyme = {
+  name: 'אנזים עיכול', spd: 1.05, size: 0.82, ability: 'החלפת אנזים', cd: 0.35, abil: 'switch', perks: {},
+  desc: 'מספריים מולקולריים: כל אנזים מפרק סוג אחד של מזון. החליפו אנזים עם רווח.',
+  useAbility() {
+    const modes = LV().modes; const i = modes.indexOf(g.mode);
+    g.mode = modes[(i + 1) % modes.length]; sfx.click();
+  },
+  draw(x, y, s, t, f) {
+    const m = ENZ[(g && g.mode) || 'amy'], r = s / 2, open = 0.25 + Math.abs(Math.sin(t * 7)) * 0.35;
+    ctx.save(); ctx.translate(x, y); if (f < 0) ctx.scale(-1, 1);
+    ctx.fillStyle = m.color; ctx.strokeStyle = m.dark; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, open, Math.PI * 2 - open); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.ellipse(-r * 0.35, -r * 0.5, r * 0.3, r * 0.14, -0.4, 0, 7); ctx.fill();
+    face(-r * 0.2, -r * 0.1, r * 0.9, { ink: m.dark });
+    ctx.restore();
+  },
+};
+WORLDS.push({
+  id: 'gut', name: 'מערכת העיכול', icon: '🍎', organ: 'gut', meter: 'אנרגיה מהמזון', fever: true, hero: 'enzyme',
+  route: 'המסע של המזון: מהפה דרך הוושט לקיבה, למעי הדק ולמעי הגס. מה שנספג במעי הדק עובר לדם וממשיך לכבד.',
+  blurb: 'אנזימים מפרקים מזון לאבני בניין שנספגות לדם.',
+  win: 'כל המזון התפרק ונספג. יש לגוף אנרגיה לכל היום!',
+  done: { eyebrow: 'המזון ממשיך במסע', text: 'גל פריסטלטי דחף את המזון לתחנה הבאה. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.' },
+  levels: [
+    { id: 'mouth', name: 'הפה והוושט', wall: 'mouth', mech: 'gut', modes: ['amy'], enemies: [['starch', 0.6], ['protein', 0.2], ['fat', 0.2]], spawnMul: 0.9,
+      boss: 'bolus', bossName: 'כדור מזון ענק', bossHint: 'לעסו אותו: התנגשו בו שוב ושוב', pickup: 'saliva', rbcFlow: false, bgCells: false, dots: false, scale: false, flow: 80,
+      exitSub: 'בלעו! שחו לפתח: הוושט מוביל לקיבה', lose: 'המזון לא התעכל!',
+      intro: 'העיכול מתחיל כבר בפה. השיניים טוחנות, והרוק מכיל את האנזים עמילאז, שמתחיל לפרק עמילן (בלחם, אורז ותפוחי אדמה) לסוכרים. גלי כיווץ בוושט, "פריסטלטיקה", דוחפים את המזון למטה.',
+      goal: 'פרקו עמילן (לחם) עם העמילאז. בפה עוד אין אנזים לחלבון ולשומן: הם ממשיכים הלאה.',
+      entries: ['digestion', 'amylase', 'peristalsis'],
+      facts: ['בלוטות הרוק מייצרות כליטר רוק ביום', 'לעיסה טובה מקלה על העיכול', 'פריסטלטיקה עובדת גם כשעומדים על הראש', 'הוושט ארוך כ־25 ס״מ', 'קנה מידה: המולקולות והאנזימים מוגדלים מאוד'] },
+    { id: 'stomach', name: 'הקיבה', wall: 'stomach', mech: 'stomach', modes: ['pro'], proName: 'פפסין', enemies: [['protein', 0.55], ['salm', 0.2], ['hpylori', 0.25]], spawnMul: 1,
+      boss: 'hpcolony', bossName: 'מושבת הליקובקטר', bossHint: 'מגן האמוניה נופל רק כשגל החומצה מכסה אותה', pickup: 'mucusp', rbcFlow: false, bgCells: false, dots: false, scale: false, flow: 55,
+      exitSub: 'שחו לפתח: השוער של הקיבה נפתח אל המעי הדק', lose: 'החיידקים פגעו בדופן הקיבה!',
+      intro: 'הקיבה מערבלת את המזון עם מיץ קיבה חומצי מאוד (pH 1.5–3.5). החומצה הורגת את רוב החיידקים, והאנזים פפסין, שעובד רק בחומצה, מפרק חלבונים. שכבת ריר מגינה על הדופן מפני החומצה.',
+      goal: 'פרקו חלבון עם הפפסין. הדפו חיידקים אל גל החומצה. הליקובקטר מסתתר בריר: אל תתנו לו להגיע לדופן.',
+      entries: ['stomach', 'pepsin', 'hpylori'],
+      facts: ['מיץ הקיבה חומצי מאוד: pH 1.5–3.5', 'ריר מגן על הדופן מפני החומצה', 'הקיבה מכילה כ־1–1.5 ליטר כשהיא מלאה', 'תאי הדופן של הקיבה מתחדשים כל כמה ימים', 'הליקובקטר שורד בעזרת אמוניה שהוא מייצר'] },
+    { id: 'smallint', name: 'המעי הדק', wall: 'villi', mech: 'smallint', modes: ['amy', 'pro', 'lip'], proName: 'טריפסין', enemies: [['starch', 0.3], ['protein', 0.3], ['fat', 0.15], ['fatbig', 0.25]], spawnMul: 0.85,
+      boss: 'fatglob', bossName: 'טיפת השומן הענקית', bossHint: 'קודם מרה (אמולסיה), ואז התנגשו בה עם ליפאז', pickup: 'water', rbcFlow: false, bgCells: false, dots: false, scale: false, flow: 75,
+      exitSub: 'שחו לפתח: מה שלא נספג ממשיך למעי הגס', lose: 'הגוף לא קיבל מספיק אבני בניין!',
+      intro: 'במעי הדק קורה רוב העיכול ורוב הספיגה. הלבלב שולח אנזימים לכל סוגי המזון, והכבד שולח מרה שמפרקת טיפות שומן גדולות לקטנות. הדופן מכוסה בסיסים (וילי), אצבעות זעירות שסופגות את אבני הבניין לדם.',
+      goal: 'החליפו אנזים (רווח) לפי סוג המזון. טיפת שומן גדולה צריכה קודם מרה (טיפה ירוקה). הדפו אבני בניין אל הסיסים.',
+      entries: ['smallint', 'villi', 'bile'],
+      facts: ['אורך המעי הדק כ־3–7 מטר, תלוי איך מודדים', 'שטח הפנים של מערכת העיכול כ־30 מ״ר', 'מרה היא לא אנזים: היא פועלת כמו סבון', 'אבני הבניין: סוכרים, חומצות אמינו וחומצות שומן', 'רוב הספיגה קורית במעי הדק'] },
+    { id: 'colon', name: 'המעי הגס', wall: 'colon', mech: 'colon', modes: ['amy', 'pro', 'lip'], proName: 'טריפסין', enemies: [['fiber', 0.45], ['salm', 0.38], ['starch', 0.17]], spawnMul: 1.05,
+      boss: 'salminv', bossName: 'פלישת סלמונלה', bossHint: 'התנגשו בה. החיידקים הטובים עוזרים כשהם קרובים', pickup: 'water', rbcFlow: false, bgCells: false, dots: false, scale: false, flow: 60,
+      exitSub: 'שחו לפתח: מה שנשאר יוצא מהגוף', lose: 'הסלמונלה השתלטה על המעי!',
+      intro: 'במעי הגס חיים טריליוני חיידקים טובים, המיקרוביום. הם מפרקים סיבים תזונתיים שלנו אין אנזים בשבילם, מייצרים ויטמינים (כמו ויטמין K) ותופסים את המקום של חיידקים מזיקים. כאן גם נספגים רוב המים שנשארו.',
+      goal: 'הדפו סיבים (ירוקים) אל החיידקים הטובים כדי להאכיל אותם, והדפו סלמונלה אליהם כדי שיחסלו אותה.',
+      entries: ['colon', 'microbiome', 'fiber'],
+      facts: ['במעי הגס חיים עשרות טריליוני חיידקים', 'יש בגוף בערך כמה חיידקים כמו תאים אנושיים', 'חיידקי המעי מייצרים ויטמין K', 'אין לנו אנזים לסיבים: החיידקים מפרקים אותם בשבילנו', 'המעי הגס סופג את רוב המים שנשארו'] },
+  ],
+  quiz: [
+    ['איפה מתחיל העיכול?', ['בפה', 'בקיבה', 'במעי הגס', 'בכבד'], 'הרוק מכיל עמילאז שמתחיל לפרק עמילן.'],
+    ['מה מפרק האנזים עמילאז?', ['עמילן (פחמימות)', 'חלבון', 'שומן', 'סיבים'], 'עמילאז מפרק עמילן לסוכרים קטנים.'],
+    ['למה הקיבה לא מעכלת את עצמה?', ['שכבת ריר מגינה על הדופן', 'היא עשויה מברזל', 'אין בה חומצה', 'היא ריקה תמיד'], 'וגם תאי הדופן מתחדשים כל כמה ימים.'],
+    ['מה עושה המרה?', ['מפרקת טיפות שומן גדולות לקטנות', 'מפרקת חלבון', 'הורגת חיידקים', 'מייצרת סוכר'], 'מרה היא לא אנזים: היא עובדת כמו סבון, וכך הליפאז מגיע לשומן.'],
+    ['איפה נספגים רוב אבני הבניין מהמזון?', ['במעי הדק', 'בקיבה', 'בוושט', 'בפה'], 'הסיסים (וילי) מגדילים מאוד את שטח הספיגה.'],
+    ['מי מפרק את הסיבים התזונתיים?', ['חיידקי המעי הטובים', 'עמילאז', 'החומצה בקיבה', 'השיניים'], 'לנו אין אנזים לסיבים. החיידקים מפרקים אותם ומייצרים חומרים מועילים.'],
+    ['מה עוזר לחיידק הליקובקטר לשרוד בקיבה?', ['הוא מייצר אמוניה שמנטרלת חומצה', 'הוא עשוי מאבן', 'הוא ישן כל הזמן', 'הוא חי מחוץ לקיבה'], 'האנזים אוריאז שלו הופך אוריאה לאמוניה.'],
+    ['מה זה פריסטלטיקה?', ['גלי כיווץ שדוחפים את המזון', 'סוג של אנזים', 'חיידק במעי', 'שן טוחנת'], 'השרירים בדופן מתכווצים בגלים, ולכן אפשר לבלוע גם בשכיבה.'],
+  ],
+});
+Object.assign(ENCY, {
+  digestion: ['עיכול', 'פירוק המזון לאבני בניין קטנות שיכולות לעבור לדם: פחמימות לסוכרים, חלבונים לחומצות אמינו ושומנים לחומצות שומן. אנזימים הם החלבונים שעושים את הפירוק.'],
+  amylase: ['עמילאז', 'אנזים שמפרק עמילן לסוכרים. יש אותו ברוק ובמיץ הלבלב. אם לועסים לחם זמן רב, הוא מתחיל להיות מתוק.'],
+  peristalsis: ['פריסטלטיקה', 'גלי כיווץ של השרירים בדופן מערכת העיכול, שדוחפים את המזון קדימה. בזכותם אפשר לבלוע גם כשעומדים על הראש.'],
+  stomach: ['הקיבה', 'שק שרירי שמערבל את המזון עם מיץ קיבה חומצי (pH 1.5–3.5). החומצה הורגת חיידקים, ושכבת ריר מגינה על הדופן.'],
+  pepsin: ['פפסין', 'אנזים בקיבה שמפרק חלבונים. הוא עובד רק בסביבה חומצית מאוד, ולכן החומצה חשובה לעיכול.'],
+  hpylori: ['הליקובקטר פילורי', 'חיידק ספירלי שמסתתר בשכבת הריר של הקיבה ומייצר אמוניה שמנטרלת חומצה. הוא יכול לגרום לכיב (פצע) בדופן, ומטפלים בו באנטיביוטיקה.'],
+  salmonella: ['סלמונלה', 'חיידק שגורם להרעלת מזון, למשל מביצים או עוף לא מבושלים. חומצת הקיבה והחיידקים הטובים במעי עוזרים לעצור אותו.'],
+  smallint: ['המעי הדק', 'צינור ארוך ומקופל שבו קורים רוב העיכול ורוב הספיגה. הלבלב שולח אליו אנזימים, והכבד שולח מרה.'],
+  villi: ['סיסים (וילי)', 'בליטות זעירות דמויות אצבע בדופן המעי הדק, ועליהן בליטות קטנות עוד יותר. הן מגדילות מאוד את השטח שדרכו אבני הבניין נספגות לדם.'],
+  bile: ['מרה', 'נוזל ירקרק שהכבד מייצר ושנאגר בכיס המרה. היא לא אנזים: היא מפרקת טיפות שומן גדולות לטיפות קטנות (אמולסיה), כמו סבון, וכך הליפאז יכול לעבוד.'],
+  lipase: ['ליפאז', 'אנזים שמפרק שומן לחומצות שומן. רובו מגיע מהלבלב אל המעי הדק.'],
+  protease: ['פרוטאז', 'אנזים שמפרק חלבונים לחומצות אמינו. בקיבה זה הפפסין, ובמעי הדק טריפסין ואחרים מהלבלב.'],
+  colon: ['המעי הגס', 'החלק האחרון של מערכת העיכול. כאן נספגים מים ומלחים, וחיים בו רוב חיידקי המעי.'],
+  microbiome: ['המיקרוביום', 'עשרות טריליוני חיידקים טובים שחיים במעי. הם מפרקים סיבים, מייצרים ויטמינים, מאמנים את מערכת החיסון ותופסים את המקום של חיידקים מזיקים.'],
+  fiber: ['סיבים תזונתיים', 'חלקים מצמחים (בירקות, פירות ודגנים מלאים) שאין לנו אנזים לפרק. חיידקי המעי ניזונים מהם, והם עוזרים למעי לעבוד.'],
+});
+PICKUPS.saliva = { name: 'רוק', draw() { ctx.fillStyle = 'rgba(200, 230, 255, 0.85)'; ctx.strokeStyle = '#6a90b0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -11); ctx.quadraticCurveTo(10, 3, 0, 9); ctx.quadraticCurveTo(-10, 3, 0, -11); ctx.fill(); ctx.stroke(); } };
+PICKUPS.water = { name: 'מים', draw() { ctx.fillStyle = 'rgba(120, 190, 255, 0.9)'; ctx.strokeStyle = '#2a6ab0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -11); ctx.quadraticCurveTo(10, 3, 0, 9); ctx.quadraticCurveTo(-10, 3, 0, -11); ctx.fill(); ctx.stroke(); } };
+PICKUPS.mucusp = { name: 'ריר מגן', draw() { circle(0, 0, 10, 'rgba(220, 235, 160, 0.85)', '#8a9a40', 2); } };
+
+// ---- food: only the matching enzyme breaks it
+let foodMsgT = 0;
+function foodTouch(food) {
+  return (e) => {
+    const lv = LV(), canHere = lv.modes.some(m => ENZ[m].food === food);
+    if (canHere && ENZ[g.mode].food === food && !e.big) return 'collect';
+    if (g.t - foodMsgT > 1.6) {
+      foodMsgT = g.t;
+      const fname = ENZ[Object.keys(ENZ).find(k => ENZ[k].food === food)].foodName;
+      addText(e.x, e.y - 34, e.big ? 'צריך מרה קודם!' : canHere ? `ל${fname} צריך ${enzName(Object.keys(ENZ).find(k => ENZ[k].food === food))}` : `כאן אין אנזים ל${fname}`, '#ffe082');
+    }
+    return 'push';
+  };
+}
+function foodKind(food, r, pts, draw) {
+  return {
+    r, sp: 42, spW: 4, pts, wobA: 45, noRot: true, touch: foodTouch(food),
+    onCollect(e) {
+      award(pts, e.x, e.y - 30, 'פורק!'); heal(2); sfx.chomp(g.combo); g.p.chomp = 0; g.kills++;
+      for (let i = 0; i < 3; i++) { const n = spawnEnemy('nutri', e.x, e.y); n.sub = food; n.vx = rnd(-120, 120); n.vy = rnd(-120, 120); n.pushT = 0.5; }
+      unlock({ starch: 'amylase', protein: 'protease', fat: 'lipase' }[food]); unlock('digestion');
+    },
+    escape(e) { if (LV().modes.some(m => ENZ[m].food === food)) hurtBlood(e.big ? 4 : 2, 'המזון לא התפרק', 60, e.y, '#ff8a80'); },
+    draw(e) { ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(Math.sin(g.t + e.ph) * 0.2); draw(e); ctx.restore(); },
+  };
+}
+KINDS.starch = foodKind('starch', 24, 100, () => {
+  ctx.fillStyle = '#e8b86a'; ctx.strokeStyle = '#8a5a1a'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-22, 14); ctx.lineTo(-22, -6); ctx.quadraticCurveTo(-22, -22, 0, -22); ctx.quadraticCurveTo(22, -22, 22, -6); ctx.lineTo(22, 14); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f7e2b8'; ctx.beginPath(); ctx.moveTo(-16, 10); ctx.lineTo(-16, -5); ctx.quadraticCurveTo(-16, -16, 0, -16); ctx.quadraticCurveTo(16, -16, 16, -5); ctx.lineTo(16, 10); ctx.closePath(); ctx.fill();
+});
+KINDS.protein = foodKind('protein', 24, 100, () => {
+  ctx.fillStyle = '#e58a8a'; ctx.strokeStyle = '#8a2a2a'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.ellipse(0, 0, 25, 18, 0.3, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255, 235, 235, 0.8)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-15, -5); ctx.quadraticCurveTo(0, 5, 14, -7); ctx.moveTo(-10, 8); ctx.quadraticCurveTo(2, 2, 12, 9); ctx.stroke();
+});
+KINDS.fat = foodKind('fat', 18, 90, () => { circle(0, 0, 18, '#ffe27a', '#a08010', 3); circle(-6, -6, 5, 'rgba(255,255,255,0.6)'); });
+KINDS.fatbig = foodKind('fat', 34, 150, () => { circle(0, 0, 34, '#ffd84a', '#a08010', 4); circle(-12, -12, 9, 'rgba(255,255,255,0.55)'); circle(10, 8, 6, 'rgba(255,255,255,0.3)'); });
+KINDS.fatbig.init = e => { e.big = true; };
+const baseFatbigTouch = KINDS.fatbig.touch;
+KINDS.fatbig.touch = (e) => {
+  if (g.bile > 0) { // bile emulsifies: one big drop becomes small ones lipase can reach
+    g.bile--; e.dead = true; award(120, e.x, e.y - 40, 'אמולסיה!'); sfx.burst(); unlock('bile');
+    for (let i = 0; i < 4; i++) { const n = spawnEnemy('fat', e.x + rnd(-20, 20), e.y + rnd(-20, 20)); n.vx = rnd(-80, 80); n.vy = rnd(-80, 80); n.pushT = 0.4; }
+    return null;
+  }
+  return baseFatbigTouch(e);
+};
+// building blocks after digestion: sugars, amino acids, fatty acids
+KINDS.nutri = {
+  r: 8, sp: 30, pts: 0, wobA: 30, noPop: true, touch: 'push',
+  onWall(e) { if (LV().wall === 'villi') { e.dead = true; award(30, e.x, e.y + (e.y < H / 2 ? 30 : -30), 'נספג'); heal(0.6); unlock('villi'); } },
+  tick(e) { if (LV().wall === 'villi' && e.pushT <= 0 && (e.y <= WALL + 12 || e.y >= H - WALL - 12)) KINDS.nutri.onWall(e); },
+  draw(e) {
+    const sub = e.sub || 'starch';
+    if (sub === 'starch') { ctx.strokeStyle = '#fff2c0'; ctx.lineWidth = 2.5; ctx.beginPath(); for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3; k ? ctx.lineTo(e.x + Math.cos(a) * 7, e.y + Math.sin(a) * 7) : ctx.moveTo(e.x + Math.cos(a) * 7, e.y + Math.sin(a) * 7); } ctx.stroke(); }
+    else if (sub === 'protein') { circle(e.x - 5, e.y, 4, '#ff9aa8', '#8a2a3a', 1.5); circle(e.x + 4, e.y + 2, 4, '#ff9aa8', '#8a2a3a', 1.5); }
+    else { ctx.strokeStyle = '#ffe27a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 9, e.y); for (let k = 1; k < 5; k++) ctx.lineTo(e.x - 9 + k * 4.5, e.y + (k % 2 ? -4 : 4)); ctx.stroke(); }
+  },
+};
+KINDS.bile = {
+  r: 12, sp: 40, pts: 0, wobA: 40, noPop: true, touch: 'collect',
+  onCollect(e) { g.bile = Math.min(5, g.bile + 2); sfx.platelet(); addText(e.x, e.y - 24, '+2 מרה', '#b8f080'); unlock('bile'); },
+  draw(e) { ctx.fillStyle = '#9ad050'; ctx.strokeStyle = '#3a6a10'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(e.x, e.y - 14); ctx.quadraticCurveTo(e.x + 12, e.y + 4, e.x, e.y + 11); ctx.quadraticCurveTo(e.x - 12, e.y + 4, e.x, e.y - 14); ctx.fill(); ctx.stroke(); label('מרה', e.x, e.y + 26, 11, '#d8f8b0'); },
+};
+// bacteria in the gut: pushed, never eaten (an enzyme is not an immune cell)
+function drawRod(e, fill, edge, len = 30) {
+  ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.rot || 0);
+  ctx.strokeStyle = edge; ctx.lineWidth = 1.5;
+  for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(-len / 2 + i * len / 3, -8); ctx.quadraticCurveTo(-len / 2 + i * len / 3 + 4, -16, -len / 2 + i * len / 3 - 2, -20 + Math.sin(g.t * 8 + i) * 2); ctx.stroke(); }
+  ctx.fillStyle = fill; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.ellipse(0, 0, len / 2, 9, 0, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+KINDS.salm = {
+  r: 15, sp: 46, pts: 0, touch: 'push', wobA: 55,
+  tick(e) { if (e.pushT > 0) unlock('salmonella'); },
+  escape() { hurtBlood(3, 'סלמונלה חדרה!', 60, H / 2, '#ff8a80'); sfx.escape(); },
+  draw(e) { drawRod(e, '#e07a5a', '#7a2a1a'); },
+};
+KINDS.hpylori = {
+  r: 14, sp: 50, pts: 0, touch: 'push', wobA: 10,
+  init(e) { e.top = Math.random() < 0.5; },
+  ai(e) { return { x: e.x - 100, y: e.top ? WALL - 10 : H - WALL + 10 }; },
+  tick(e) {
+    if (e.pushT <= 0 && (e.y <= WALL + 16 || e.y >= H - WALL - 16)) {
+      e.dead = true; g.sites.push({ kind: 'ulcer', x: e.x, top: e.y < H / 2, t: 0, clr: 0, emitT: 4 });
+      hurtBlood(4, 'הליקובקטר נחפר בדופן!', e.x, e.y + (e.y < H / 2 ? 40 : -40), '#ffab91'); sfx.infect(); unlock('hpylori');
+    }
+  },
+  escape() { hurtBlood(1, 'ברח!', 60, H / 2); },
+  draw(e) {
+    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.rot || 0);
+    ctx.fillStyle = 'rgba(180, 230, 255, 0.25)'; ctx.beginPath(); ctx.arc(0, 0, 22, 0, 7); ctx.fill(); // ammonia cloud
+    ctx.strokeStyle = '#3a6a2a'; ctx.lineWidth = 8; ctx.lineCap = 'round';
+    ctx.beginPath(); for (let i = 0; i <= 12; i++) { const x = -16 + i * 2.7, y = Math.sin(i * 0.9 + g.t * 6) * 6; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke();
+    ctx.strokeStyle = '#9ad06a'; ctx.lineWidth = 5; ctx.stroke(); ctx.lineCap = 'butt';
+    ctx.restore();
+  },
+};
+KINDS.fiber = {
+  r: 22, sp: 34, pts: 0, touch: 'push', wobA: 40, noRot: true,
+  tick(e) { if (e.pushT > 0 && !e.msg) { e.msg = true; addText(e.x, e.y - 30, 'אין לנו אנזים לסיבים', '#c8f0a0'); unlock('fiber'); } },
+  draw(e) {
+    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.ph + Math.sin(g.t + e.ph) * 0.3);
+    ctx.strokeStyle = '#4a8a2a'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(-20, i * 7); ctx.quadraticCurveTo(0, i * 7 + 8, 20, i * 7); ctx.stroke(); }
+    ctx.strokeStyle = '#9ad06a'; ctx.lineWidth = 3;
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(-20, i * 7); ctx.quadraticCurveTo(0, i * 7 + 8, 20, i * 7); ctx.stroke(); }
+    ctx.lineCap = 'butt'; ctx.restore();
+  },
+};
+SITES.ulcer = infSite({ fill: 'rgba(200, 80, 70, 0.85)', edge: '#6a1a10', emit: 'hpylori', every: 7, offDmg: 5, offText: 'כיב בדופן הקיבה!', clear: s => { siteCleared(s); addText(s.x, wallY(s.top) + (s.top ? 70 : -70), 'הריר שוקם', '#e0f0a0'); } });
+
+// ---- shared gut mechanics: peristalsis waves push everything along
+function gutFlow() {
+  const lv = LV(), base = lv.flow ?? 80;
+  if (g.periT < 1.3) return base + 190 * Math.sin(Math.PI * g.periT / 1.3);
+  return base;
+}
+function gutInit() { g.mode = LV().modes[0]; g.periT = 99; g.periNext = 5; g.bile = 0; }
+function gutTick(dt) {
+  g.periT += dt; g.periNext -= dt;
+  if (g.periNext <= 0) { g.periT = 0; g.periNext = rnd(6, 8); addText(W - 150, WALL + 40, 'גל פריסטלטי!', '#ffe0c0'); noise(0.6, { vol: 0.12, freq: 300, q: 0.5 }); unlock('peristalsis'); }
+}
+function gutHud() {
+  const m = ENZ[g.mode];
+  ctx.fillStyle = 'rgba(42, 12, 6, 0.75)'; roundRect(30, 72, 210, 30, 15); ctx.fill();
+  circle(52, 87, 9, m.color, m.dark, 2);
+  label(`${enzName(g.mode)}: מפרק ${m.foodName}`, 145, 92, 14);
+  if (LV().modes.length > 1) label('רווח: החלפה', 135, 118, 12, '#f0c9a8');
+  if (g.bile > 0) label(`מרה: ${g.bile}`, 300, 92, 15, '#b8f080');
+}
+function gutBot(extra) {
+  const p = g.p;
+  if (g.boss) return g.boss;
+  let best = null, bd = 1e9;
+  for (const e of g.en) {
+    const K = KINDS[e.kind]; if (!K) continue;
+    let w = 1;
+    const food = { starch: 'starch', protein: 'protein', fat: 'fat', fatbig: 'fat' }[e.kind];
+    if (food) { if (!LV().modes.some(m => ENZ[m].food === food)) continue; if (ENZ[g.mode].food !== food && !(e.big && g.bile)) { if (Math.random() < 0.02) useAbility(); w = 3; } }
+    else if (e.kind === 'nutri' || e.kind === 'co2') continue;
+    else if (extra) { const t = extra(e); if (t === false) continue; w = t || 1; }
+    const d = Math.hypot(e.x - p.x, e.y - p.y) * w; if (d < bd) { bd = d; best = e; }
+  }
+  return best;
+}
+MECH.gut = { init: gutInit, flow: gutFlow, update: gutTick, hud: gutHud, botTarget: () => gutBot() };
+MECH.stomach = {
+  init() { gutInit(); g.acidT = 3; g.acidY = H - WALL; },
+  flow: () => gutFlow() * 0.7,
+  update(dt) {
+    gutTick(dt);
+    // acid waves: the acid surface rises, then sinks back
+    g.acidT -= dt;
+    const cyc = 8, ph = ((g.t % cyc) + cyc) % cyc, high = g.boss ? WALL + 60 : H * 0.42;
+    const rise = ph < 2.8 ? Math.sin(Math.PI * ph / 2.8) : 0;
+    g.acidY = H - WALL - 40 - rise * (H - WALL - 40 - high);
+    for (const e of g.en) {
+      if (e.dead || (e.kind !== 'salm' && e.kind !== 'hpylori')) continue;
+      if (e.y > g.acidY && (e.kind === 'salm' || e.pushT > 0)) { e.dead = true; g.pops.push({ x: e.x, y: e.y, t: 0, small: true }); award(80, e.x, e.y - 20, 'החומצה חיסלה'); g.kills++; unlock('stomach'); }
+    }
+  },
+  drawMid() {
+    const y = g.acidY;
+    ctx.fillStyle = 'rgba(190, 230, 60, 0.28)'; ctx.beginPath(); ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 20) ctx.lineTo(x, y + Math.sin(x / 50 + g.t * 3) * 6);
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(230, 255, 150, 0.5)';
+    for (let i = 0; i < 12; i++) { const bx = (i * 83 + g.t * 20) % W, by = y + 20 + ((i * 37 + g.t * 40) % Math.max(10, H - WALL - y - 20)); circle(bx, by, 3); }
+    label('חומצה pH 2', 70, Math.min(H - WALL - 10, y + 24), 13, '#e8ffa0');
+  },
+  hud: gutHud,
+  botTarget: () => gutBot(e => (e.kind === 'hpylori' || e.kind === 'salm') ? (e.y < g.acidY ? 1 : false) : 1),
+};
+MECH.smallint = {
+  init() { gutInit(); g.bileT = 2; },
+  flow: gutFlow,
+  update(dt) {
+    gutTick(dt);
+    g.bileT -= dt;
+    if (g.bileT <= 0 && g.phase !== 'exit') { spawnEnemy('bile', W + 30, rnd(WALL + 50, H - WALL - 50)); g.bileT = g.boss ? 2.4 : rnd(4, 5.5); }
+  },
+  hud: gutHud,
+  botTarget() {
+    if (g.boss && !g.bile && !(g.boss.emul > 0)) { const b = g.en.find(e => e.kind === 'bile'); if (b) return b; }
+    if (g.boss && g.boss.emul > 0 && g.mode !== 'lip') useAbility();
+    const nb = !g.bile && g.en.find(e => e.kind === 'bile'); if (nb && g.en.some(e => e.big)) return nb;
+    return gutBot();
+  },
+};
+MECH.colon = {
+  init() { gutInit(); g.mx = []; for (let i = 0; i < 4; i++) g.mx.push(makeMicrobe(150 + i * 220)); g.mxT = 6; },
+  flow: gutFlow,
+  update(dt) {
+    gutTick(dt);
+    g.mxT -= dt;
+    if (g.mxT <= 0) { if (g.mx.length < 7) g.mx.push(makeMicrobe(W + 60)); g.mxT = rnd(6, 9); }
+    for (const m of g.mx) {
+      m.x -= g.flow * 0.35 * dt; m.y += Math.sin(g.t * 0.7 + m.ph) * 12 * dt; m.t += dt;
+      if (m.x < -80) m.dead = true;
+      for (const e of g.en) {
+        if (e.dead || Math.hypot(e.x - m.x, e.y - m.y) > m.r + e.r) continue;
+        if (e.kind === 'fiber') { e.dead = true; m.fed++; m.r = Math.min(46, m.r + 4); award(120, m.x, m.y - m.r - 10, 'החיידקים הטובים ניזונו!'); heal(2); sfx.platelet(); unlock('microbiome');
+          if (m.fed % 3 === 0) { g.plts.push({ ...makePlatelet(m.x), x: m.x, y: m.y, type: 'vitk' }); addText(m.x, m.y + m.r + 18, 'ויטמין K!', '#c8f0a0'); } }
+        else if (e.kind === 'salm') { e.dead = true; g.kills++; g.pops.push({ x: e.x, y: e.y, t: 0, small: true }); award(100, e.x, e.y - 20, 'סולקה!'); unlock('microbiome'); }
+      }
+    }
+    if (g.mx.length) { // keep some good bacteria on screen
+      g.mx = g.mx.filter(m => !m.dead);
+      while (g.mx.filter(m => m.x < W).length < 2) g.mx.push(makeMicrobe(W + rnd(30, 200)));
+    }
+    if (g.boss) for (const m of g.mx) if (Math.hypot(m.x - g.boss.x, m.y - g.boss.y) < m.r + g.boss.r && Math.random() < dt * 0.8) damageBoss(1);
+  },
+  drawMid() { for (const m of g.mx) drawMicrobe(m); },
+  hud: gutHud,
+  botTarget() {
+    const p = g.p;
+    if (g.boss) return g.boss;
+    let best = null, bd = 1e9;
+    for (const e of g.en) {
+      if (e.kind !== 'fiber' && e.kind !== 'salm') continue;
+      const m = g.mx.reduce((a, b) => Math.abs(b.y - e.y) + Math.abs(b.x - e.x) < Math.abs(a.y - e.y) + Math.abs(a.x - e.x) ? b : a, g.mx[0]);
+      if (!m) continue;
+      const dx = m.x - e.x, dy = m.y - e.y, l = Math.hypot(dx, dy) || 1;
+      const t = { x: e.x - dx / l * 40, y: e.y - dy / l * 40 }, d = Math.hypot(t.x - p.x, t.y - p.y);
+      if (d < bd) { bd = d; best = d < 30 ? e : t; }
+    }
+    return best;
+  },
+};
+PICKUPS.vitk = { name: 'ויטמין K', draw() { circle(0, 0, 11, '#7ad07a', '#2a6a2a', 2); label('K', 0, 5, 12, '#0a2a0a'); } };
+function makeMicrobe(x) { return { x, y: rnd(WALL + 70, H - WALL - 70), r: 30, fed: 0, ph: Math.random() * 6, t: 0 }; }
+function drawMicrobe(m) {
+  const wob = 1 + Math.sin(g.t * 3 + m.ph) * 0.05;
+  ctx.save(); ctx.translate(m.x, m.y); ctx.scale(wob, 1 / wob);
+  ctx.fillStyle = 'rgba(190, 150, 240, 0.35)'; ctx.beginPath(); ctx.arc(0, 0, m.r + 8, 0, 7); ctx.fill();
+  circle(0, 0, m.r, '#b896f0', '#5a3a90', 3);
+  for (let i = 0; i < 5; i++) circle(Math.cos(i * 1.3 + m.ph) * m.r * 0.55, Math.sin(i * 1.7) * m.r * 0.5, 3, 'rgba(90, 58, 144, 0.4)');
+  face(0, 2, m.r * 1.1, { ink: '#3a1a6a' });
+  ctx.restore();
+  label('חיידק טוב', m.x, m.y + m.r + 18, 11, '#e0d0ff');
+}
+BOSSES.bolus = {
+  r: 100, hp: 0.8, emit: 'starch', emitEvery: 1.8,
+  draw(b) {
+    circle(b.x, b.y, 98, '#c8925a', '#6a3a10', 5);
+    for (let i = 0; i < 10; i++) { const a = i * 0.63 + b.t * 0.2, r = 30 + (i % 3) * 20; ctx.fillStyle = ['#e8b86a', '#e58a8a', '#ffe27a', '#8ad06a'][i % 4]; ctx.beginPath(); ctx.ellipse(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r, 16, 11, a, 0, 7); ctx.fill(); }
+    ctx.fillStyle = 'rgba(200, 230, 255, 0.3)'; ctx.beginPath(); ctx.arc(b.x - 20, b.y - 30, 50, 0, 7); ctx.fill();
+    face(b.x, b.y + 10, 70, { mad: true });
+  },
+};
+BOSSES.hpcolony = {
+  r: 90, hp: 0.7, emit: 'hpylori', emitEvery: 2.6,
+  shield(b) { return b.y > g.acidY ? false : 'מגן אמוניה!'; },
+  draw(b) {
+    const shielded = b.y <= g.acidY;
+    ctx.fillStyle = shielded ? 'rgba(180, 230, 255, 0.35)' : 'rgba(180, 230, 255, 0.08)';
+    ctx.beginPath(); ctx.arc(b.x, b.y, 115, 0, 7); ctx.fill();
+    for (let i = 0; i < 10; i++) { const a = i * 0.63 + b.t * 0.3, r = 25 + (i % 3) * 22; KINDS.hpylori.draw({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, rot: a }); }
+    face(b.x, b.y, 60, { mad: true });
+    if (shielded) label('מגן אמוניה', b.x, b.y - 100, 14, '#c8ecff');
+  },
+};
+BOSSES.fatglob = {
+  r: 100, hp: 0.6, emit: 'fat', emitEvery: 2.2,
+  init(b) { b.emul = 0; },
+  update(b, dt) { if (b.emul > 0) b.emul -= dt; },
+  shield(b) {
+    if (b.emul > 0) return g.mode === 'lip' ? false : 'צריך ליפאז!';
+    if (g.bile > 0) { g.bile--; b.emul = 7; sfx.burst(); return 'אמולסיה! עכשיו ליפאז'; }
+    return 'צריך מרה!';
+  },
+  draw(b) {
+    circle(b.x, b.y, 98, '#ffd84a', '#a08010', 5);
+    if (b.emul > 0) { ctx.strokeStyle = '#7ab030'; ctx.lineWidth = 6; ctx.setLineDash && ctx.setLineDash([14, 10]); ctx.beginPath(); ctx.arc(b.x, b.y, 106, 0, 7); ctx.stroke(); ctx.setLineDash && ctx.setLineDash([]); }
+    circle(b.x - 35, b.y - 35, 22, 'rgba(255,255,255,0.5)');
+    face(b.x, b.y + 10, 72, { mad: true });
+  },
+};
+BOSSES.salminv = {
+  r: 95, hp: 0.9, emit: 'salm', emitEvery: 2,
+  draw(b) {
+    ctx.fillStyle = 'rgba(224, 122, 90, 0.25)'; ctx.beginPath(); ctx.arc(b.x, b.y, 110, 0, 7); ctx.fill();
+    for (let i = 0; i < 12; i++) { const a = i * 0.52 + b.t * 0.3, r = 25 + (i % 3) * 24; drawRod({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, rot: a * 2 }, '#e07a5a', '#7a2a1a'); }
+    face(b.x, b.y, 60, { mad: true });
+  },
+};
+function gutWall(fill, edge, extra) {
+  return {
+    fill, edge, bg: ['#3a1a0e', '#7a4a2a'], wash: 'rgba(200, 150, 80, 0.08)', vig: 'rgba(20, 8, 4, 0.5)',
+    draw(top) {
+      const off = g.scroll, base = wallY(top), sq = g.periT < 1.3 ? Math.sin(Math.PI * g.periT / 1.3) : 0, px = W * (1 - g.periT / 1.3);
+      ctx.beginPath(); ctx.moveTo(0, top ? 0 : H);
+      for (let x = 0; x <= W + 20; x += 20) {
+        const bump = sq * 34 * Math.exp(-((x - px) * (x - px)) / 9000);
+        ctx.lineTo(x, base + (top ? bump : -bump) + Math.sin((x + off) / 70) * 9 + Math.sin((x + off * 0.6) / 33) * 4);
+      }
+      ctx.lineTo(W, top ? 0 : H); ctx.closePath();
+      ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = edge; ctx.lineWidth = 6; ctx.stroke();
+      if (extra) extra(top, off, base);
+    },
+  };
+}
+WALLSTYLE.mouth = gutWall('#e88a98', '#8c2a42', (top, off, base) => {
+  for (let x = -(off % 70); x < W + 70; x += 70) { // molars
+    const y = top ? base - 2 : base + 2, d = top ? 1 : -1;
+    ctx.fillStyle = '#fbf6ea'; ctx.strokeStyle = '#a89a80'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x + 8, y - d * 8); ctx.lineTo(x + 8, y + d * 14); ctx.quadraticCurveTo(x + 20, y + d * 24, x + 32, y + d * 16); ctx.quadraticCurveTo(x + 44, y + d * 24, x + 56, y + d * 14); ctx.lineTo(x + 56, y - d * 8); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+});
+WALLSTYLE.mouth.bg = ['#4a1420', '#8a3a48'];
+WALLSTYLE.stomach = gutWall('#d9707a', '#7a2030', (top, off, base) => {
+  ctx.strokeStyle = 'rgba(122, 32, 48, 0.5)'; ctx.lineWidth = 4; // rugae: folds of the stomach lining
+  for (let x = -(off % 60); x < W + 60; x += 60) { ctx.beginPath(); ctx.moveTo(x, top ? 8 : H - 8); ctx.quadraticCurveTo(x + 20, top ? base - 12 : base + 12, x + 40, top ? 8 : H - 8); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(220, 235, 160, 0.35)'; ctx.fillRect(0, top ? base : base - 14, W, 14); // mucus layer
+});
+WALLSTYLE.stomach.bg = ['#3a2210', '#6a5020'];
+WALLSTYLE.villi = gutWall('#e89a9a', '#8a3a42', (top, off, base) => {
+  for (let x = -(off % 34); x < W + 34; x += 34) { // villi: finger-like projections with capillaries inside
+    const d = top ? 1 : -1, h = 34 + Math.sin(x * 0.3) * 6;
+    ctx.fillStyle = '#f0a8a8'; ctx.strokeStyle = '#8a3a42'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x + 4, base); ctx.lineTo(x + 4, base + d * h * 0.7); ctx.quadraticCurveTo(x + 15, base + d * h * 1.15, x + 26, base + d * h * 0.7); ctx.lineTo(x + 26, base); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(200, 40, 60, 0.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x + 15, base); ctx.lineTo(x + 15, base + d * h * 0.85); ctx.stroke();
+  }
+});
+WALLSTYLE.villi.bg = ['#3a2410', '#7a5a2a'];
+WALLSTYLE.colon = gutWall('#c8806a', '#6a3020', (top, off, base) => {
+  ctx.strokeStyle = 'rgba(106, 48, 32, 0.45)'; ctx.lineWidth = 5; // haustra pouches
+  for (let x = -(off % 150); x < W + 150; x += 150) { ctx.beginPath(); ctx.arc(x + 75, top ? 0 : H, 70, top ? 0 : Math.PI, top ? Math.PI : Math.PI * 2); ctx.stroke(); }
+});
+WALLSTYLE.colon.bg = ['#2e1a10', '#5a3a1a'];
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
