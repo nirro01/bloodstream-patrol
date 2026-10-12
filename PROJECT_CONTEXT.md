@@ -5,7 +5,7 @@ This file holds the full context of the project so far: what exists, how it is b
 - **Owner:** Nir (GitHub `nirro01`). Talks to Claude in Hebrew and English. The game UI is in Hebrew.
 - **GitHub repo:** https://github.com/nirro01/bloodstream-patrol (public, currently **empty**: see "Open issues").
 - **Live build:** a private claude.ai artifact, https://claude.ai/artifact/4r7g3pntmiLQD72euVG9vg (version 6). Only the owner can open it until it is shared.
-- **Last saved version:** v7 "body worlds" on branch `claude/project-thread-g4n55s` (tag `v7-worlds`), one commit per world on top of v6. `main` still holds v6 until the PR is merged.
+- **Last saved version:** v7 "body worlds" on branch `claude/project-thread-g4n55s`, one commit per world on top of v6. `main` still holds v6 until the PR is merged.
 
 ---
 
