@@ -441,7 +441,7 @@ const UPGRADES = [
   { id: 'size', name: 'ממברנה מורחבת', desc: 'גודל ושטח בליעה +10%' },
   { id: 'cd', name: 'מיטוכונדריה נוספות', desc: 'היכולת נטענת מהר יותר ב־20%' },
   { id: 'regen', name: 'ייצור טסיות מוגבר', desc: 'הדם מתאושש מהר יותר ב־50%' },
-  { id: 'magnet', name: 'קולטני כימוקינים', desc: 'טסיות נמשכות אליכם', once: true },
+  { id: 'magnet', name: 'קולטני כימוקינים', desc: 'פריטי ריפוי נמשכים אליכם', once: true, pickup: true },
   { id: 'maxb', name: 'אריתרופויאטין (EPO)', desc: 'בריאות דם מקסימלית +20' },
 ];
 // Heroes: the playable character of each world. The four white cells are the blood world's picks.
@@ -628,7 +628,7 @@ const PLT = [0, 1, 2, 3].map(k => mk(48, 48, (x) => {
 // ================= WORLD REGISTRIES =================
 // Each world adds entries here: KINDS (things that move in the flow), BOSSES, SITES (things stuck on a wall),
 // PICKUPS (healing items) and MECH (the level's special mechanic: init/update/draw/hud hooks).
-const KINDS = {}, BOSSES = {}, SITES = {}, MECH = {};
+const KINDS = {}, BOSSES = {}, SITES = {}, MECH = {}, WALLSTYLE = {};
 const PICKUPS = { platelet: { name: 'טסית', draw: q => ctx.drawImage(PLT[q.k], -12, -12, 24, 24) } };
 // cartoon face, matching the sprite characters
 function face(x, y, s, o = {}) {
@@ -664,6 +664,296 @@ function botTarget() {
   if (g.boss) consider(g.boss.x, g.boss.y, 0.6);
   return best;
 }
+
+// ================= WORLD 2: HEART =================
+HEROES.rbc = {
+  name: 'כדורית אדומה', spd: 1.05, size: 0.78, ability: 'דחיפת זרם', cd: 4, abil: 'dash', perks: {},
+  desc: 'נושאת חמצן לכל הגוף בעזרת המוגלובין. כשאין בה חמצן היא אדומה כהה.',
+  draw(x, y, s, t, f) {
+    const dark = g && g.o2 === 0 && 'filter' in ctx;
+    if (dark) ctx.filter = 'brightness(0.62) saturate(0.9)';
+    sprite(img.rbc, Math.floor(t * 8), x, y, s * 1.5, f < 0);
+    if (dark) ctx.filter = 'none';
+  },
+};
+WORLDS.push({
+  id: 'heart', name: 'הלב', icon: '❤️', organ: 'heart', meter: 'זרימת הדם', hero: 'rbc',
+  route: 'הלב הוא משאבה עם ארבעה חדרים. הדם מגיע אליו מכל הגוף דרך הווריד הנבוב, ומשם נשלח לריאות ולגוף.',
+  blurb: 'כדורית אדומה עוברת דרך המסתמים בקצב הפעימות.',
+  win: 'הלב פועם חזק והדם זורם לכל הגוף. כל הכבוד!',
+  done: { eyebrow: 'הדם יצא מהלב', text: 'הכדורית נשלחה בפעימה חזקה אל אבי העורקים, העורק הגדול בגוף. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.' },
+  levels: [
+    { id: 'chambers', name: 'חדרי הלב', wall: 'heart', mech: 'heart', enemies: [['clot', 1]], spawnMul: 2.2, boss: 'thrombus', bossName: 'הקריש הגדול',
+      bossHint: 'אספו פלסמין (האנזים הסגול) ורק אז התנגשו בקריש', pickup: false, dots: false, scale: false, o2Start: 0, rbcEvery: 2.6, bgCount: 24,
+      valves: [['tricuspid', 'pulmonary'], ['mitral', 'aortic'], ['tricuspid', 'pulmonary', 'mitral', 'aortic']],
+      exitSub: 'שחו אל הפתח: אבי העורקים מוביל את הדם לכל הגוף', lose: 'המסתמים נסגרו והדם נתקע!',
+      intro: 'הכדורית נכנסה ללב בלי חמצן, ולכן היא אדומה כהה. הצד הימני של הלב שולח אותה לריאות להיטען בחמצן, והצד השמאלי שולח אותה לכל הגוף. בין החדרים יש מסתמים: דלתות שנפתחות רק לכיוון אחד, בקצב הפעימות.',
+      goal: 'עברו דרך כל מסתם כשהוא פתוח. מסתם סגור יחסום אתכם. היזהרו מקרישים קטנים שנדבקים אליכם.',
+      entries: ['heart', 'valve', 'deoxy'],
+      facts: ['הלב פועם 60–100 פעמים בדקה במנוחה', 'כ־100,000 פעימות ביום', 'במנוחה הלב שואב כ־5 ליטר דם בדקה', '"לאב־דאב" הם קולות של מסתמים שנסגרים', 'דם בלי חמצן הוא אדום כהה, לא כחול', 'קנה מידה: התאים מוגדלים מאוד. הלב בגודל של אגרוף'] },
+    { id: 'coronary', name: 'העורקים הכליליים', wall: 'artery', mech: 'coronary', enemies: [['ldl', 0.75], ['clot', 0.25]], spawnMul: 1.3, boss: 'thrombus', bossName: 'קריש בעורק הכלילי',
+      bossHint: 'קריש כזה גורם להתקף לב. אספו פלסמין והתנגשו בו', pickup: false, dots: false, scale: false, o2Start: 1, rbcEvery: 2.6, bgCount: 24,
+      exitSub: 'הדם ממשיך מהעורק אל נימי שריר הלב', lose: 'העורק נחסם ושריר הלב נשאר בלי חמצן!',
+      intro: 'גם שריר הלב צריך חמצן! הוא מקבל אותו מהעורקים הכליליים, שיוצאים מאבי העורקים ועוטפים את הלב. כולסטרול LDL נוטה להיתקע בדופן וליצור רובד (פלאק) שמצר את העורק.',
+      goal: 'מסרו חמצן לאזורי שריר רעבים (סגולים). הדפו LDL מהדופן, ואספו HDL כדי לפרק רבדים.',
+      entries: ['coronary', 'plaque', 'cholesterol'],
+      facts: ['העורקים הכליליים מזינים את שריר הלב עצמו', 'רובד (פלאק) הוא הצטברות של שומן ותאים בדופן העורק', 'LDL מכונה "כולסטרול רע", ו־HDL "כולסטרול טוב"', 'קריש שחוסם עורק כלילי גורם להתקף לב', 'פעילות גופנית ותזונה בריאה שומרות על העורקים'] },
+  ],
+  quiz: [
+    ['כמה חדרים יש ללב?', ['4', '2', '3', '6'], 'שתי עליות (למעלה) ושני חדרים (למטה): צד ימין וצד שמאל.'],
+    ['מה יוצר את הקול "לאב־דאב"?', ['המסתמים כשהם נסגרים', 'אוויר בריאות', 'הדם שפוגע בעצמות', 'השרירים בבטן'], 'קודם נסגרים המסתמים בין העליות לחדרים ("לאב"), ואחר כך המסתמים ביציאה מהחדרים ("דאב").'],
+    ['לאן הצד הימני של הלב שולח את הדם?', ['לריאות', 'למוח', 'לכליות', 'לרגליים'], 'בריאות הדם נטען בחמצן וחוזר לצד השמאלי, שמשם הוא נשלח לכל הגוף.'],
+    ['מה התפקיד של מסתמי הלב?', ['למנוע מהדם לזרום אחורה', 'לייצר תאי דם', 'לסנן חיידקים', 'לחמם את הדם'], 'כל מסתם נפתח רק לכיוון אחד.'],
+    ['מה קובע את קצב הלב?', ['הצומת הסינוטריאלי (SA), קוצב טבעי', 'הריאות', 'הקיבה', 'המסתם המיטרלי'], 'קבוצת תאים בעלייה הימנית שולחת אות חשמלי בכל פעימה.'],
+    ['מה מספק חמצן לשריר הלב עצמו?', ['העורקים הכליליים', 'הדם שבתוך החדרים', 'הריאות ישירות', 'הוורידים'], 'העורקים הכליליים יוצאים מאבי העורקים ועוטפים את הלב.'],
+    ['איזה צבע יש לדם בלי חמצן?', ['אדום כהה', 'כחול', 'ירוק', 'שקוף'], 'ורידים רק נראים כחלחלים דרך העור בגלל האופן שבו אור עובר בעור.'],
+    ['מה גורם להתקף לב?', ['קריש שחוסם עורק כלילי', 'יותר מדי מים', 'ריצה קלה', 'חום גבוה'], 'בלי זרימת דם, חלק משריר הלב נשאר בלי חמצן.'],
+  ],
+});
+Object.assign(ENCY, {
+  heart: ['הלב', 'משאבה שרירית בגודל אגרוף עם 4 חדרים. הצד הימני שולח דם לריאות, והצד השמאלי לכל הגוף. הקצב נקבע בצומת הסינוטריאלי (SA), קוצב טבעי ששולח אות חשמלי בכל פעימה.'],
+  valve: ['מסתמי הלב', 'ארבע "דלתות" חד־כיווניות: התלת־צניפי והמיטרלי בין העליות לחדרים, ומסתמי הריאה ואבי העורקים ביציאות. סגירתם יוצרת את הקול "לאב־דאב".'],
+  deoxy: ['דם בלי חמצן', 'כשההמוגלובין מוסר את החמצן, הדם נעשה אדום כהה. הוא אף פעם לא כחול. ורידים נראים כחלחלים רק בגלל האופן שבו אור עובר בעור.'],
+  clot: ['קריש דם', 'טסיות וחוטי חלבון בשם פיברין שנדבקים יחד. בפצע זה מציל חיים, אבל קריש בתוך כלי דם יכול לחסום אותו.'],
+  plasmin: ['פלסמין', 'אנזים שמפרק את חוטי הפיברין וכך ממיס קרישים. תרופות כמו tPA מפעילות אותו כדי לפתוח עורק חסום.'],
+  thrombus: ['תרומבוס', 'קריש גדול שנוצר בתוך כלי דם. בעורק כלילי הוא גורם להתקף לב, ובמוח לשבץ.'],
+  coronary: ['העורקים הכליליים', 'שני עורקים שיוצאים מאבי העורקים ועוטפים את הלב כמו כתר. הם מספקים חמצן לשריר הלב עצמו.'],
+  plaque: ['רובד (פלאק)', 'הצטברות של כולסטרול, תאים ושומן בדופן העורק. הרובד מצר את העורק, ואם הוא נסדק נוצר עליו קריש.'],
+  cholesterol: ['LDL ו־HDL', 'כולסטרול נע בדם בתוך חלקיקים. LDL ("רע") מביא כולסטרול לרקמות ועלול להיתקע בדופן. HDL ("טוב") אוסף עודפי כולסטרול ומחזיר אותם לכבד.'],
+});
+
+const VALVES = {
+  tricuspid: { name: 'המסתם התלת־צניפי', av: true }, pulmonary: { name: 'מסתם עורק הריאה', av: false },
+  mitral: { name: 'המסתם המיטרלי', av: true }, aortic: { name: 'מסתם אבי העורקים', av: false },
+};
+const BEAT = 60 / 66; // seconds per heartbeat (66 per minute)
+const beatPhase = () => (g.t % BEAT) / BEAT;
+function heartFlow() {
+  const ph = beatPhase();
+  // systole (first ~35% of the beat) pushes hard; diastole is calm
+  return ph < 0.35 ? 70 + 190 * Math.sin(Math.PI * ph / 0.35) : 60;
+}
+function beatSounds() {
+  const ph = beatPhase();
+  if (g.lastPh > ph) { tone(68, 0.16, { vol: 0.35, to: 40 }); g.beatK = 1; }        // "lub": AV valves close as the ventricles squeeze
+  if (g.lastPh < 0.36 && ph >= 0.36) tone(92, 0.12, { vol: 0.25, to: 55 });         // "dub": exit valves close
+  g.lastPh = ph;
+}
+function heartCommon(lv) { g.o2 = lv.o2Start; g.lastPh = 0; g.beatK = 0; g.plasmin = 0; g.plasT = 1; g.hdl = 0; }
+function plasminDuringBoss(dt) {
+  if (!g.boss) return;
+  g.plasT -= dt;
+  if (g.plasT <= 0 && g.en.filter(e => e.kind === 'plasmin').length < 2) { spawnEnemy('plasmin', W + 30, rnd(WALL + 60, H - WALL - 60)); g.plasT = 2.6; }
+}
+function heartHud() {
+  const k = g.beatK || 0, x = 110, y = 86;
+  ctx.save(); ctx.translate(x, y); ctx.scale(1 + k * 0.25, 1 + k * 0.25);
+  ctx.fillStyle = '#ff5a6e'; ctx.beginPath(); ctx.moveTo(0, 9); ctx.bezierCurveTo(-16, -2, -9, -14, 0, -6); ctx.bezierCurveTo(9, -14, 16, -2, 0, 9); ctx.fill();
+  ctx.restore();
+  label('66 פעימות בדקה', x + 70, y + 5, 13);
+  if (g.plasmin > 0) label(`פלסמין: ${g.plasmin}`, x + 40, y + 30, 15, '#d9b3ff');
+  if (g.hdl > 0) label(`HDL: ${g.hdl}`, x + 40, y + (g.plasmin > 0 ? 52 : 30), 15, '#a8f0b8');
+}
+MECH.heart = {
+  init(lv) { heartCommon(lv); g.valves = []; g.vT = 2.5; g.vq = []; g.lastWave = 0; },
+  flow: () => heartFlow(),
+  update(dt, rad) {
+    const p = g.p, lv = LV();
+    if (g.beatK > 0) g.beatK = Math.max(0, g.beatK - dt * 3);
+    beatSounds();
+    if (g.wave !== g.lastWave) {
+      g.lastWave = g.wave; g.vq = [...lv.valves[Math.min(g.wave, 3) - 1]]; g.vT = 2.5;
+      if (g.wave === 2) { g.o2 = 1; banner('סיבוב בריאות!', 'הכדורית נטענה בחמצן בריאות וחזרה לצד השמאלי של הלב', 3.2); addText(p.x, p.y - 70, 'נטענתי בחמצן!', '#ffb3b3'); }
+    }
+    if (g.phase === 'waves') {
+      g.vT -= dt;
+      if (g.vT <= 0 && g.vq.length) {
+        const k = g.vq.shift(); g.valves.push({ k, x: W + 40, open: 0, passed: false, hitCd: 0 });
+        g.vT = 7.5; addText(W - 160, WALL + 40, VALVES[k].name, '#ffe082');
+      }
+    }
+    const ph = beatPhase();
+    for (const v of g.valves) {
+      v.x -= g.flow * dt;
+      const want = VALVES[v.k].av ? (ph > 0.42 ? 1 : 0) : (ph < 0.34 ? 1 : 0);
+      v.open += (want - v.open) * Math.min(1, dt * 14);
+      if (v.passed) continue;
+      if (p.x > v.x + 4) {
+        v.passed = true; award(300, p.x, p.y - 60, 'עברתם!'); heal(5); sfx.clear(); unlock('valve');
+      } else if (v.open < 0.45 && p.x + rad * 0.75 > v.x - 8) {
+        p.x = v.x - 8 - rad * 0.75; if (p.vx > 0) p.vx = -80;
+        if (p.x <= rad + 2) { v.passed = true; p.x = v.x + rad + 16; hurtBlood(6, 'המסתם נסגר מולכם!', p.x, p.y - 60, '#ff8a80'); g.shake = 0.2; }
+      }
+    }
+    g.valves = g.valves.filter(v => v.x > -60);
+    plasminDuringBoss(dt);
+  },
+  drawBack() { for (const v of g.valves) drawValve(v); },
+  hud: heartHud,
+  botTarget() {
+    const p = g.p, v = g.valves.find(v => !v.passed && v.x > p.x - 20);
+    if (g.boss) { const pl = g.en.find(e => e.kind === 'plasmin'); if (pl && !g.plasmin) return pl; }
+    if (v && v.x - p.x < 320) return v.open > 0.6 ? { x: v.x + 90, y: H / 2 } : { x: Math.max(60, v.x - 160), y: H / 2 };
+    return null;
+  },
+};
+function drawValve(v) {
+  const L = H / 2 - WALL + 6, ang = v.open * 1.15; // leaflets fold toward the flow (left) when open
+  ctx.lineCap = 'round';
+  for (const top of [true, false]) {
+    const by = top ? WALL - 4 : H - WALL + 4, dir = top ? 1 : -1;
+    const tx = v.x - Math.sin(ang) * L, ty = by + dir * Math.cos(ang) * L;
+    if (VALVES[v.k].av) { // chordae tendineae: thin strings holding AV leaflets
+      ctx.strokeStyle = 'rgba(255, 235, 235, 0.6)'; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo((v.x + tx) / 2 + i * 6, (by + ty) / 2); ctx.lineTo(v.x + 30 + i * 10, by + dir * 6); ctx.stroke(); }
+    }
+    ctx.strokeStyle = '#7a1a2a'; ctx.lineWidth = 16;
+    ctx.beginPath(); ctx.moveTo(v.x, by); ctx.quadraticCurveTo(v.x + 14, (by + ty) / 2, tx, ty); ctx.stroke();
+    ctx.strokeStyle = '#f7c6cf'; ctx.lineWidth = 11; ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  const shut = v.open < 0.45;
+  label(VALVES[v.k].name, v.x, WALL + 22, 13, shut ? '#ff8a80' : '#c5f7c0');
+  label(shut ? 'סגור' : 'פתוח', v.x, H - WALL - 12, 13, shut ? '#ff8a80' : '#c5f7c0');
+}
+MECH.coronary = {
+  init(lv) { heartCommon(lv); g.hungT = 2; g.hdlT = 3; },
+  flow: () => heartFlow() * 0.85,
+  update(dt) {
+    if (g.beatK > 0) g.beatK = Math.max(0, g.beatK - dt * 3);
+    beatSounds();
+    if (g.phase !== 'exit') {
+      g.hungT -= dt;
+      if (g.hungT <= 0) { g.sites.push({ kind: 'hungry', x: W + 40, top: Math.random() < 0.5, t: 0, clr: 0 }); g.hungT = rnd(3, 4.5) * D().spawn; }
+      g.hdlT -= dt;
+      if (g.hdlT <= 0) { spawnEnemy('hdl', W + 30, rnd(WALL + 50, H - WALL - 50)); g.hdlT = rnd(4.5, 6.5); }
+    }
+    plasminDuringBoss(dt);
+  },
+  hud: heartHud,
+  botTarget() {
+    if (g.boss) { const pl = g.en.find(e => e.kind === 'plasmin'); if (pl && !g.plasmin) return pl; }
+    const pq = g.sites.find(s => s.kind === 'plaque' && g.hdl > 0 && s.x > 0);
+    if (pq) return { x: pq.x, y: wallY(pq.top) };
+    const h = g.sites.find(s => s.kind === 'hungry' && s.x > 0);
+    if (h) return { x: h.x, y: wallY(h.top) + (h.top ? 40 : -40) };
+    const hd = g.en.find(e => e.kind === 'hdl'); if (hd) return hd;
+    return null;
+  },
+};
+// small clot: platelets tangled in fibrin
+KINDS.clot = {
+  r: 26, sp: 34, spW: 3, pts: 0, touch: 'hazard', wobA: 30,
+  onHit(e) { g.p.slow = 1.6; hurtBlood(3, 'נתקעתם בקריש!', g.p.x, g.p.y - 50, '#ff8a80'); unlock('clot'); },
+  draw(e) {
+    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(e.ph + g.t * 0.3);
+    ctx.strokeStyle = 'rgba(255, 240, 220, 0.75)'; ctx.lineWidth = 1.6;
+    for (let i = 0; i < 7; i++) { const a = i * 0.9; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 30, Math.sin(a) * 26); ctx.lineTo(Math.cos(a + 2.6) * 28, Math.sin(a + 2.6) * 24); ctx.stroke(); }
+    for (let i = 0; i < 4; i++) { const a = i * 1.6; ctx.drawImage(PLT[i], Math.cos(a) * 12 - 12, Math.sin(a) * 10 - 12, 24, 24); }
+    ctx.restore();
+  },
+};
+KINDS.plasmin = {
+  r: 16, sp: 40, pts: 0, touch: 'collect', wobA: 50,
+  onCollect(e) { g.plasmin = Math.min(9, g.plasmin + 3); sfx.platelet(); addText(e.x, e.y - 24, '+3 פלסמין', '#d9b3ff'); unlock('plasmin'); },
+  draw(e) {
+    const s = 1 + Math.sin(g.t * 6 + e.ph) * 0.08;
+    ctx.save(); ctx.translate(e.x, e.y); ctx.scale(s, s);
+    circle(0, 0, 17, '#b685f0', '#5a2a90', 3);
+    ctx.fillStyle = '#5a2a90'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 17, -0.5, 0.5); ctx.fill(); // active site "mouth"
+    face(-3, 2, 22, { ink: '#3a1060', blush: false });
+    ctx.restore();
+    label('פלסמין', e.x, e.y + 32, 12, '#e6d0ff');
+  },
+};
+KINDS.ldl = {
+  r: 13, sp: 55, pts: 0, touch: 'push', wobA: 10,
+  init(e) { e.top = Math.random() < 0.5; },
+  ai(e) { return { x: e.x - 120, y: e.top ? WALL - 10 : H - WALL + 10 }; },
+  tick(e) {
+    if (e.pushT <= 0 && (e.y <= WALL + 16 || e.y >= H - WALL - 16)) {
+      e.dead = true;
+      const near = g.sites.find(s => s.kind === 'plaque' && s.top === (e.y < H / 2) && Math.abs(s.x - e.x) < 60);
+      if (near) near.size = Math.min(1.6, near.size + 0.25);
+      else g.sites.push({ kind: 'plaque', x: e.x, top: e.y < H / 2, t: 0, clr: 0, size: 1, hitCd: 0 });
+      addText(e.x, e.y + (e.y < H / 2 ? 40 : -40), 'רובד נוצר!', '#ffe082'); sfx.infect(); unlock('plaque');
+    }
+    if (e.pushT > 0 && !e.scored) { e.scored = true; award(60, e.x, e.y - 20, 'הודף'); }
+  },
+  draw(e) { circle(e.x, e.y, 14, '#ffd25a', '#a07010', 2.5); label('LDL', e.x, e.y + 4, 10, '#5a3a00'); },
+};
+KINDS.hdl = {
+  r: 12, sp: 45, pts: 0, touch: 'collect', wobA: 40,
+  onCollect(e) { g.hdl = Math.min(5, g.hdl + 2); sfx.platelet(); addText(e.x, e.y - 24, '+2 HDL', '#a8f0b8'); unlock('cholesterol'); },
+  draw(e) { circle(e.x, e.y, 13, '#8be0a0', '#2a7a40', 2.5); label('HDL', e.x, e.y + 4, 10, '#0d3a1a'); },
+};
+SITES.plaque = {
+  update(s, dt, rad) {
+    const p = g.p, y = wallY(s.top);
+    s.hitCd = Math.max(0, s.hitCd - dt);
+    g.blood -= 0.45 * s.size * dt * D().dmg; g.bloodCalm = 0; // a narrowed artery lets less blood through
+    if (Math.hypot(p.x - s.x, p.y - y) < rad + 38 * s.size) {
+      if (g.hdl > 0) { g.hdl--; s.dead = true; award(200, s.x, y + (s.top ? 60 : -60), 'רובד פורק'); sfx.clear(); heal(3); }
+      else if (s.hitCd <= 0) { s.hitCd = 1; addText(s.x, y + (s.top ? 60 : -60), 'צריך HDL', '#ffe082'); p.vy = s.top ? 260 : -260; }
+    }
+    if (s.x < -60) s.dead = true;
+  },
+  draw(s) {
+    const y = wallY(s.top), d = s.top ? 1 : -1, w = 46 * s.size, h = 30 * s.size;
+    ctx.fillStyle = '#f2d16b'; ctx.strokeStyle = '#a07a20'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(s.x - w, y); ctx.bezierCurveTo(s.x - w * 0.6, y + d * h * 1.3, s.x + w * 0.6, y + d * h * 1.3, s.x + w, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(160, 110, 20, 0.5)';
+    for (let i = 0; i < 4; i++) circle(s.x - w * 0.5 + i * w * 0.33, y + d * h * 0.45, 4);
+  },
+};
+SITES.hungry = {
+  update(s, dt, rad) {
+    const p = g.p, y = wallY(s.top);
+    s.t += dt;
+    if (Math.hypot(p.x - s.x, p.y - y) < rad + 34) { s.dead = true; award(150, s.x, y + (s.top ? 60 : -60), 'חמצן נמסר'); heal(2); sfx.platelet(); }
+    else if (s.x < -50) { s.dead = true; hurtBlood(4, 'שריר הלב לא קיבל חמצן', 70, y + (s.top ? 60 : -60), '#ff8a80'); }
+  },
+  draw(s) {
+    const y = wallY(s.top), pul = 1 + Math.sin(g.t * 5 + s.x) * 0.06;
+    ctx.save(); ctx.translate(s.x, y); ctx.scale(pul, pul);
+    ctx.fillStyle = '#8a5aa8'; ctx.strokeStyle = '#4a2060'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.ellipse(0, 0, 40, 22, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    face(0, s.top ? 6 : -6, 30, { mad: true, ink: '#2a0a3a' });
+    ctx.restore();
+    label('צריך חמצן', s.x, y + (s.top ? 42 : -32), 12, '#e0c8ff');
+  },
+};
+BOSSES.thrombus = {
+  r: 100, hp: 0.5, emit: 'clot', emitEvery: 3.2,
+  shield() { if (g.plasmin > 0) { g.plasmin--; return false; } return 'צריך פלסמין!'; },
+  draw(b) {
+    ctx.save();
+    for (let i = 0; i < 9; i++) { const a = i * 0.7 + b.t * 0.15, r = 25 + (i % 3) * 30; sprite(img.rbc, Math.floor(g.t * 5 + i), b.x + Math.cos(a) * r, b.y + Math.sin(a) * r * 0.85, 80, false, 1, a); }
+    ctx.strokeStyle = 'rgba(255, 245, 230, 0.85)'; ctx.lineWidth = 2.5;
+    for (let i = 0; i < 14; i++) { const a = i * 0.45 + Math.sin(b.t + i) * 0.05; ctx.beginPath(); ctx.moveTo(b.x + Math.cos(a) * 105, b.y + Math.sin(a) * 90); ctx.lineTo(b.x + Math.cos(a + 2.4) * 100, b.y + Math.sin(a + 2.4) * 85); ctx.stroke(); }
+    for (let i = 0; i < 6; i++) { const a = i * 1.05 + b.t * 0.2; ctx.drawImage(PLT[i % 4], b.x + Math.cos(a) * 70 - 14, b.y + Math.sin(a) * 60 - 14, 28, 28); }
+    face(b.x, b.y, 70, { mad: true });
+    ctx.restore();
+  },
+};
+const heartWall = (fill, edge, stripe, back) => ({
+  fill, edge, cell: 'rgba(0,0,0,0)', bg: back,
+  wash: 'rgba(120, 10, 20, 0.12)', vig: 'rgba(20, 0, 2, 0.6)',
+  draw(top) {
+    const off = g.scroll, base = wallY(top), k = (g.beatK || 0) * 10;
+    ctx.beginPath(); ctx.moveTo(0, top ? 0 : H);
+    for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, base + (top ? k : -k) + Math.sin((x + off) / 80) * 10 + Math.sin((x + off * 0.6) / 37) * 5);
+    ctx.lineTo(W, top ? 0 : H); ctx.closePath();
+    ctx.fillStyle = fill; ctx.fill(); ctx.strokeStyle = edge; ctx.lineWidth = 7; ctx.stroke();
+    ctx.save(); ctx.clip();
+    ctx.strokeStyle = stripe; ctx.lineWidth = 3;   // muscle fibres
+    for (let x = -(off % 40) - 40; x < W + 40; x += 40) { ctx.beginPath(); ctx.moveTo(x, top ? 0 : H); ctx.quadraticCurveTo(x + 30, top ? WALL / 2 : H - WALL / 2, x + 10, top ? WALL + 20 : H - WALL - 20); ctx.stroke(); }
+    if (g.beatK > 0.6) { ctx.fillStyle = `rgba(255, 230, 120, ${(g.beatK - 0.6) * 0.6})`; ctx.fillRect(0, top ? 0 : H - WALL - 20, W, WALL + 20); } // SA-node impulse flash
+    ctx.restore();
+  },
+});
+WALLSTYLE.heart = heartWall('#a3222f', '#5e0c16', 'rgba(70, 5, 12, 0.45)', ['#2a0306', '#5a0b12']);
+WALLSTYLE.artery = heartWall('#d9737f', '#8c2a42', 'rgba(140, 42, 66, 0.35)', ['#3a070b', '#6a1418']);
 
 // ================= INPUT =================
 const keys = new Set();
@@ -730,9 +1020,9 @@ function newLevel() {
     boss: null, gap: null, net: null, exiting: -1,
   };
   g.p.charge = cdTime();
-  if (lv.rbcFlow !== false) for (let i = 0; i < 26; i++) g.rbcs.push(makeRbc(20 + i * 38 + Math.random() * 30));
+  if (lv.rbcFlow !== false) for (let i = 0; i < 26 / (lv.rbcEvery || 1); i++) g.rbcs.push(makeRbc(20 + i * 38 * (lv.rbcEvery || 1) + Math.random() * 30));
   if (lv.pickup !== false) for (let i = 0; i < 3; i++) g.plts.push(makePlatelet(150 + i * 300));
-  for (let i = 0; i < 48; i++) g.bg.push({ x: Math.random() * (W + 100), y: WALL + 10 + Math.random() * (H - WALL * 2 - 20), s: rnd(42, 56), vx: -rnd(40, 65), ph: Math.random() * 8, rot: Math.random() * 6, spin: rnd(-0.4, 0.4) });
+  for (let i = 0; i < (lv.bgCount ?? 48); i++) g.bg.push({ x: Math.random() * (W + 100), y: WALL + 10 + Math.random() * (H - WALL * 2 - 20), s: rnd(42, 56), vx: -rnd(40, 65), ph: Math.random() * 8, rot: Math.random() * 6, spin: rnd(-0.4, 0.4) });
   for (let i = 0; i < 70; i++) g.dots.push({ x: Math.random() * W, y: WALL + Math.random() * (H - WALL * 2), r: rnd(1.2, 3.4), s: rnd(0.6, 1.4), glu: Math.random() < 0.3, rot: Math.random() * 6 });
   if (M() && M().init) M().init(lv);
 }
@@ -995,7 +1285,8 @@ $('quizNext').onclick = () => { quizI++; if (quizI < quizSet.length) renderQuiz(
 function showUpgrades() {
   if (run.level >= WD().levels.length - 1) { winGame(); return; }
   state = 'upgrade';
-  const pool = UPGRADES.filter(u => !(u.once && up(u.id))).sort(() => Math.random() - 0.5).slice(0, 3);
+  const nextLv = WD().levels[run.level + 1];
+  const pool = UPGRADES.filter(u => !(u.once && up(u.id)) && !(u.pickup && nextLv.pickup === false)).sort(() => Math.random() - 0.5).slice(0, 3);
   const box = $('upPicks'); box.innerHTML = '';
   pool.forEach(u => {
     const b = document.createElement('button'); b.className = 'pick';
@@ -1194,7 +1485,7 @@ function update(dt) {
     g.pickT -= dt;
     if (g.pickT <= 0 && lv.pickup !== false) { g.plts.push(makePlatelet()); g.pickT = rnd(4, 6); }
   } else if (g.rbcT <= 0) {
-    g.rbcs.push(makeRbc()); g.rbcT = rnd(0.2, 0.42);
+    g.rbcs.push(makeRbc()); g.rbcT = rnd(0.2, 0.42) * (lv.rbcEvery || 1);
     // real ratios: ~1 platelet per 15-20 red cells, ~1 white cell per 600-700 red cells
     if (g.rbcCount % 16 === 0) g.plts.push(makePlatelet());
     if (lv.allies && g.rbcCount % 650 === 0) { g.allies.push({ x: W + 80, y: rnd(WALL + 70, H - WALL - 70), vx: -55, ph: Math.random() * 8, chomp: -1 }); addText(W - 170, 110, 'תא לבן נוסף הגיע לעזור!', '#d7ccf5'); }
@@ -1456,11 +1747,11 @@ function moveBg(dt) {
 }
 
 // ================= DRAW =================
-const WALLSTYLE = {
+Object.assign(WALLSTYLE, {
   vessel: { fill: '#e88a9a', edge: '#8c2a42', cell: 'rgba(140, 42, 66, 0.35)', bg: ['#6e3a12', '#b8792f'] },
   lung:   { fill: '#f2b0bf', edge: '#9b4060', cell: 'rgba(155, 64, 96, 0.3)', bg: ['#6a3418', '#c08645'] },
   liver:  { fill: '#b06a45', edge: '#5e2c17', cell: 'rgba(80, 30, 12, 0.45)', bg: ['#5c2a0e', '#a8682a'] },
-};
+});
 function wall(top) {
   const st = WALLSTYLE[LV().wall], off = g.scroll;
   const base = wallY(top);
@@ -1666,6 +1957,9 @@ function draw() {
       gl.addColorStop(0, 'rgba(255, 224, 130, 0.45)'); gl.addColorStop(1, 'rgba(255, 224, 130, 0)');
       ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(p.x, p.y, rad * 1.5, 0, 7); ctx.fill();
     }
+    // a halo marks the player among look-alike cells
+    ctx.save(); ctx.setLineDash && ctx.setLineDash([8, 7]); ctx.lineDashOffset = -g.t * 30;
+    circle(p.x, p.y, rad * 1.18, null, 'rgba(255, 236, 150, 0.85)', 3); ctx.restore();
     ctx.save(); ctx.translate(p.x, p.y); ctx.scale(squeeze, 1 / Math.max(0.6, squeeze)); ctx.translate(-p.x, -p.y);
     hero.draw(p.x, p.y, rad * 2, g.t, p.face, p);
     ctx.restore();
