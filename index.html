@@ -2062,6 +2062,192 @@ WALLSTYLE.skin = {
   },
 };
 
+// ================= WORLD 7: BONE MARROW =================
+HEROES.stem = {
+  name: 'תא גזע', spd: 1, size: 0.85, ability: 'זינוק', cd: 4, abil: 'dash', perks: {},
+  desc: 'תא גזע של הדם: יכול להפוך לכל סוג של תא דם, ובכל חלוקה הוא גם נשאר תא גזע.',
+  draw(x, y, s, t, f) {
+    const r = s / 2, line = g && g.line ? LINEAGE[g.line].color : '#ffffff';
+    const gl = ctx.createRadialGradient(x, y, r * 0.5, x, y, r * 1.35); gl.addColorStop(0, line + '66'); gl.addColorStop(1, line + '00');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x, y, r * 1.35, 0, 7); ctx.fill();
+    circle(x, y, r, '#f4ecf8', '#8a7aa0', 4);
+    circle(x + r * 0.12, y + r * 0.1, r * 0.62, '#c8b4e0', '#7a64a0', 2.5); // the big nucleus
+    face(x - r * 0.05, y - r * 0.05, r * 1.0, { ink: '#3a2a5a' });
+  },
+};
+const LINEAGE = {
+  rbc:   { name: 'כדורית אדומה', sig: 'EPO', color: '#ff5a5a' },
+  neut:  { name: 'נויטרופיל', sig: 'G-CSF', color: '#b49ae8' },
+  macro: { name: 'מונוציט', sig: 'M-CSF', color: '#f0a040' },
+  bcell: { name: 'תא B', sig: 'IL-7', color: '#4f8de8' },
+  plt:   { name: 'טסיות', sig: 'TPO', color: '#f0a0e0' },
+};
+WORLDS.push({
+  id: 'marrow', name: 'מח העצם', icon: '🦴', organ: 'marrow', meter: 'מאזן תאי הדם', hero: 'stem',
+  route: 'בתוך העצמות הגדולות, כמו עצם הירך, יש מח עצם אדום. זה המפעל שבו נוצרים כל תאי הדם שפגשתם במשחק.',
+  blurb: 'תא גזע הופך לתאי הדם שהגוף צריך.',
+  win: 'המפעל עובד! לגוף יש בדיוק את התאים שהוא צריך.',
+  done: { eyebrow: 'התאים יצאו לדם', text: 'התאים החדשים השתחלו דרך דופן הסינוסואיד אל זרם הדם. עכשיו חידון קצר: כל תשובה נכונה שווה 300 נקודות.' },
+  levels: [
+    { id: 'redmarrow', name: 'מח העצם האדום', wall: 'marrow', mech: 'marrow', enemies: [['epo', 0.24], ['gcsf', 0.2], ['mcsf', 0.12], ['il7', 0.12], ['tpo', 0.18], ['adipo', 0.14]], spawnMul: 0.55, flow: 45,
+      demands: [{ rbc: 3, neut: 2, plt: 2 }, { rbc: 2, neut: 2, macro: 1, bcell: 1, plt: 2 }, { rbc: 3, neut: 3, macro: 1, bcell: 2, plt: 2 }],
+      boss: 'emergency', bossName: 'חירום: זיהום בגוף!', bossHint: 'הגוף צריך נויטרופילים מהר! אספו G-CSF', pickup: false, rbcFlow: false, bgCells: false, dots: false, scale: false, exitTop: true,
+      exitSub: 'שחו לפתח למעלה: אל הסינוסואיד וזרם הדם', lose: 'חסרו לגוף תאי דם!',
+      intro: 'כל תאי הדם נולדים מתאי גזע במח העצם. אותות כימיים קובעים למה תא יהפוך: EPO לכדורית אדומה, G-CSF לנויטרופיל, M-CSF למונוציט (שיהפוך למקרופאג׳), IL-7 לתא B ו־TPO לטסיות.',
+      goal: 'אספו 3 אותות מאותו צבע כדי ליצור תא. אות בצבע אחר מחליף כיוון. ייצרו את מה שהגוף מבקש ברשימה.',
+      entries: ['marrow', 'stemcell', 'signals'],
+      facts: ['מח העצם מייצר כ־2 מיליון כדוריות אדומות בכל שנייה', 'כדורית אדומה חיה כ־120 יום', 'לתינוק יש כ־270 עצמות ולמבוגר 206', 'טסיות נוצרות משבירה של תא ענק: מגה־קריוציט', 'תאי T נולדים כאן, אבל מתבגרים בבלוטת התימוס'] },
+    { id: 'anemia', name: 'אחרי דימום גדול', wall: 'marrow', mech: 'marrow', iron: true, enemies: [['epo', 0.34], ['gcsf', 0.12], ['mcsf', 0.08], ['il7', 0.08], ['tpo', 0.24], ['adipo', 0.14]], spawnMul: 0.55, flow: 45,
+      demands: [{ rbc: 4, plt: 2 }, { rbc: 4, plt: 3, neut: 1 }, { rbc: 5, plt: 2, neut: 1, bcell: 1 }],
+      boss: 'anemia', bossName: 'אנמיה: חסרות כדוריות אדומות', bossHint: 'הכליות שולחות הרבה EPO. ייצרו כדוריות אדומות!', pickup: 'iron', rbcFlow: false, bgCells: false, dots: false, scale: false, exitTop: true,
+      exitSub: 'שחו לפתח למעלה: הכדוריות החדשות יוצאות לדם', lose: 'הגוף נשאר בלי מספיק דם!',
+      intro: 'מישהו איבד הרבה דם. הכליות חשו שחסר חמצן ושלחו את ההורמון EPO למח העצם. עכשיו צריך הרבה כדוריות אדומות וטסיות. אבל לכל כדורית צריך ברזל, כי הברזל הוא חלק מההמוגלובין שנושא חמצן.',
+      goal: 'ייצרו כדוריות אדומות וטסיות. אספו ברזל (אבנים אפורות): בלי ברזל אי אפשר לסיים כדורית אדומה.',
+      entries: ['epo', 'iron', 'anemia'],
+      facts: ['EPO מגיע מהכליות כשחסר חמצן', 'בכל כדורית אדומה יש כ־270 מיליון מולקולות המוגלובין', 'ברזל יש בבשר, בעדשים ובירקות עלים', 'הטחול והכבד ממחזרים את הברזל מכדוריות זקנות', 'אנמיה פירושה חוסר בכדוריות אדומות או בהמוגלובין'] },
+  ],
+  quiz: [
+    ['איפה נוצרים תאי הדם?', ['במח העצם', 'בלב', 'בכליות', 'בעור'], 'במבוגרים בעיקר בעצמות השטוחות ובקצות העצמות הארוכות.'],
+    ['כמה כדוריות אדומות מייצר מח העצם בכל שנייה?', ['כ־2 מיליון', 'כ־10', 'כ־1,000', 'כ־2 מיליארד'], 'כי כל יום כדוריות זקנות מפורקות ומוחלפות.'],
+    ['כמה זמן חיה כדורית אדומה?', ['כ־120 יום', 'יום אחד', '10 שנים', 'שעה'], 'אחר כך הטחול והכבד מפרקים אותה וממחזרים את הברזל.'],
+    ['מה עושה ההורמון EPO?', ['מאותת למח העצם לייצר כדוריות אדומות', 'מפרק סוכר', 'מעלה חום', 'סוגר פצעים'], 'הוא מגיע מהכליות כשחסר חמצן בדם.'],
+    ['למה צריך ברזל כדי לייצר כדוריות אדומות?', ['הוא חלק מההמוגלובין שנושא חמצן', 'הוא צובע את העור', 'הוא מחזק עצמות', 'הוא מפרק חיידקים'], 'כל מולקולת המוגלובין מכילה 4 אטומי ברזל.'],
+    ['מה מיוחד בתא גזע?', ['יכול להפוך לסוגים רבים של תאים ולהתחדש', 'הוא התא הגדול ביותר', 'הוא נושא חמצן', 'הוא חי רק שעה'], 'בכל חלוקה אחד התאים נשאר תא גזע.'],
+    ['מאיפה מגיעות הטסיות?', ['משבירה של תא ענק במח העצם', 'מהכבד', 'מהעור', 'מהריאות'], 'התא הענק נקרא מגה־קריוציט, וכל אחד יוצר אלפי טסיות.'],
+    ['כמה עצמות יש לאדם מבוגר?', ['206', '270', '100', '512'], 'לתינוק יש כ־270, וחלקן מתאחות עם הגדילה.'],
+  ],
+});
+Object.assign(ENCY, {
+  marrow: ['מח העצם', 'רקמה רכה בתוך העצמות. מח העצם האדום מייצר את כל תאי הדם, ומח העצם הצהוב מכיל בעיקר תאי שומן.'],
+  stemcell: ['תא גזע', 'תא שיכול להתחלק ולהפוך לסוגים רבים של תאים. בכל חלוקה אחד התאים נשאר תא גזע, וכך המפעל לא נגמר.'],
+  signals: ['אותות גדילה', 'חלבונים שאומרים לתא גזע למה להפוך: EPO לכדוריות אדומות, G-CSF לנויטרופילים, M-CSF למונוציטים, IL-7 ללימפוציטים ו־TPO לטסיות. בזמן זיהום רמת G-CSF עולה.'],
+  megakaryocyte: ['מגה־קריוציט', 'תא ענק במח העצם ששולח זרועות לתוך כלי הדם ומתפרק לאלפי טסיות.'],
+  epo: ['EPO (אריתרופויאטין)', 'הורמון שהכליות מפרישות כשחסר חמצן. הוא מאותת למח העצם לייצר יותר כדוריות אדומות. בעולם הדם הוא שדרוג!'],
+  iron: ['ברזל', 'מתכת שנמצאת בלב מולקולת ההמוגלובין ונקשרת לחמצן. חוסר בברזל גורם לאנמיה. יש ברזל בבשר, בעדשים ובירקות עלים.'],
+  anemia: ['אנמיה', 'מצב שבו יש מעט מדי כדוריות אדומות או המוגלובין, ולכן הגוף מקבל פחות חמצן. סיבות: איבוד דם, חוסר ברזל ועוד.'],
+  adipocyte: ['תא שומן במח העצם', 'עם הגיל חלק ממח העצם האדום מתמלא בתאי שומן והופך למח עצם צהוב.'],
+});
+PICKUPS.iron = { name: 'ברזל', onPick() { g.iron = Math.min(6, (g.iron || 0) + 2); unlock('iron'); }, draw() { ctx.fillStyle = '#9a9aa8'; ctx.strokeStyle = '#4a4a5a'; ctx.lineWidth = 2; ctx.beginPath(); [[-10, -2], [-3, -10], [9, -6], [11, 5], [0, 10], [-9, 7]].forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fill(); ctx.stroke(); label('Fe', 0, 4, 10, '#1a1a2a'); } };
+const sigKind = line => ({
+  r: 13, sp: 34, spW: 2, pts: 0, wobA: 45, noPop: true, touch: 'collect', noRot: true,
+  onCollect(e) { marrowSignal(line, e); },
+  draw(e) {
+    const L = LINEAGE[line], s = 1 + Math.sin(g.t * 5 + e.ph) * 0.1;
+    ctx.save(); ctx.translate(e.x, e.y); ctx.scale(s, s);
+    ctx.fillStyle = L.color; ctx.strokeStyle = 'rgba(30, 10, 20, 0.7)'; ctx.lineWidth = 2;
+    ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2, r = k % 2 ? 7 : 14; k ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore(); label(L.sig, e.x, e.y + 27, 11, L.color);
+  },
+});
+KINDS.epo = sigKind('rbc'); KINDS.gcsf = sigKind('neut'); KINDS.mcsf = sigKind('macro'); KINDS.il7 = sigKind('bcell'); KINDS.tpo = sigKind('plt');
+KINDS.adipo = {
+  r: 34, sp: 22, pts: 0, touch: 'hazard', dmg: 1, hitText: 'תא שומן חוסם', wobA: 20, noPop: true,
+  onHit() { unlock('adipocyte'); hurtBlood(1, 'תא שומן חוסם', g.p.x, g.p.y - 50, '#ffe082'); },
+  draw(e) { circle(e.x, e.y, 34, 'rgba(255, 238, 170, 0.9)', '#b09a40', 3); circle(e.x + 18, e.y + 12, 6, '#c8b060'); circle(e.x - 10, e.y - 12, 9, 'rgba(255,255,255,0.5)'); },
+};
+function marrowSignal(line, e) {
+  if (g.line && g.line !== line) { addText(e.x, e.y - 30, 'הכיוון השתנה!', '#ffe082'); g.prog = 0; }
+  g.line = line; g.prog++;
+  sfx.platelet(); unlock('signals');
+  if (g.prog >= 3) {
+    if (line === 'rbc' && LV().iron && !(g.iron > 0)) { g.prog = 2; addText(g.p.x, g.p.y - 70, 'חסר ברזל להמוגלובין!', '#ffab91'); sfx.wrong(); return; }
+    if (line === 'rbc' && LV().iron) g.iron--;
+    makeBloodCell(line);
+    g.prog = 0; g.line = null;
+  }
+}
+function makeBloodCell(line) {
+  const p = g.p, L = LINEAGE[line];
+  g.born.push({ line, x: p.x, y: p.y, t: 0, ph: Math.random() * 6 });
+  if (!g.selfSeen) { g.selfSeen = true; addText(p.x, p.y + 70, 'ותא הגזע נשאר תא גזע!', '#e0d0ff'); unlock('stemcell'); }
+  if (line === 'plt') unlock('megakaryocyte');
+  g.made[line] = (g.made[line] || 0) + 1;
+  if (g.boss && BOSSES[g.boss.kind].need === line) { award(250, p.x, p.y - 60, `נוצר ${L.name}!`); heal(4); damageBoss(1); return; }
+  if (g.need[line] > 0) { g.need[line]--; award(250, p.x, p.y - 60, `נוצר ${L.name}!`); heal(5); sfx.clear(); }
+  else { g.score += 40; addText(p.x, p.y - 60, `+40 (הגוף לא ביקש ${L.name})`, '#e0c0a0'); }
+}
+MECH.marrow = {
+  init() { g.line = null; g.prog = 0; g.need = {}; g.made = {}; g.born = []; g.lastWave = 0; g.iron = LV().iron ? 2 : 0; g.selfSeen = false; g.sigT = 1; },
+  update(dt) {
+    if (g.wave !== g.lastWave && g.phase === 'waves') {
+      g.lastWave = g.wave; g.need = { ...LV().demands[g.wave - 1] };
+      if (g.wave > 1) addText(W / 2, H / 2 + 60, 'הזמנה חדשה מהגוף!', '#ffe082');
+    }
+    const unmet = Object.values(g.need).reduce((a, b) => a + b, 0);
+    if (unmet > 0 && g.phase === 'waves') { g.blood -= 0.07 * unmet * dt * D().dmg; }
+    if (g.boss) { // the emergency raises the signal for the cell type it needs
+      g.sigT -= dt;
+      if (g.sigT <= 0) { g.sigT = 0.8; spawnEnemy({ neut: 'gcsf', rbc: 'epo' }[BOSSES[g.boss.kind].need], W + 30, rnd(WALL + 50, H - WALL - 50)); }
+      g.blood -= 0.5 * dt * D().dmg; g.bloodCalm = 0;
+    }
+    // signals for what the body still needs keep arriving
+    g.sigT -= dt;
+    if (!g.boss && g.sigT <= 0 && g.phase === 'waves') { const k = Object.keys(g.need).filter(k => g.need[k] > 0); if (k.length) spawnEnemy({ rbc: 'epo', neut: 'gcsf', macro: 'mcsf', bcell: 'il7', plt: 'tpo' }[k[Math.floor(Math.random() * k.length)]], W + 30, rnd(WALL + 50, H - WALL - 50)); g.sigT = 1.6; }
+    for (const b of g.born) { b.t += dt; b.x += Math.sin(b.t * 3 + b.ph) * 20 * dt; b.y -= 150 * dt; }
+    g.born = g.born.filter(b => b.y > WALL - 30);
+  },
+  drawMid() {
+    for (const b of g.born) drawBloodCell(b.line, b.x, b.y, 1, b.t);
+    // progress dots around the player
+    const p = g.p, r = radius() + 16;
+    for (let i = 0; i < g.prog; i++) { const a = -Math.PI / 2 + (i - 1) * 0.5; circle(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 6, LINEAGE[g.line].color, '#2a0a10', 2); }
+  },
+  hud() {
+    const items = g.boss ? [[BOSSES[g.boss.kind].need, '!']] : Object.entries(g.need);
+    const pw = 26 + Math.max(1, items.length) * 70;
+    ctx.fillStyle = 'rgba(42, 12, 6, 0.75)'; roundRect(30, 84, pw, 64, 12); ctx.fill();
+    label(g.boss ? 'דחוף!' : 'הגוף מבקש', 30 + pw / 2, 100, 12, '#f0c9a8');
+    items.forEach(([k, n], i) => {
+      const x = 62 + i * 70; drawBloodCell(k, x, 124, 0.55, g.t);
+      label(String(n), x + 24, 134, 15, n === 0 ? '#9be59b' : '#fff6ee');
+    });
+    if (LV().iron) label(`ברזל: ${g.iron}`, 70, 170, 15, '#c8c8d8');
+  },
+  alarms(s) {
+    const want = g.boss ? BOSSES[g.boss.kind].need : (g.line && (g.need[g.line] > 0) ? g.line : Object.keys(g.need).find(k => g.need[k] > 0));
+    const kind = { rbc: 'epo', neut: 'gcsf', macro: 'mcsf', bcell: 'il7', plt: 'tpo' }[want];
+    for (const e of g.en) if (e.kind === kind && e.x > 0 && e.x < W) s.push({ x: e.x, y: e.y });
+  },
+  botTarget() {
+    const p = g.p;
+    const want = g.boss ? BOSSES[g.boss.kind].need : (g.line && g.need[g.line] > 0 ? g.line : Object.keys(g.need).find(k => g.need[k] > 0));
+    if (want === 'rbc' && LV().iron && !g.iron) { const fe = g.plts.find(q => q.x > 0); if (fe) return fe; }
+    const kind = { rbc: 'epo', neut: 'gcsf', macro: 'mcsf', bcell: 'il7', plt: 'tpo' }[want];
+    let best = null, bd = 1e9;
+    for (const e of g.en) { if (e.kind !== kind) continue; const d = Math.hypot(e.x - p.x, e.y - p.y); if (d < bd) { bd = d; best = e; } }
+    if (best) { const ad = g.en.find(e => e.kind === 'adipo' && Math.hypot(e.x - p.x, e.y - p.y) < radius() + 50); if (ad) return { x: p.x + (p.x - ad.x), y: p.y + (p.y - ad.y) }; }
+    return best;
+  },
+};
+function drawBloodCell(line, x, y, s, t) {
+  if (line === 'rbc') sprite(img.rbc, Math.floor(t * 8), x, y, 70 * s);
+  else if (line === 'plt') { for (let i = 0; i < 3; i++) ctx.drawImage(PLT[i], x - 14 * s + (i - 1) * 12 * s, y - 14 * s + (i % 2) * 8 * s, 28 * s, 28 * s); }
+  else if (tinted[line]) sprite(tinted[line].idle, Math.floor(t * 8), x, y, 90 * s);
+  else circle(x, y, 22 * s, LINEAGE[line].color);
+}
+BOSSES.emergency = { r: 1, hp: 8 / 30, noBump: true, need: 'neut', move(b) { b.x = W / 2; b.y = -300; }, draw() {} };
+BOSSES.anemia = { r: 1, hp: 8 / 30, noBump: true, need: 'rbc', move(b) { b.x = W / 2; b.y = -300; }, draw() {} };
+WALLSTYLE.marrow = {
+  fill: '#e8a0a8', edge: '#8a2a42', bg: ['#5a1a22', '#a04a50'], wash: 'rgba(255, 150, 150, 0.05)', vig: 'rgba(30, 6, 10, 0.5)',
+  back() { // crowded marrow: blurred developing cells of every kind
+    const canBlur = 'filter' in ctx; if (canBlur) ctx.filter = 'blur(3px)';
+    const cols = ['rgba(255,90,90,0.5)', 'rgba(180,154,232,0.45)', 'rgba(240,160,64,0.4)', 'rgba(79,141,232,0.4)', 'rgba(240,160,224,0.45)'];
+    for (let i = 0; i < 40; i++) { const x = ((i * 137 - g.scroll * 0.5) % (W + 80) + W + 80) % (W + 80) - 40, y = WALL + 20 + (i * 71) % (H - 2 * WALL - 40); circle(x, y, 14 + (i % 4) * 5, cols[i % 5]); }
+    if (canBlur) ctx.filter = 'none';
+  },
+  draw(top) {
+    if (top) { // sinusoid wall with gaps: new cells squeeze through into the blood
+      wallShape(true, '#d85a6a', '#7a1a2a');
+      ctx.fillStyle = '#3a0a10'; for (let x = -(g.scroll % 160); x < W + 160; x += 160) { ctx.beginPath(); ctx.ellipse(x + 80, WALL - 4, 22, 7, 0, 0, 7); ctx.fill(); }
+      label('↑ אל זרם הדם', 130, WALL - 26, 13, '#ffe0e0');
+    } else { // spongy bone
+      wallShape(false, '#efe4cc', '#9a8a6a');
+      ctx.fillStyle = 'rgba(160, 60, 70, 0.55)';
+      for (let x = -(g.scroll % 90); x < W + 90; x += 90) { ctx.beginPath(); ctx.ellipse(x + 30, H - 30, 18, 11, 0.3, 0, 7); ctx.ellipse(x + 72, H - 14, 12, 8, -0.2, 0, 7); ctx.fill(); }
+    }
+  },
+};
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
