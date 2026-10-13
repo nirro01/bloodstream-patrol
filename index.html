@@ -126,7 +126,7 @@ canvas { display: block; width: 100%; height: 100%; }
   color: #2e2250; font-family: var(--display); font-size: clamp(0.62rem, 1.4vw, 0.9rem); line-height: 1.1;
   cursor: pointer; touch-action: none; padding: 4px;
 }
-.ability.cool { opacity: 0.4; }
+.ability.cool { opacity: 0.75; }
 .ability.on { background: #ffe082; border-color: #c49000; }
 .ability:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 .corner { position: absolute; left: 2%; top: 3%; display: flex; gap: 8px; }
@@ -157,6 +157,61 @@ canvas { display: block; width: 100%; height: 100%; }
 .organ.sel { animation: organPulse 0.9s ease-in-out infinite; }
 @keyframes organPulse { 50% { opacity: .55; } }
 .heroThumb { width: clamp(70px, 12vw, 120px); height: clamp(70px, 12vw, 120px); }
+.stars { display: flex; gap: 6px; justify-content: center; font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1; min-height: 1em; }
+.stars span { filter: grayscale(1) brightness(.45); transform: scale(.6); transition: transform .35s cubic-bezier(.3,1.8,.5,1), filter .35s; }
+.stars span.on { filter: none; transform: scale(1); }
+.stars span.hard { filter: hue-rotate(230deg) saturate(1.6); transform: scale(1); }
+.crit { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: clamp(0.72rem, 1.5vw, 0.88rem); color: var(--muted); }
+.crit li.ok { color: var(--good); }
+.almost { display: grid; gap: 6px; width: 100%; max-width: 440px; }
+.almost:empty { display: none; }
+.pbar { display: grid; gap: 3px; text-align: start; font-size: clamp(0.7rem, 1.4vw, 0.85rem); color: var(--ink); }
+.pbar i { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+.pbar i b { display: block; height: 100%; background: linear-gradient(90deg, #8a76c4, #ffe082); border-radius: 4px; }
+.mod { background: rgba(255, 224, 130, .12); border: 1px dashed #ffe082; border-radius: 12px; padding: 6px 12px; color: #ffe082 !important; }
+.ability { background: conic-gradient(rgba(180, 154, 232, 0.95) calc(var(--cd, 1) * 360deg), rgba(70, 56, 110, 0.92) 0); }
+.maphead { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.chips { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.profiles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0; }
+.profiles button[aria-pressed="true"] { border-color: #ffe082; background: rgba(255, 224, 130, .18); }
+#profileName { font: inherit; padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,224,130,.5); background: rgba(0,0,0,.25); color: #fff6ee; }
+.btn.small { font-size: .85rem; padding: 6px 14px; margin-top: 10px; }
+.daily { margin-top: 8px; width: 100%; }
+.chip { font-family: var(--display); font-size: clamp(0.8rem, 1.8vw, 1rem); background: rgba(255,255,255,.07); border: 1px solid rgba(255,224,130,.5); border-radius: 999px; padding: 2px 10px; color: #ffe082; white-space: nowrap; }
+.missions { display: grid; gap: 4px; font-size: clamp(0.7rem, 1.4vw, 0.82rem); text-align: start; }
+.missions:empty { display: none; }
+.missions .m { display: grid; gap: 2px; background: rgba(255,255,255,.04); border-radius: 10px; padding: 4px 8px; }
+.missions .m i { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.missions .m i b { display: block; height: 100%; background: #9be59b; }
+.labgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; }
+@media (max-width: 640px) { .labgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lab { display: grid; gap: 6px; justify-items: center; padding: 10px 8px; background: rgba(255,255,255,.04); border: 2px solid rgba(180,154,232,.35); border-radius: 16px; min-width: 0; }
+.lab .ic { font-size: 1.6rem; }
+.lab b { font-family: var(--display); font-weight: 400; font-size: clamp(0.9rem, 1.8vw, 1.1rem); }
+.lab small { color: var(--muted); font-size: clamp(0.66rem, 1.3vw, 0.78rem); line-height: 1.35; }
+.pips { display: flex; gap: 4px; }
+.pips span { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #ffe082; }
+.pips span.on { background: #ffe082; }
+.lab .btn { font-size: clamp(0.8rem, 1.7vw, 1rem); padding: 5px 14px; }
+.patient { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.04); border-radius: 14px; padding: 4px 10px; text-align: start; font-size: clamp(0.72rem, 1.5vw, 0.88rem); color: var(--muted); }
+.patient:empty { display: none; }
+.patient svg { width: 52px; height: 52px; flex: none; }
+.patient b { color: var(--ink); font-family: var(--display); font-weight: 400; font-size: 1.05rem; display: block; }
+.field { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.field input { font-family: var(--body); font-size: 1rem; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--defender); background: rgba(255,255,255,.06); color: var(--ink); width: 12em; }
+.look { background: rgba(255,255,255,.04); border: 2px solid rgba(180,154,232,.35); border-radius: 14px; padding: 4px; cursor: pointer; }
+.look[aria-pressed="true"] { border-color: var(--defender); background: rgba(180,154,232,.18); }
+.look svg { width: 64px; height: 64px; display: block; }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; width: 100%; }
+.acard { display: grid; justify-items: center; gap: 2px; padding: 6px; border-radius: 14px; background: rgba(255,255,255,.05); border: 2px solid rgba(180,154,232,.35); color: var(--ink); font-family: var(--body); cursor: pointer; min-width: 0; }
+.acard.gold { border-color: #ffd54f; box-shadow: 0 0 12px rgba(255,213,79,.4); }
+.acard.locked { opacity: .5; cursor: default; }
+.acard canvas { width: 84px; height: 84px; }
+.acard b { font-family: var(--display); font-weight: 400; font-size: .92rem; }
+.acard small { color: var(--muted); font-size: .7rem; }
+.acard .mem { color: #9fd8ff; letter-spacing: 2px; }
+.organ.sick { filter: saturate(.35) brightness(.8); }
+.organ.healed { filter: drop-shadow(0 0 4px #ffe082); }
 @media (prefers-reduced-motion: reduce) { .brain-idle, .brain-hurt, .wbc { animation-duration: 3s; } }
 </style>
 
@@ -180,26 +235,47 @@ canvas { display: block; width: 100%; height: 100%; }
         <h1>סיירת <span>זרם הדם</span></h1>
         <p>8 עולמות, כל אחד איבר אחר בגוף: הדם, הלב, הריאות, מערכת העיכול, הכליות, העור, מח העצם והמוח. בכל עולם משחקים בתא שבאמת עושה שם את העבודה, ולומדים איך הגוף עובד.</p>
         <div class="row">
+          <button class="btn" id="toContinue" hidden>המשיכו</button>
           <button class="btn" id="toSelect">התחילו</button>
           <button class="btn ghost" id="toEncy">אנציקלופדיה</button>
         </div>
+        <button class="btn ghost small" id="toProfiles">שחקן: ראשי</button>
+      </div>
+    </div>
+
+    <!-- family profiles -->
+    <div class="overlay" id="profileScreen" hidden>
+      <div class="card">
+        <h2>מי משחק?</h2>
+        <p>לכל שחקן יש מטופל, כוכבים, ATP ואלבום משלו.</p>
+        <div class="profiles" id="profileList"></div>
+        <div class="row" id="profileAdd">
+          <input id="profileName" maxlength="12" placeholder="שם שחקן חדש" aria-label="שם שחקן חדש">
+          <button class="btn ghost" id="profileNew">הוספה</button>
+        </div>
+        <div class="row"><button class="btn" id="profileBack">חזרה</button></div>
       </div>
     </div>
 
     <!-- body map: world select -->
     <div class="overlay" id="mapScreen" hidden>
       <div class="card wide map-card">
-        <h2>מפת הגוף</h2>
+        <div class="maphead"><h2>מפת הגוף</h2><span class="chips" id="mapChips"></span></div>
         <div class="map">
           <svg class="body" id="bodySvg" viewBox="0 0 200 400" role="img" aria-label="מפת גוף האדם"></svg>
           <div class="map-side">
+            <div class="patient" id="mapPatient"></div>
             <div class="worlds" id="worldPicks"></div>
             <div class="route" id="mapRoute"></div>
+            <button class="btn ghost daily" id="mapDaily"></button>
+            <div class="missions" id="mapMissions"></div>
           </div>
         </div>
         <div class="row">
           <button class="btn ghost" id="mapBack">חזרה</button>
           <button class="btn ghost" id="mapEncy">אנציקלופדיה</button>
+          <button class="btn ghost" id="mapLab">מעבדה ⚡</button>
+          <button class="btn ghost" id="mapAlbum">אלבום 🃏</button>
           <button class="btn" id="mapGo">לעולם הזה</button>
         </div>
         <button class="linkish" id="mapUnlock">פתיחת כל העולמות (להורים ולמורים)</button>
@@ -215,6 +291,7 @@ canvas { display: block; width: 100%; height: 100%; }
         <div class="row" style="align-items:center">
           <span class="eyebrow">רמת קושי</span>
           <div class="seg" id="diffSeg">
+            <button data-d="calm">רגוע</button>
             <button data-d="easy">קל</button>
             <button data-d="normal" aria-pressed="true">רגיל</button>
             <button data-d="hard">קשה</button>
@@ -234,6 +311,7 @@ canvas { display: block; width: 100%; height: 100%; }
         <h2 id="introName"></h2>
         <p id="introText"></p>
         <p id="introGoal" style="color:var(--ink)"></p>
+        <p class="mod" id="introMod" hidden></p>
         <button class="btn" id="introGo">צאו לסיור</button>
       </div>
     </div>
@@ -255,11 +333,18 @@ canvas { display: block; width: 100%; height: 100%; }
         <span class="eyebrow" id="doneEyebrow">דיאפדזה הצליחה</span>
         <h2 id="doneTitle">השלב הושלם!</h2>
         <p id="doneText"></p>
+        <div class="stars" id="doneStars" aria-label="כוכבים"></div>
+        <ul class="crit" id="doneCrit"></ul>
         <div class="stats">
           <div><small>ניקוד</small><span id="doneScore">0</span></div>
           <div><small>פתוגנים שחוסלו</small><span id="doneKills">0</span></div>
+          <div id="doneAtpBox" hidden><small>ATP שהרווחתם</small><span id="doneAtp">0</span></div>
         </div>
-        <button class="btn" id="toQuiz">לחידון</button>
+        <div class="almost" id="doneAlmost"></div>
+        <div class="row">
+          <button class="btn" id="toQuiz">לחידון</button>
+          <button class="btn ghost" id="doneShare" hidden>שיתוף התוצאה</button>
+        </div>
       </div>
     </div>
 
@@ -287,6 +372,7 @@ canvas { display: block; width: 100%; height: 100%; }
           <div class="sprite brain-hurt" role="img" aria-label="המוח מסוחרר"></div>
           <div class="speech" id="overLine">אוי! הזיהום התפשט.</div>
         </div>
+        <p id="overJoke"></p>
         <h2>הסיור נכשל</h2>
         <div class="stats">
           <div><small>ניקוד</small><span id="finalScore">0</span></div>
@@ -296,6 +382,7 @@ canvas { display: block; width: 100%; height: 100%; }
         <div class="row">
           <button class="btn" id="retryBtn">נסו שוב את השלב</button>
           <button class="btn ghost" id="overMenu">לתפריט</button>
+          <button class="btn ghost" id="overLab">מעבדה ⚡</button>
         </div>
       </div>
     </div>
@@ -315,7 +402,46 @@ canvas { display: block; width: 100%; height: 100%; }
         <div class="row">
           <button class="btn" id="winMenu">למפת הגוף</button>
           <button class="btn ghost" id="winEncy">אנציקלופדיה</button>
+          <button class="btn ghost" id="winLab">מעבדה ⚡</button>
         </div>
+      </div>
+    </div>
+
+    <!-- my patient: the child whose body the map is -->
+    <div class="overlay" id="patientScreen" hidden>
+      <div class="card">
+        <div class="hero">
+          <div class="sprite brain-idle" role="img" aria-label="המוח"></div>
+          <div class="speech">כל גוף שייך למישהו! למי שייך הגוף שאתם שומרים עליו?</div>
+        </div>
+        <h2>המטופל שלי</h2>
+        <div class="row" id="patLooks"></div>
+        <div class="seg" id="patKind"><button data-k="boy">ילד</button><button data-k="girl" aria-pressed="true">ילדה</button></div>
+        <label class="field">שם: <input id="patName" maxlength="14" autocomplete="off" placeholder="למשל: נועה"></label>
+        <button class="btn" id="patGo">יוצאים לשמור עליו</button>
+      </div>
+    </div>
+
+    <!-- album: pathogen cards with immune memory, achievements, and the wardrobe -->
+    <div class="overlay" id="albumScreen" hidden>
+      <div class="card wide">
+        <h2>האלבום</h2>
+        <div class="seg" id="albumTabs"><button data-t="cards" aria-pressed="true">קלפים</button><button data-t="ach">הישגים</button><button data-t="hats">ארון</button></div>
+        <p id="albumSub"></p>
+        <div class="album" id="albumGrid"></div>
+        <div class="ency-detail" id="albumDetail" hidden></div>
+        <button class="btn" id="albumClose">חזרה</button>
+      </div>
+    </div>
+
+    <!-- lab: permanent upgrades bought with ATP -->
+    <div class="overlay" id="labScreen" hidden>
+      <div class="card wide">
+        <h2>המעבדה</h2>
+        <p>כאן משקיעים ATP, מטבע האנרגיה של התא, בשדרוגים שנשארים לתמיד, בכל העולמות.</p>
+        <div class="chips" id="labAtp"></div>
+        <div class="labgrid" id="labGrid"></div>
+        <button class="btn" id="labClose">חזרה</button>
       </div>
     </div>
 
@@ -355,21 +481,29 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
 };
-let best = store.get('bp2-best', 0);
-const unlocked = new Set(store.get('bp2-ency', []));
+// player profiles: 'main' keeps the original storage keys, other profiles prefix them
+let profile = store.get('bp4-cur', 'main');
+const P = k => profile === 'main' ? k : `${profile}:${k}`;
+const pget = (k, d) => store.get(P(k), d), pset = (k, v) => store.set(P(k), v);
+let best = pget('bp2-best', 0);
+// meta-progression hooks: no-ops here, filled in by the META section further down
+const EXTRA_SCREENS = ['patientScreen', 'albumScreen', 'profileScreen']; // overlay ids added by later sections
+const META = { onGameOver() {}, onNewLevel() {}, tick() {}, pickMod() {}, onSpawn() {}, onBounce() {}, onMap: null, onAction() {}, onKill() {}, onCombo() {}, onSite() {}, onBoss() {}, onLevelDone() {}, onStart() {}, say() {}, labLv: () => 0, speedMul: () => 1 };
+const unlocked = new Set(pget('bp2-ency', []));
 
 // ================= CONTENT =================
 const CELLS = {
-  neut:  { name: 'נויטרופיל', spd: 1.2, size: 1, filter: '', tint: null, ability: 'רשת NET', cd: 7, abil: 'net', perks: { bact2: 1 },
+  neut:  { name: 'נויטרופיל', spd: 1.2, size: 1, filter: '', tint: null, ability: 'רשת NET', cd: 7, abil: 'net', perks: { bact2: 1 }, phago: { cap: 3, dig: 0.7 },
            desc: 'הנפוץ ביותר: 50–70% מהתאים הלבנים. מהיר ומצטיין בבליעת חיידקים.', perk: 'נקודות כפולות על חיידקים' },
-  macro: { name: "מקרופאג'", spd: 0.8, size: 1.4, filter: 'hue-rotate(136deg) saturate(2.2)', tint: '#f0a040', ability: 'בליעה ענקית', cd: 7, abil: 'grow', perks: { instant: 1, boss2: 1 },
+  macro: { name: "מקרופאג'", spd: 0.8, size: 1.4, filter: 'hue-rotate(136deg) saturate(2.2)', tint: '#f0a040', ability: 'בליעה ענקית', cd: 7, abil: 'grow', perks: { instant: 1, boss2: 1 }, phago: { cap: 6, dig: 1.35 },
            desc: 'הבולען הגדול. איטי וענק, בולע תאים אדומים נגועים במגע אחד.', perk: 'נזק כפול לבוסים' },
-  bcell: { name: 'תא B', spd: 1, size: 0.85, filter: 'hue-rotate(-47deg) saturate(2.2)', tint: '#4f8de8', ability: 'מטח נוגדנים', cd: 5, abil: 'antibody', perks: { autoAb: 1 },
+  bcell: { name: 'תא B', spd: 1, size: 0.85, filter: 'hue-rotate(-47deg) saturate(2.2)', tint: '#4f8de8', ability: 'מטח נוגדנים', cd: 5, abil: 'antibody', perks: { autoAb: 1 }, phago: { cap: 2, dig: 1 },
            desc: 'מייצר נוגדנים שננעלים על פתוגנים, מאטים אותם ומונעים מהם להדביק.', perk: 'יורה נוגדן אוטומטית' },
-  nk:    { name: 'תא NK', spd: 1.1, size: 0.9, filter: 'hue-rotate(-95deg) saturate(2.2)', tint: '#2fbf9f', ability: 'פרץ פרפורין', cd: 6, abil: 'burst', perks: { instant: 1, site1: 1 },
+  nk:    { name: 'תא NK', spd: 1.1, size: 0.9, filter: 'hue-rotate(-95deg) saturate(2.2)', tint: '#2fbf9f', ability: 'פרץ פרפורין', cd: 6, abil: 'burst', perks: { instant: 1, site1: 1 }, phago: { cap: 3, dig: 0.9 },
            desc: 'הרוצח הטבעי. מזהה תאים נגועים ומשמיד אותם.', perk: 'מנקה אזורים ותאים נגועים במגע אחד' },
 };
 const DIFF = {
+  calm:   { spd: 0.7, spawn: 1.5, dmg: 0.45, boss: 0.6, noLose: true }, // for young kids: the meter never runs out
   easy:   { spd: 0.8, spawn: 1.35, dmg: 0.7, boss: 0.75 },
   normal: { spd: 1,   spawn: 1,    dmg: 1,   boss: 1 },
   hard:   { spd: 1.2, spawn: 0.75, dmg: 1.3, boss: 1.3 },
@@ -418,6 +552,11 @@ const ENCY = {
   diapedesis: ['דיאפדזה', 'תא לבן נצמד לדופן, מתגלגל לאורכה, ומשתחל בין תאי האנדותל אל הרקמה שבה הזיהום.'],
   cluster: ['צבר וירוסים', 'במציאות תא נגוע אחד יכול לשחרר אלפי עותקים של וירוס בבת אחת. במשחק הם מופיעים כגוש ענק.'],
   colony: ['מושבת חיידקים', 'חיידקים יכולים להתקבץ ולהפריש שכבה דביקה (ביופילם) שמגינה עליהם מתאי חיסון ומאנטיביוטיקה.'],
+  biofilm: ['ביופילם', 'שכבה דביקה של סוכרים וחלבונים שחיידקים מפרישים סביב המושבה. היא מקשה על תאי חיסון ועל אנטיביוטיקה להגיע אליהם, ולכן זיהומים כאלה עקשניים. במשחק: רק יכולת שמופעלת ליד המושבה קורעת אותה.'],
+  rarestrain: ['זן נדיר', 'לכל פתוגן יש הרבה זנים: גרסאות שונות מעט זו מזו. חלק נדירים מאוד. במשחק זן נדיר זוהר בזהב ושווה הרבה נקודות ו־ATP, והוא מקבל מסגרת זהב באלבום.'],
+  mutation: ['מוטציה', 'כשפתוגן משתכפל, לפעמים נוצרת טעות קטנה בחומר התורשתי שלו. רוב המוטציות לא משנות כלום, אבל חלקן עוזרות לו: למשל לשחות מהר יותר או להתחמק מנוגדנים. כך נוצרים זנים חדשים של שפעת כל שנה. במשחק: "מוטנט" גדול ומהיר יותר ושווה פי 2.'],
+  memory: ['זיכרון חיסוני', 'אחרי שהגוף ניצח פתוגן, נשארים בו תאי B ו־T "זיכרון". בפעם הבאה הם מזהים אותו מהר מאוד ומייצרים נוגדנים כמעט מיד. זה גם הרעיון של חיסון: מלמדים את הגוף מראש, בלי להיות חולים.'],
+  phagosome: ['פגוזום וליזוזום', 'כשתא בולע פתוגן, הוא עוטף אותו בבועה שנקראת פגוזום. בועה אחרת, הליזוזום, מתאחה איתה ושופכת אנזימים שמפרקים את הפתוגן. במשחק: לכל תא יש מקום מוגבל, וצריך זמן לעכל.'],
   schizont: ['סכיזונט כבדי', 'בתוך תא כבד אחד טפיל המלריה מתחלק לעשרות אלפי מרוזואיטים, ואז משחרר את כולם לדם בבת אחת.'],
   rosette: ['רוזטה', 'תא אדום נגוע במלריה שתאים אדומים בריאים נדבקים אליו. הגוש חוסם נימים קטנים, וזו אחת הסיבות למלריה קשה.'],
 };
@@ -463,9 +602,27 @@ function initAudio() {
   const Ctor = window.AudioContext || window.webkitAudioContext;
   if (!Ctor) return;
   AC = new Ctor();
-  master = AC.createGain(); master.gain.value = muted ? 0 : 0.8; master.connect(AC.destination);
+  master = AC.createGain(); master.gain.value = muted ? 0 : 0.8;
+  // a gentle limiter lets the big success sounds hit hard without clipping
+  const comp = AC.createDynamicsCompressor ? AC.createDynamicsCompressor() : null;
+  if (comp) { comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2; master.connect(comp); comp.connect(AC.destination); }
+  else master.connect(AC.destination);
   musicBus = AC.createGain(); musicBus.gain.value = 0.3; musicBus.connect(master);
   sfxBus = AC.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
+  // hall reverb for celebrations: a decaying noise impulse
+  if (AC.createConvolver) {
+    const len = Math.floor(AC.sampleRate * 1.8), ir = AC.createBuffer(2, len, AC.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    const conv = AC.createConvolver(); conv.buffer = ir;
+    wetBus = AC.createGain(); wetBus.gain.value = 0.55; wetBus.connect(conv); conv.connect(master);
+  }
+}
+let wetBus = null;
+// big moments: the music steps back for a beat so the fanfare stands out
+function duck(t = 1.2) {
+  if (!AC || !musicBus) return;
+  const n = AC.currentTime;
+  musicBus.gain.cancelScheduledValues(n); musicBus.gain.setTargetAtTime(0.1, n, 0.03); musicBus.gain.setTargetAtTime(0.3, n + t, 0.25);
 }
 function setMuted(m) {
   muted = m;
@@ -475,38 +632,51 @@ function setMuted(m) {
 }
 function tone(freq, dur, o = {}) {
   if (!AC) return;
-  const { type = 'sine', vol = 0.3, to = null, at = 0, bus = sfxBus, attack = 0.005 } = o;
+  const { type = 'sine', vol = 0.3, to = null, at = 0, bus = sfxBus, attack = 0.005, wet = 0, det = 0 } = o;
   const t = AC.currentTime + at;
   const os = AC.createOscillator(), gn = AC.createGain();
   os.type = type; os.frequency.setValueAtTime(freq, t);
+  if (det) os.detune.setValueAtTime(det, t);
   if (to) os.frequency.exponentialRampToValueAtTime(to, t + dur);
   gn.gain.setValueAtTime(0.0001, t);
   gn.gain.exponentialRampToValueAtTime(vol, t + attack);
   gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   os.connect(gn); gn.connect(bus); os.start(t); os.stop(t + dur + 0.02);
+  if (wet && wetBus) { const wg = AC.createGain(); wg.gain.value = wet; gn.connect(wg); wg.connect(wetBus); }
 }
 let noiseBuf = null;
 function noise(dur, o = {}) {
   if (!AC) return;
-  const { vol = 0.2, freq = 2000, at = 0, bus = sfxBus, q = 1 } = o;
+  const { vol = 0.2, freq = 2000, at = 0, bus = sfxBus, q = 1, wet = 0, type = 'bandpass', sweep = 0 } = o;
   if (!noiseBuf) {
     noiseBuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate);
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   }
   const t = AC.currentTime + at;
   const s = AC.createBufferSource(), f = AC.createBiquadFilter(), gn = AC.createGain();
-  s.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+  s.buffer = noiseBuf; s.loop = dur > 0.45; f.type = type; f.frequency.setValueAtTime(freq, t); f.Q.value = q;
+  if (sweep) f.frequency.exponentialRampToValueAtTime(sweep, t + dur);
   gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   s.connect(f); f.connect(gn); gn.connect(bus); s.start(t); s.stop(t + dur + 0.02);
+  if (wet && wetBus) { const wg = AC.createGain(); wg.gain.value = wet; gn.connect(wg); wg.connect(wetBus); }
 }
-let lastChomp = 0;
+let lastChomp = 0, lastGood = 0;
+const PENTA = [0, 2, 4, 7, 9];
+const ladder = n => { const k = Math.max(0, Math.min(n, 12) - 1); return 523.25 * Math.pow(2, (Math.floor(k / 5) * 12 + PENTA[k % 5]) / 12); };
+// a major chord with a bright top note, the building block of every fanfare
+function chord(root, at, dur, vol, wet = 0.35) { [0, 4, 7, 12].forEach((s, i) => tone(root * Math.pow(2, s / 12), dur, { type: i ? 'triangle' : 'sawtooth', vol: vol * (i ? 1 : 0.55), at, wet, attack: 0.01, det: i % 2 ? 6 : -6 })); }
+const crash = (at = 0, vol = 0.18) => noise(1.1, { vol, freq: 7000, q: 0.4, at, wet: 0.5, type: 'highpass' });
+const boom = (at = 0, vol = 0.5) => { tone(110, 0.5, { vol, to: 32, at }); noise(0.25, { vol: vol * 0.5, freq: 200, q: 0.7, at }); };
 const sfx = {
   chomp(combo) {
     if (!AC || AC.currentTime - lastChomp < 0.04) return; lastChomp = AC.currentTime;
-    const up = Math.pow(2, Math.min(combo - 1, 8) / 12);
-    tone(520 * up, 0.12, { type: 'square', vol: 0.16, to: 140 * up });
-    tone(880 * up, 0.08, { vol: 0.14, to: 1400 * up, at: 0.05 });
-    noise(0.08, { vol: 0.13, freq: 1800 });
+    // each kill in a chain climbs one step of a major pentatonic scale, so a streak "sings"
+    const f = ladder(combo);
+    tone(420, 0.1, { type: 'square', vol: 0.12, to: 120 });
+    noise(0.07, { vol: 0.13, freq: 1800 });
+    tone(f, 0.16, { type: 'triangle', vol: 0.15, at: 0.03, wet: 0.15 });
+    tone(f * 2, 0.1, { vol: 0.06, at: 0.03 });
+    if (combo >= 5) tone(f * 3, 0.14, { type: 'sine', vol: 0.05, at: 0.07, wet: 0.3 });
   },
   ability() { tone(180, 0.45, { type: 'sawtooth', vol: 0.13, to: 900 }); tone(360, 0.45, { type: 'triangle', vol: 0.12, to: 1800, at: 0.03 }); noise(0.35, { vol: 0.1, freq: 3500, q: 0.6 }); },
   net() { noise(0.5, { vol: 0.25, freq: 900, q: 0.5 }); tone(300, 0.5, { type: 'sawtooth', vol: 0.1, to: 80 }); },
@@ -515,18 +685,61 @@ const sfx = {
   infect() { tone(220, 0.35, { type: 'sawtooth', vol: 0.11, to: 90 }); tone(233, 0.35, { type: 'square', vol: 0.05, to: 95 }); },
   burst() { noise(0.25, { vol: 0.2, freq: 500, q: 2 }); tone(160, 0.25, { type: 'square', vol: 0.1, to: 60 }); },
   escape() { tone(500, 0.3, { type: 'triangle', vol: 0.12, to: 150 }); },
-  clear() { [660, 880, 1320].forEach((f, i) => tone(f, 0.15, { type: 'triangle', vol: 0.1, at: i * 0.05 })); },
+  clear() { [660, 880, 1320, 1760].forEach((f, i) => tone(f, 0.16, { type: 'triangle', vol: 0.1, at: i * 0.05, wet: 0.25 })); },
   platelet() { tone(990, 0.08, { vol: 0.12 }); tone(1320, 0.1, { vol: 0.1, at: 0.05 }); },
   divide() { tone(300, 0.1, { type: 'square', vol: 0.05, to: 420 }); },
   wave() { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.15, at: i * 0.09 })); },
   boss() { [110, 104, 98].forEach((f, i) => tone(f, 0.5, { type: 'sawtooth', vol: 0.18, at: i * 0.3 })); },
   bossHit() { tone(200, 0.15, { type: 'square', vol: 0.14, to: 70 }); noise(0.12, { vol: 0.16, freq: 700 }); },
-  bossDown() { noise(0.9, { vol: 0.3, freq: 400, q: 0.4 }); [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.35, { type: 'square', vol: 0.09, at: 0.3 + i * 0.1 })); },
+  bossDown() {
+    duck(3); boom(0, 0.6); noise(1.2, { vol: 0.3, freq: 300, sweep: 60, q: 0.5, wet: 0.4 });
+    [392, 523, 659, 784, 1046].forEach((f, i) => tone(f, 0.25, { type: 'square', vol: 0.09, at: 0.35 + i * 0.09, wet: 0.3 }));
+    chord(523.25, 0.85, 1.4, 0.1); crash(0.85, 0.25); boom(0.85, 0.45); tone(130.8, 1.3, { type: 'triangle', vol: 0.25, at: 0.85 });
+  },
   exit() { tone(300, 0.6, { type: 'sine', vol: 0.2, to: 1200 }); },
   over() { [392, 330, 262, 196].forEach((f, i) => tone(f, 0.4, { type: 'triangle', vol: 0.18, at: i * 0.18 })); },
-  right() { tone(784, 0.12, { type: 'triangle', vol: 0.14 }); tone(1046, 0.2, { type: 'triangle', vol: 0.14, at: 0.1 }); },
+  right() { tone(784, 0.12, { type: 'triangle', vol: 0.14, wet: 0.2 }); tone(1046, 0.18, { type: 'triangle', vol: 0.14, at: 0.1, wet: 0.2 }); chord(784, 0.22, 0.5, 0.05); tone(2093, 0.3, { vol: 0.04, at: 0.24, wet: 0.6 }); },
   wrong() { tone(220, 0.25, { type: 'square', vol: 0.08, to: 160 }); },
   click() { tone(660, 0.05, { type: 'triangle', vol: 0.08 }); },
+  combo(n) {
+    duck(0.9);
+    noise(0.45, { vol: 0.14, freq: 400, sweep: 6000, q: 1.2, wet: 0.3 }); // whoosh up
+    tone(n >= 10 ? 330 : 262, 0.45, { type: 'sawtooth', vol: 0.08, to: n >= 10 ? 1320 : 1046 });
+    chord(n >= 10 ? 392 : 330, 0.38, 0.6, 0.07); boom(0.38, 0.35);
+    if (n >= 10) { crash(0.38); [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => tone(784 * Math.pow(2, s / 12), 0.12, { type: 'square', vol: 0.05, at: 0.42 + i * 0.045, wet: 0.3 })); }
+  },
+  rare() { [1046, 1318, 1568, 2093, 2637].forEach((f, i) => tone(f, 0.3, { type: 'triangle', vol: 0.12, at: i * 0.055, wet: 0.5 })); noise(0.5, { vol: 0.07, freq: 6000, q: 0.5, wet: 0.5 }); tone(523, 0.6, { vol: 0.1, at: 0.05, wet: 0.4 }); },
+  // small success: a soft bell on the same scale ladder as the kills
+  good(combo) {
+    if (!AC || AC.currentTime - lastGood < 0.06) return; lastGood = AC.currentTime;
+    const f = ladder(combo); tone(f, 0.22, { type: 'triangle', vol: 0.11, wet: 0.3 }); tone(f * 1.5, 0.18, { vol: 0.05, at: 0.04, wet: 0.3 });
+  },
+  // wave goal reached: drum hit, rising arpeggio, big chord, cymbal
+  goal() {
+    duck(1.6); boom(0, 0.45);
+    [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.16, { type: 'square', vol: 0.08, at: 0.05 + i * 0.07, wet: 0.25 }));
+    chord(523, 0.33, 0.9, 0.09); crash(0.33); tone(130.8, 0.8, { type: 'triangle', vol: 0.25, at: 0.33 });
+  },
+  // level complete: a short victory tune with harmony and drums
+  victory() {
+    duck(3);
+    const mel = [[784, 0], [784, 0.12], [784, 0.24], [1046, 0.4], [988, 0.72], [1046, 0.88], [1318, 1.04]];
+    mel.forEach(([f, at], i) => { tone(f, i === mel.length - 1 ? 0.9 : 0.16, { type: 'square', vol: 0.09, at, wet: 0.3 }); tone(f * 0.75, 0.16, { type: 'triangle', vol: 0.06, at }); });
+    [0, 0.4, 0.72, 1.04].forEach(at => boom(at, 0.35));
+    chord(261.6, 0.4, 0.3, 0.06); chord(349.2, 0.72, 0.3, 0.06); chord(523.25, 1.04, 1.2, 0.09); crash(1.04, 0.2);
+  },
+  achieve() { duck(1.2); chord(698.5, 0, 0.25, 0.06); chord(880, 0.18, 0.9, 0.08); [1760, 2093, 2637, 3136].forEach((f, i) => tone(f, 0.25, { vol: 0.05, at: 0.2 + i * 0.06, wet: 0.6 })); },
+  powerup() { tone(220, 0.5, { type: 'sawtooth', vol: 0.08, to: 1760, wet: 0.3 }); noise(0.5, { vol: 0.08, freq: 500, sweep: 8000, wet: 0.3 }); chord(659, 0.48, 0.5, 0.07); },
+  digest() { tone(240, 0.07, { type: 'sine', vol: 0.06, to: 120 }); },
+  // stars climb C, E, G (and a purple high C); the third one gets the cymbal
+  star(i) {
+    const f = 523.25 * Math.pow(2, [0, 4, 7, 12][i] / 12);
+    boom(0, 0.3); chord(f, 0, 0.5 + i * 0.2, 0.07);
+    tone(f * 2, 0.4, { vol: 0.08, at: 0.04, wet: 0.5 }); tone(f * 4, 0.3, { vol: 0.04, at: 0.08, wet: 0.6 });
+    if (i >= 2) { crash(0.02, 0.2); duck(1.5); }
+  },
+  coin() { tone(1318, 0.06, { type: 'square', vol: 0.05 }); tone(1760, 0.1, { type: 'square', vol: 0.05, at: 0.05 }); },
+  warn() { tone(440, 0.12, { type: 'square', vol: 0.08 }); tone(440, 0.12, { type: 'square', vol: 0.08, at: 0.2 }); },
 };
 const BPM = 118, STEP = 60 / BPM / 4;
 const midi = n => 440 * Math.pow(2, (n - 69) / 12);
@@ -549,6 +762,8 @@ function scheduleMusic() {
     if (s % 2 === 1 || intense) noise(0.03, { vol: s % 2 ? 0.08 : 0.04, freq: 8000, at, bus: musicBus });
     if (s % 2 === 0) tone(midi(BASS[bar] + (s % 8 === 6 ? 12 : 0) - (g && g.boss ? 1 : 0)), STEP * 1.8, { type: 'triangle', vol: 0.32, at, bus: musicBus });
     if (s === 0 || s === 10) CHORDS[bar].forEach(n => tone(midi(n + 12), STEP * 3, { vol: g && g.boss ? 0.08 : 0.05, at, bus: musicBus, attack: 0.02 }));
+    // a hot streak adds a sparkling arpeggio on top of the music
+    if (g && g.combo >= 5 && g.comboT > 0 && state === 'play') { const c = CHORDS[bar]; tone(midi(c[s % 3] + (g.combo >= 10 ? 36 : 24)), STEP * 0.9, { type: 'triangle', vol: 0.035, at, bus: musicBus }); }
     const n = LEAD[bar][s];
     if (n) tone(midi(n), STEP * 1.6, { type: 'square', vol: 0.05, at, bus: musicBus });
     nextT += STEP; step++;
@@ -560,7 +775,7 @@ function stopMusic() { musicOn = false; clearInterval(musicTimer); }
 // ================= SPRITES =================
 const SHEETS = {
   wbcIdle: ['white_blood_cell_idle', 8], wbcAttack: ['white_blood_cell_attack', 6],
-  virus: ['virus_idle', 8], pop: ['virus_pop', 5], rbc: ['red_blood_cell_float', 8],
+  virus: ['virus_idle', 8], pop: ['virus_pop', 5], rbc: ['red_blood_cell_float', 8], brain: ['brain_hero_idle', 6],
 };
 const img = {};
 const loads = Object.entries(SHEETS).map(([k, [file, frames]]) => new Promise(res => {
@@ -665,6 +880,13 @@ function botTarget() {
   return best;
 }
 
+// the blood world's bacterial colony hides under a biofilm that only abilities can tear
+BOSSES.colony = {
+  r: 95, hp: 1,
+  init(b) { b.film = 3; b.filmT = 0; },
+  shield(b) { return b.film > 0 ? 'ביופילם! השתמשו ביכולת לידה' : false; },
+};
+
 // ================= WORLD 2: HEART =================
 HEROES.rbc = {
   name: 'כדורית אדומה', spd: 1.05, size: 0.78, ability: 'דחיפת זרם', cd: 4, abil: 'dash', perks: {},
@@ -688,7 +910,7 @@ WORLDS.push({
       valves: [['tricuspid', 'pulmonary'], ['mitral', 'aortic'], ['tricuspid', 'pulmonary', 'mitral', 'aortic']],
       exitSub: 'שחו אל הפתח: אבי העורקים מוביל את הדם לכל הגוף', lose: 'המסתמים נסגרו והדם נתקע!',
       intro: 'הכדורית נכנסה ללב בלי חמצן, ולכן היא אדומה כהה. הצד הימני של הלב שולח אותה לריאות להיטען בחמצן, והצד השמאלי שולח אותה לכל הגוף. בין החדרים יש מסתמים: דלתות שנפתחות רק לכיוון אחד, בקצב הפעימות.',
-      goal: 'עברו דרך כל מסתם כשהוא פתוח. מסתם סגור יחסום אתכם. היזהרו מקרישים קטנים שנדבקים אליכם.',
+      goal: 'טיפ: דחיפת זרם בדיוק בפעימה החזקה (סיסטולה) חזקה פי 1.5. עברו דרך כל מסתם כשהוא פתוח. מסתם סגור יחסום אתכם. היזהרו מקרישים קטנים שנדבקים אליכם.',
       entries: ['heart', 'valve', 'deoxy'],
       facts: ['הלב פועם 60–100 פעמים בדקה במנוחה', 'כ־100,000 פעימות ביום', 'במנוחה הלב שואב כ־5 ליטר דם בדקה', '"לאב־דאב" הם קולות של מסתמים שנסגרים', 'דם בלי חמצן הוא אדום כהה, לא כחול', 'קנה מידה: התאים מוגדלים מאוד. הלב בגודל של אגרוף'] },
     { id: 'coronary', name: 'העורקים הכליליים', wall: 'artery', mech: 'coronary', enemies: [['ldl', 0.75], ['clot', 0.25]], spawnMul: 1.3, boss: 'thrombus', bossName: 'קריש בעורק הכלילי',
@@ -959,7 +1181,7 @@ WALLSTYLE.artery = heartWall('#d9737f', '#8c2a42', 'rgba(140, 42, 66, 0.35)', ['
 const MEM = 330; // y of the thin air-blood membrane in the alveolus level
 HEROES.alv = {
   name: "מקרופאג' של הריאה", spd: 0.9, size: 1.2, ability: 'בליעה ענקית', cd: 6, abil: 'grow', perks: { instant: 1, boss2: 1 },
-  filter: CELLS.macro.filter, tintOf: 'macro',
+  filter: CELLS.macro.filter, tintOf: 'macro', phago: { cap: 5, dig: 1.1 },
   desc: 'השואב של הריאות: בולע אבק, אבקנים וחיידקים. כשהוא מוגדל הוא בולע גם חלקיקים.',
 };
 WORLDS.push({
@@ -1080,11 +1302,14 @@ function infSite(spec) {
     },
   };
 }
-const siteCleared = s => { g.score += 200; heal(3); addText(s.x, wallY(s.top) + (s.top ? 46 : -46), '+200 נוקה!', '#c5f7c0'); sfx.clear(); for (let i = 0; i < 6; i++) g.pops.push({ x: s.x + rnd(-30, 30), y: wallY(s.top) + rnd(-10, 10), t: rnd(0, 0.1), small: true }); };
+const siteCleared = s => { g.score += 200; heal(3); progress(); burst(s.x, wallY(s.top), '#c5f7c0', 14, 180); ring(s.x, wallY(s.top), '#c5f7c0', 70); META.onSite(); addText(s.x, wallY(s.top) + (s.top ? 46 : -46), '+200 נוקה!', '#c5f7c0'); sfx.clear(); for (let i = 0; i < 6; i++) g.pops.push({ x: s.x + rnd(-30, 30), y: wallY(s.top) + rnd(-10, 10), t: rnd(0, 0.1), small: true }); };
 SITES.airinf = infSite({ fill: 'rgba(124, 179, 66, 0.85)', edge: '#33691e', emit: 'fluv', clear: siteCleared });
 
+const breath = () => Math.sin(g.t * Math.PI * 2 / 4.2); // ~14 breaths a minute
 MECH.airway = {
   init() { g.caught = []; g.smokeT = 0; },
+  flow: () => 80 * (1 + 0.55 * breath()),
+  hud() { const b = breath(); label(b > 0 ? 'שאיפה: האוויר נכנס' : 'נשיפה: האוויר יוצא', 130, 96, 15, b > 0 ? '#bfe0ff' : '#ffe0c0'); ctx.strokeStyle = '#bfe0ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(130, 120, 8 + 6 * (b + 1) / 2, 0, 7); ctx.stroke(); },
   update(dt) {
     if (g.smokeT > 0) g.smokeT -= dt;
     for (const c of g.caught) { c.t += dt; if (g.smokeT <= 0) c.x += 70 * dt; }
@@ -1235,7 +1460,7 @@ HEROES.enzyme = {
   desc: 'מספריים מולקולריים: כל אנזים מפרק סוג אחד של מזון. החליפו אנזים עם רווח.',
   useAbility() {
     const modes = LV().modes; const i = modes.indexOf(g.mode);
-    g.mode = modes[(i + 1) % modes.length]; sfx.click();
+    g.mode = modes[(i + 1) % modes.length]; sfx.click(); g.switchT = g.t;
   },
   draw(x, y, s, t, f) {
     const m = ENZ[(g && g.mode) || 'amy'], r = s / 2, open = 0.25 + Math.abs(Math.sin(t * 7)) * 0.35;
@@ -1334,6 +1559,7 @@ function foodKind(food, r, pts, draw) {
     r, sp: 42, spW: 4, pts, wobA: 45, noRot: true, touch: foodTouch(food),
     onCollect(e) {
       award(pts, e.x, e.y - 30, 'פורק!'); heal(2); sfx.chomp(g.combo); g.p.chomp = 0; g.kills++;
+      if (g.t - (g.switchT ?? -9) < 1.2) { g.switchT = -9; award(40, e.x, e.y - 60, 'החלפה מהירה!', '#ffe082'); }
       for (let i = 0; i < 3; i++) { const n = spawnEnemy('nutri', e.x, e.y); n.sub = food; n.vx = rnd(-120, 120); n.vy = rnd(-120, 120); n.pushT = 0.5; }
       unlock({ starch: 'amylase', protein: 'protease', fat: 'lipase' }[food]); unlock('digestion');
     },
@@ -2537,6 +2763,689 @@ WALLSTYLE.synapse = {
   },
 };
 
+// ================= META: GOALS, STARS AND PROGRESSION =================
+// Good actions needed per wave, per world and level (about 65% of what the test bot manages in 26 s).
+const GOALS = {
+  blood: [11, 8, 11, 7], heart: [2, 13], lungs: [13, 30], gut: [7, 9, 60, 7],
+  kidney: [16, 4], skin: [8, 5], marrow: [2, 3], brain: [10, 13, 3],
+};
+WORLDS.forEach(w => w.levels.forEach((lv, i) => { if (lv.goalN == null && GOALS[w.id]) lv.goalN = GOALS[w.id][i]; }));
+let stars = pget('bp4-stars', {}); // { worldId: [stars per level] }, a level done on hard adds a purple 4th
+const starsOf = (wid, i) => (stars[wid] || [])[i] || 0;
+const worldStars = wid => (stars[wid] || []).reduce((a, n) => a + (n || 0) % 10, 0);
+const worldHard = wid => (stars[wid] || []).filter(n => n >= 10).length;
+const totalStars = () => WORLDS.reduce((a, w) => a + worldStars(w.id), 0);
+function levelStars() {
+  const crit = [
+    { ok: true, text: 'השלב הושלם' },
+    { ok: !g.goalMiss, text: 'כל יעדי הגלים הושגו לפני שהזמן נגמר' },
+    { ok: g.minFrac >= 0.5, text: `${WD().meter} לא ירד מתחת ל־50%` },
+  ];
+  return { n: crit.filter(c => c.ok).length, crit };
+}
+function saveStars(n) {
+  const wid = WD().id, arr = stars[wid] || (stars[wid] = []);
+  const prev = arr[run.level] || 0;
+  arr[run.level] = Math.max(prev % 10, n) + (run.diff === 'hard' || prev >= 10 ? 10 : 0); // +10 marks a hard clear
+  pset('bp4-stars', stars);
+  return prev % 10;
+}
+function showStars(n, hard) {
+  const box = $('doneStars'); box.innerHTML = '';
+  for (let i = 0; i < 3 + (hard ? 1 : 0); i++) {
+    const sp = document.createElement('span'); sp.textContent = '★'; box.appendChild(sp);
+    setTimeout(() => { if (i < n) { sp.className = 'on'; sfx.star(i); } else if (i === 3) { sp.className = 'hard'; sfx.star(3); } }, 350 + i * 380);
+  }
+  box.setAttribute('aria-label', `${n} כוכבים מתוך 3`);
+}
+
+// ---- ATP: the energy currency. Earned by playing, spent in the lab on permanent upgrades.
+let atp = pget('bp4-atp', 0), lab = pget('bp4-lab', {}), xp = pget('bp4-xp', {});
+const LAB = [
+  { id: 'move', ic: '🦵', name: 'שלד אקטין', desc: 'פסאודופודים חזקים יותר: מהירות +5% לכל דרגה' },
+  { id: 'dig', ic: '🫧', name: 'ליזוזומים', desc: 'עיכול מהיר ב־8% לכל דרגה, ובדרגות 2 ו־4 עוד מקום בפגוזום' },
+  { id: 'abil', ic: '🔋', name: 'מיטוכונדריה', desc: 'היכולת נטענת מהר ב־6% לכל דרגה' },
+  { id: 'heal', ic: '🩹', name: 'גורמי גדילה', desc: 'התאוששות +15% ומקסימום המד +5 לכל דרגה' },
+];
+const LAB_COST = [20, 45, 80, 130, 200];
+const XPL = [0, 25, 60, 110, 180, 270, 380, 510, 660, 830];
+const cellLevel = k => XPL.filter(v => (xp[k] || 0) >= v).length;
+function gainAtp(n, x, y) {
+  if (!n) return;
+  if (g && state === 'play') { g.atp += n; if (x != null) addText(x, y, `+${n} ATP`, '#ffe082'); }
+  else { atp += n; pset('bp4-atp', atp); }
+}
+function bankAtp() { // move what this level earned into the wallet and the hero's XP
+  const n = Math.round(g.atp); g.atp = 0;
+  atp += n; xp[g.hero] = (xp[g.hero] || 0) + n;
+  pset('bp4-atp', atp); pset('bp4-xp', xp);
+  return n;
+}
+function cheapestLab() {
+  let best = null;
+  for (const L of LAB) { const lv = lab[L.id] || 0; if (lv < 5 && (!best || LAB_COST[lv] < best.cost)) best = { L, cost: LAB_COST[lv] }; }
+  return best;
+}
+function renderLab() {
+  $('labAtp').innerHTML = `<span class="chip">⚡ ${atp} ATP</span>`;
+  const box = $('labGrid'); box.innerHTML = '';
+  for (const L of LAB) {
+    const lv = lab[L.id] || 0, cost = LAB_COST[lv], d = document.createElement('div'); d.className = 'lab';
+    d.innerHTML = `<span class="ic"></span><b></b><small></small><span class="pips">${[0, 1, 2, 3, 4].map(i => `<span class="${i < lv ? 'on' : ''}"></span>`).join('')}</span><button class="btn"></button>`;
+    d.querySelector('.ic').textContent = L.ic; d.querySelector('b').textContent = L.name; d.querySelector('small').textContent = L.desc;
+    const b = d.querySelector('button');
+    if (lv >= 5) { b.textContent = 'מלא'; b.disabled = true; }
+    else {
+      b.textContent = `${cost} ATP`; b.disabled = atp < cost;
+      b.onclick = () => { if (atp < cost) return; atp -= cost; lab[L.id] = lv + 1; pset('bp4-atp', atp); pset('bp4-lab', lab); sfx.coin(); sfx.powerup(); META.onLab(); renderLab(); };
+    }
+    box.appendChild(d);
+  }
+}
+let labReturn = 'mapScreen';
+function openLab(from) { labReturn = from; renderLab(); show('labScreen'); }
+$('labClose').onclick = () => { sfx.click(); if (labReturn === 'mapScreen') openMap(); else show(labReturn); };
+$('mapLab').onclick = () => { sfx.click(); openLab('mapScreen'); };
+$('overLab').onclick = () => { sfx.click(); openLab('overScreen'); };
+$('winLab').onclick = () => { sfx.click(); openLab('winScreen'); };
+
+// ---- missions: always three small goals open; finishing one brings a new one
+const MISSIONS = [
+  { id: 'kills', ev: 'kill', ns: [25, 50, 90], text: n => `חסלו ${n} פולשים`, atp: 25 },
+  { id: 'acts', ev: 'act', ns: [60, 120, 200], text: n => `בצעו ${n} פעולות טובות`, atp: 25 },
+  { id: 'combo', ev: 'combo', max: true, ns: [5, 8, 10], text: n => `הגיעו לקומבו x${n}`, atp: 20 },
+  { id: 'stars3', ev: 'stars3', ns: [1, 2], text: n => n > 1 ? `השיגו 3 כוכבים ב־${n} שלבים` : 'השיגו 3 כוכבים בשלב', atp: 35 },
+  { id: 'sites', ev: 'site', ns: [4, 8], text: n => `נקו ${n} אזורים נגועים`, atp: 25 },
+  { id: 'boss', ev: 'boss', ns: [1, 3], text: n => n > 1 ? `הביסו ${n} בוסים` : 'הביסו בוס', atp: 30 },
+  { id: 'quiz', ev: 'quiz', ns: [3, 6], text: n => `ענו נכון על ${n} שאלות בחידון`, atp: 20 },
+  { id: 'gold', ev: 'gold', ns: [1], text: () => 'מצאו פתוגן זהב נדיר', atp: 40 },
+  { id: 'lab', ev: 'lab', ns: [1], text: () => 'קנו שדרוג במעבדה', atp: 15 },
+  { id: 'world', ev: 'worldnew', ns: [1], text: () => 'שחקו בעולם שעוד לא סיימתם', atp: 30 },
+];
+let missions = pget('bp4-mis', null);
+function newMission(exclude) {
+  const pool = MISSIONS.filter(m => !exclude.includes(m.id));
+  const m = pool[Math.floor(Math.random() * pool.length)];
+  return { id: m.id, n: m.ns[Math.floor(Math.random() * m.ns.length)], have: 0 };
+}
+if (!Array.isArray(missions) || missions.length !== 3) { missions = []; for (let i = 0; i < 3; i++) missions.push(newMission(missions.map(m => m.id))); pset('bp4-mis', missions); }
+const missionDef = m => MISSIONS.find(d => d.id === m.id);
+function missionEvent(ev, v = 1) {
+  let changed = false;
+  missions.forEach((m, i) => {
+    const d = missionDef(m); if (!d || d.ev !== ev) return;
+    m.have = d.max ? Math.max(m.have, v) : m.have + v; changed = true;
+    if (m.have >= m.n) {
+      toast(`משימה הושלמה: ${d.text(m.n)} (+${d.atp} ATP)`); sfx.rare();
+      life.missions++; saveLife(); if (life.missions >= 5) achieve('missions5');
+      gainAtp(d.atp, g && state === 'play' ? g.p.x : null, g ? g.p.y - 110 : 0);
+      missions[i] = newMission(missions.map(x => x.id));
+    }
+  });
+  if (changed) pset('bp4-mis', missions);
+}
+function renderMissions(box) {
+  box.innerHTML = '<b>משימות פתוחות</b>';
+  for (const m of missions) {
+    const d = missionDef(m), el = document.createElement('div'); el.className = 'm';
+    el.innerHTML = '<span></span><i><b></b></i>';
+    el.querySelector('span').textContent = `${d.text(m.n)} · ${Math.min(m.have, m.n)}/${m.n} · +${d.atp} ATP`;
+    el.querySelector('b').style.width = `${Math.min(100, m.have / m.n * 100)}%`;
+    box.appendChild(el);
+  }
+}
+
+// ---- the brain narrates: short lines on events, with a cooldown so it never nags
+const SAY = {
+  start: ['יאללה, לעבודה!', 'אני סומך עליכם, סיירת!', '{n} {סומך} עליכם!', 'מה יש לנו היום? בואו נגלה.', 'נשימה עמוקה... ויוצאים!'],
+  wave: ['גל הושלם! הגוף אומר תודה.', 'יפה! ועכשיו הגל הבא.', 'אתם תותחים. או ליתר דיוק: פגוציטים.'],
+  combo: ['וואו, איזו שרשרת!', 'הציטוקינים משתוללים!', 'זה כבר מופע!', 'אפשר לקבל חתימה?'],
+  low: ['אוי, זה דגדג... ולא בקטע טוב.', 'מהר! הגוף צריך אתכם.', 'אני מתחיל להרגיש לא טוב...', 'אולי כדאי לנקות את הזיהום?'],
+  boss: ['מה זה הדבר הענק הזה?!', 'בוס! זכרו: תסתכלו על הרמז.', 'הוא נראה כועס. אז מה.'],
+  bossAngry: ['הוא התעצבן! תזוזו מהקו האדום!', 'זהירות, הסתערות!'],
+  bossDown: ['ניצחון! אני רוקד מבפנים.', 'בום! הגוף נקי.', 'זה היה אפי!'],
+  infect: ['אוי, משהו נדבק לדופן!', 'זיהום! החץ הצהוב יראה לכם לאן.', 'נקו את זה לפני שזה מתפשט!'],
+  full: ['התא מלא! תנו לליזוזום לעבוד רגע.', 'לאט לאט, תעכלו קודם.'],
+  gold: ['פתוגן זהב! נדיר מאוד!', 'וואו, ראיתם את הנצנוץ?'],
+  first: ['ביס ראשון! טעים?', 'הנה, ככה בולעים!'],
+};
+const BOSS_SAY = {
+  cluster: ['אנחנו הרבה, אתם אחד!', 'לא! התפרקנו!'], colony: ['הביופילם שלנו בלתי חדיר!', 'אוי, המעיל שלנו!'],
+  schizont: ['עוד רגע אני מתפוצץ במרוזואיטים!', 'נעצרתי בכבד...'], rosette: ['כולם נדבקים אליי!', 'התפזרנו...'],
+  thrombus: ['אני סוגר פה את הכביש!', 'פלסמין... החולשה שלי...'], smoke: ['פוף! אני משתק לכם את הריסים!', 'קח־קח... יצאתי.'],
+  pneumo: ['לקופסית שלי אי אפשר להיצמד!', 'בולעים אותנו?!'], bolus: ['לעסו אותי אם אתם יכולים!', 'נלעסתי...'],
+  hpcolony: ['האמוניה שלי מגינה עליי!', 'החומצה ניצחה...'], fatglob: ['אני גדולה מדי בשבילכם!', 'אמולסיה? לא!!'],
+  salminv: ['באנו מביצה לא מבושלת!', 'החיידקים הטובים... ניצחו...'], stone: ['אני אבן! אי אפשר להזיז אבן!', 'נשטפתי...'],
+  bigcut: ['החתך הזה לא ייסגר!', 'נסגרתי...'], staphcol: ['העור שלכם? עכשיו שלנו!', 'מוגלה... זה הסוף שלנו.'],
+  toxcloud: ['תכניסו אותי למוח!', 'המחסום... עצר אותי...'],
+};
+function say(ev, force) {
+  if (!g || state !== 'play') return;
+  if (!force && g.t - (g.sayAt ?? -99) < 7) return;
+  const pool = SAY[ev]; if (!pool) return;
+  g.sayAt = g.t; g.sayText = pool[Math.floor(Math.random() * pool.length)].replace('{n}', pname()).replace('{סומך}', GF('סומך', 'סומכת')); g.sayT = 3.2;
+}
+function drawNarrator() {
+  if (!(g.sayT > 0)) return;
+  const a = Math.min(1, g.sayT * 2, (3.2 - g.sayT) * 6), x = 22, y = 98;
+  ctx.globalAlpha = a;
+  sprite(img.brain, Math.floor(g.t * 8), x + 34, y + 30, 70);
+  ctx.font = `600 15px ${FONT_B}`; ctx.direction = 'rtl'; ctx.textAlign = 'right';
+  const w = Math.min(360, ctx.measureText(g.sayText).width + 26);
+  ctx.fillStyle = 'rgba(255, 246, 238, 0.95)'; roundRect(x + 70, y + 8, w, 34, 14); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 72, y + 24); ctx.lineTo(x + 62, y + 32); ctx.lineTo(x + 76, y + 32); ctx.fill();
+  ctx.fillStyle = '#3a1a26'; ctx.fillText(g.sayText, x + 70 + w - 13, y + 31);
+  ctx.globalAlpha = 1;
+}
+function drawBossSay() {
+  const b = g.boss; if (!b || !(b.sayT > 0) || b.y < 0) return;
+  ctx.globalAlpha = Math.min(1, b.sayT * 2);
+  ctx.font = `600 16px ${FONT_B}`; ctx.direction = 'rtl'; ctx.textAlign = 'center';
+  const w = ctx.measureText(b.sayText).width + 26, bx = Math.min(W - w / 2 - 10, Math.max(w / 2 + 10, b.x)), by = Math.max(70, b.y - b.r - 50);
+  ctx.fillStyle = 'rgba(40, 10, 10, 0.9)'; roundRect(bx - w / 2, by - 22, w, 34, 14); ctx.fill();
+  ctx.strokeStyle = '#ff8a80'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#ffd6d0'; ctx.fillText(b.sayText, bx, by);
+  ctx.globalAlpha = 1;
+}
+const LOSE_JOKES = ['{n} {קיבל} נזלת. אפצ׳י! נסו שוב.', 'המוח מבקש הפסקת שוקו ואז עוד ניסיון.', 'גם תאי חיסון מפסידים לפעמים. בגלל זה יש זיכרון חיסוני!', 'הגוף חזק: הוא ייתן לכם עוד הזדמנות.', 'אל דאגה, הכדוריות האדומות כבר מגישות מרק עוף.'];
+
+Object.assign(META, {
+  labLv: k => lab[k] || 0,
+  speedMul: () => 1 + 0.015 * (cellLevel(g ? g.hero : run.type) - 1),
+  onAction() { if (g && state === 'play') { g.atp += 0.35; missionEvent('act'); } },
+  onKill(e) {
+    g.stats.kills++; missionEvent('kill');
+    if (g.stats.kills === 1) say('first', true);
+    if (e.host && !e.host.dead) addText(e.host.x, e.host.y - 44, ['תודה!', 'הצלתם אותי!', 'פיו!'][Math.floor(Math.random() * 3)], '#ffd6e0');
+  },
+  onCombo(n) { missionEvent('combo', n); say('combo', n === 10); if (n === 10) gainAtp(5); },
+  onSite() { g.stats.sites++; g.atp += 1; missionEvent('site'); },
+  onBoss(b) {
+    gainAtp(15, b.x, b.y - 60); missionEvent('boss'); say('bossDown', true);
+    const l = BOSS_SAY[b.kind]; if (l) { b.sayText = l[1]; b.sayT = 2.5; g.lastBossSay = { x: b.x, y: b.y, text: l[1], t: 2.5 }; }
+  },
+  onLab() { missionEvent('lab'); },
+  onStart() { say('start', true); if (run.level === 0 && prog.done[WD().id] == null) missionEvent('worldnew'); },
+  onQuiz(ok) { if (ok) { gainAtp(5); missionEvent('quiz'); } },
+  say,
+  onLevelDone(n, prev) {
+    const gained = bankAtp(), starBonus = Math.max(0, n - prev) * 10 + 5;
+    atp += starBonus; pset('bp4-atp', atp); xp[g.hero] = (xp[g.hero] || 0) + starBonus; pset('bp4-xp', xp);
+    if (n === 3) missionEvent('stars3');
+    $('doneAtpBox').hidden = false; $('doneAtp').textContent = `${gained + starBonus}`;
+    renderAlmost($('doneAlmost'));
+  },
+  onGameOver() {
+    const n = bankAtp();
+    const j = LOSE_JOKES[Math.floor(Math.random() * LOSE_JOKES.length)].replace('{n}', pname()).replace('{קיבל}', GF('קיבל', 'קיבלה'));
+    $('overJoke').textContent = `${j} ${n ? `שמרתם ${n} ATP.` : ''}`;
+  },
+});
+// "almost there" bars: the next lab upgrade, the hero's next level and the closest mission
+function pbar(text, frac) {
+  const d = document.createElement('div'); d.className = 'pbar';
+  d.innerHTML = '<span></span><i><b></b></i>'; d.querySelector('span').textContent = text;
+  d.querySelector('b').style.width = `${Math.max(3, Math.min(100, frac * 100))}%`;
+  return d;
+}
+function renderAlmost(box) {
+  box.innerHTML = '';
+  const c = cheapestLab();
+  if (c) box.appendChild(pbar(atp >= c.cost ? `יש לכם מספיק ATP לשדרוג "${c.L.name}" במעבדה!` : `עוד ${c.cost - atp} ATP לשדרוג "${c.L.name}" במעבדה`, atp / c.cost));
+  const k = g ? g.hero : run.type, lv = cellLevel(k);
+  if (lv < XPL.length) { const lo = XPL[lv - 1], hi = XPL[lv]; box.appendChild(pbar(`${HEROES[k].name}: רמה ${lv}, עוד ${hi - (xp[k] || 0)} XP לרמה ${lv + 1}`, ((xp[k] || 0) - lo) / (hi - lo))); }
+  const m = [...missions].sort((a, b) => b.have / b.n - a.have / a.n)[0];
+  if (m) box.appendChild(pbar(`משימה: ${missionDef(m).text(m.n)} (${Math.min(m.have, m.n)}/${m.n})`, m.have / m.n));
+  if (META.almostExtra) META.almostExtra(box);
+}
+
+// ================= STAGE C: MY PATIENT, ALBUM, RARE STRAINS, HATS, ACHIEVEMENTS =================
+let patient = pget('bp4-pat', null);
+let life = Object.assign({ kills: 0, sites: 0, gold: 0, quizOk: 0, bounces: 0, bosses: 0, missions: 0, days: 0 }, pget('bp4-life', {}));
+const kc = pget('bp4-kc', {}), goldSeen = new Set(pget('bp4-gold', [])), seen = new Set(pget('bp4-seen', []));
+const saveLife = () => pset('bp4-life', life);
+const GF = (m, f) => patient && patient.kind === 'boy' ? m : f; // Hebrew gender forms for the patient
+const pname = () => (patient && patient.name) || GF('המטופל', 'המטופלת');
+// ---- the patient's face: four looks, the mood follows how healthy the body is
+const LOOKS = [
+  { skin: '#f6d2b0', hair: '#6a3a1a' }, { skin: '#e8b48a', hair: '#1e1208' },
+  { skin: '#b97a50', hair: '#141008' }, { skin: '#f9e0c8', hair: '#d8a040' },
+];
+function patientSvg(look = 0, kind = 'girl', mood = 0.5) {
+  const L = LOOKS[look] || LOOKS[0], m = Math.max(0, Math.min(1, mood));
+  const mouth = m > 0.66 ? 'M40 66 Q50 76 60 66' : m > 0.33 ? 'M41 68 Q50 72 59 68' : 'M41 71 Q50 64 59 71';
+  const hair = kind === 'girl'
+    ? `<path d="M22 46 C20 18 80 18 78 46 L80 74 C74 64 74 40 50 34 C26 40 26 64 20 74 Z" fill="${L.hair}"/>`
+    : `<path d="M24 44 C22 20 78 20 76 44 C70 32 30 32 24 44 Z" fill="${L.hair}"/>`;
+  const cheeks = m > 0.33 ? '<circle cx="34" cy="62" r="5" fill="#ff8aa0" opacity=".45"/><circle cx="66" cy="62" r="5" fill="#ff8aa0" opacity=".45"/>' : '<circle cx="34" cy="60" r="5" fill="#9adf9a" opacity=".35"/><circle cx="66" cy="60" r="5" fill="#9adf9a" opacity=".35"/>';
+  const extra = m < 0.34 ? '<path d="M70 30 l4 8 l-8 0 z" fill="#8fd0ff"/>' : m > 0.9 ? '<text x="76" y="28" font-size="16">✨</text>' : '';
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="52" r="30" fill="${L.skin}" stroke="#5a2a1a" stroke-width="2"/>${hair}${cheeks}
+    <ellipse cx="40" cy="52" rx="4" ry="5" fill="#2a1010"/><ellipse cx="60" cy="52" rx="4" ry="5" fill="#2a1010"/>
+    <path d="${mouth}" fill="none" stroke="#5a1a1a" stroke-width="3" stroke-linecap="round"/>${extra}</svg>`;
+}
+const bodyHealth = () => { const all = WORLDS.reduce((a, w) => a + w.levels.length * 3, 0); return Math.min(1, 0.15 + 0.85 * totalStars() / all); };
+const moodText = m => m > 0.85 ? GF('מרגיש מצוין!', 'מרגישה מצוין!') : m > 0.6 ? GF('מרגיש הרבה יותר טוב', 'מרגישה הרבה יותר טוב') : m > 0.35 ? GF('מתחיל להחלים', 'מתחילה להחלים') : GF('לא מרגיש טוב. הוא צריך אתכם!', 'לא מרגישה טוב. היא צריכה אתכם!');
+let patDraft = { look: 0, kind: 'girl' };
+function renderPatientForm() {
+  const box = $('patLooks'); box.innerHTML = '';
+  LOOKS.forEach((_, i) => {
+    const b = document.createElement('button'); b.className = 'look'; b.setAttribute('aria-pressed', patDraft.look === i); b.setAttribute('aria-label', `מראה ${i + 1}`);
+    b.innerHTML = patientSvg(i, patDraft.kind, 0.5);
+    b.onclick = () => { patDraft.look = i; sfx.click(); renderPatientForm(); };
+    box.appendChild(b);
+  });
+  document.querySelectorAll('#patKind button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === patDraft.kind));
+  $('patGo').textContent = patDraft.kind === 'boy' ? 'יוצאים לשמור עליו' : 'יוצאים לשמור עליה';
+}
+document.querySelectorAll('#patKind button').forEach(b => b.onclick = () => { patDraft.kind = b.dataset.k; sfx.click(); renderPatientForm(); });
+$('patGo').onclick = () => {
+  patient = { name: ($('patName').value || '').trim().slice(0, 14) || (patDraft.kind === 'boy' ? 'יואב' : 'נועה'), look: patDraft.look, kind: patDraft.kind };
+  pset('bp4-pat', patient); sfx.right(); achieve('patient'); openMap();
+};
+function renderPatientCard() {
+  const box = $('mapPatient');
+  if (!patient) { box.innerHTML = ''; return; }
+  const m = bodyHealth();
+  box.innerHTML = `${patientSvg(patient.look, patient.kind, m)}<span><b></b><span></span></span>`;
+  box.querySelector('b').textContent = patient.name;
+  box.querySelector('span span').textContent = `${moodText(m)} · בריאות הגוף ${Math.round(m * 100)}%`;
+}
+
+// ---- rare strains (gold) and mutants (elite)
+const PATHOGEN = new Set(['virus', 'bacteria', 'sporozoite', 'merozoite', 'fluv', 'pneumo', 'staph']);
+const GOLDABLE = new Set([...PATHOGEN, 'salm', 'hpylori', 'ldl', 'dust', 'pollen', 'soot', 'glu', 'amino', 'starch', 'protein', 'fat', 'bglu', 'bo2', 'epo', 'gcsf', 'mcsf', 'il7', 'tpo', 'plasmin', 'hdl', 'o2']);
+const memTier = k => [10, 40, 120].filter(v => (kc[k] || 0) >= v).length;
+function onSpawn(e) {
+  if (!g || g.phase === undefined) return;
+  if (!seen.has(e.kind)) { seen.add(e.kind); pset('bp4-seen', [...seen]); }
+  if (GOLDABLE.has(e.kind) && Math.random() < (g.goldChance || 1 / 45)) { e.gold = true; e.sp *= 0.85; e.vx = -e.sp; }
+  else if (PATHOGEN.has(e.kind)) {
+    if (Math.random() < 0.03 + 0.025 * g.wave + (g.dda || 0) * 0.04) { e.elite = true; e.r *= 1.3; e.sp *= 1.2; e.vx = -e.sp; unlock('mutation'); }
+    else if (Math.random() < memTier(e.kind) * 0.1) { e.tag = true; e.mem = true; }
+  }
+}
+function goldFound(e) {
+  if (e.goldDone) return; e.goldDone = true;
+  g.stats.gold++; life.gold++; saveLife();
+  if (!goldSeen.has(e.kind)) { goldSeen.add(e.kind); pset('bp4-gold', [...goldSeen]); }
+  gainAtp(15, e.x, e.y - 50); missionEvent('gold'); say('gold', true); unlock('rarestrain');
+  if (!e.dead || !PATHOGEN.has(e.kind)) { flash(0.4); ring(e.x, e.y, '#ffd54f', 90); sfx.rare(); burst(e.x, e.y, '#ffd54f', 24, 260); }
+  achieve('gold1'); if (life.gold >= 5) achieve('gold5');
+}
+function drawRare(e, drawFn) { // gold glow and mutant size around the normal drawing
+  if (e.gold) {
+    const gl = ctx.createRadialGradient(e.x, e.y, 2, e.x, e.y, e.r * 2.4 + 8);
+    gl.addColorStop(0, 'rgba(255, 220, 90, 0.7)'); gl.addColorStop(1, 'rgba(255, 220, 90, 0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 2.4 + 8, 0, 7); ctx.fill();
+  }
+  const sc = e.elite ? 1.3 : 1;
+  ctx.save();
+  if (sc !== 1) { ctx.translate(e.x, e.y); ctx.scale(sc, sc); ctx.translate(-e.x, -e.y); }
+  if (e.gold && 'filter' in ctx) ctx.filter = 'sepia(1) saturate(3.5) hue-rotate(-12deg) brightness(1.15)';
+  drawFn();
+  ctx.restore();
+  if (e.gold) { for (let i = 0; i < 3; i++) { const a = g.t * 3 + i * 2.1; circle(e.x + Math.cos(a) * (e.r + 10), e.y + Math.sin(a) * (e.r + 10), 2.2, '#fff6b0'); } }
+  if (e.elite) label('מוטנט!', e.x, e.y - e.r * 1.4 - 6, 12, '#ff8a80');
+  else if (e.gold) label('זן נדיר', e.x, e.y - e.r - 14, 12, '#ffe082');
+}
+
+// ---- album cards
+const CARDS = [
+  { k: 'virus', n: 'וירוס', e: 'virus', w: 'blood' }, { k: 'bacteria', n: 'חיידק', e: 'bacteria', w: 'blood' },
+  { k: 'sporozoite', n: 'ספורוזואיט', e: 'sporozoite', w: 'blood' }, { k: 'merozoite', n: 'מרוזואיט', e: 'merozoite', w: 'blood' },
+  { k: 'clot', n: 'קריש קטן', e: 'clot', w: 'heart' }, { k: 'ldl', n: 'LDL', e: 'cholesterol', w: 'heart' }, { k: 'plasmin', n: 'פלסמין', e: 'plasmin', w: 'heart', friend: true },
+  { k: 'dust', n: 'אבק', e: 'particle', w: 'lungs' }, { k: 'pollen', n: 'אבקן', e: 'particle', w: 'lungs' }, { k: 'soot', n: 'פיח', e: 'smoke', w: 'lungs' },
+  { k: 'fluv', n: 'וירוס שפעת', e: 'flu', w: 'lungs' }, { k: 'pneumo', n: 'פנאומוקוק', e: 'pneumococcus', w: 'lungs' },
+  { k: 'starch', n: 'עמילן', e: 'amylase', w: 'gut', friend: true }, { k: 'protein', n: 'חלבון', e: 'protease', w: 'gut', friend: true }, { k: 'fat', n: 'שומן', e: 'lipase', w: 'gut', friend: true },
+  { k: 'salm', n: 'סלמונלה', e: 'salmonella', w: 'gut' }, { k: 'hpylori', n: 'הליקובקטר', e: 'hpylori', w: 'gut' }, { k: 'fiber', n: 'סיב תזונתי', e: 'fiber', w: 'gut', friend: true },
+  { k: 'glu', n: 'גלוקוז', e: 'glucosuria', w: 'kidney', friend: true }, { k: 'urea', n: 'אוריאה', e: 'urea', w: 'kidney' }, { k: 'toxin', n: 'רעלן', e: 'toxin', w: 'kidney' },
+  { k: 'staph', n: 'סטפילוקוק', e: 'staph', w: 'skin' }, { k: 'fibrin', n: 'פיברין', e: 'fibrin', w: 'skin', friend: true },
+  { k: 'epo', n: 'EPO', e: 'epo', w: 'marrow', friend: true }, { k: 'gcsf', n: 'G-CSF', e: 'signals', w: 'marrow', friend: true },
+  { k: 'bbac', n: 'חיידק מול המחסום', e: 'bbb', w: 'brain' }, { k: 'nt', n: 'נוירוטרנסמיטר', e: 'synapse', w: 'brain', friend: true },
+];
+function cardThumb(k, size = 84, boss) {
+  const c = document.createElement('canvas'); c.width = size * 2; c.height = size * 2;
+  const keep = ctx; ctx = c.getContext('2d'); ctx.scale(2, 2);
+  try {
+    if (boss) { const B = BOSSES[k] || {}, r = B.r || 95, sc = size / (r * 2.9); ctx.translate(size / 2, size / 2); ctx.scale(sc, sc); drawBoss({ kind: k, x: 0, y: 0, t: 1, r, hp: 1, max: 1, hitCd: 0 }); }
+    else { const K = KINDS[k] || {}, r = K.r || 20, sc = Math.min(1.6, size / (r * 4)); ctx.translate(size / 2, size / 2); ctx.scale(sc, sc); drawEnemy({ kind: k, x: 0, y: 0, ph: 0, rot: 0, r, tag: false, top: true, sub: 'starch' }); }
+  } catch (_) {}
+  ctx = keep; return c;
+}
+let albumTab = 'cards', albumReturn = 'mapScreen';
+function openAlbum(from) { albumReturn = from; renderAlbum(); show('albumScreen'); }
+document.querySelectorAll('#albumTabs button').forEach(b => b.onclick = () => { albumTab = b.dataset.t; sfx.click(); renderAlbum(); });
+$('albumClose').onclick = () => { sfx.click(); if (albumReturn === 'mapScreen') openMap(); else show(albumReturn); };
+$('mapAlbum').onclick = () => { sfx.click(); openAlbum('mapScreen'); };
+function detail(title, text) { const d = $('albumDetail'); d.hidden = false; d.innerHTML = '<h3></h3><p></p>'; d.querySelector('h3').textContent = title; d.querySelector('p').textContent = text; sfx.click(); }
+function renderAlbum() {
+  document.querySelectorAll('#albumTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === albumTab));
+  const box = $('albumGrid'); box.innerHTML = ''; $('albumDetail').hidden = true;
+  if (albumTab === 'cards') {
+    const bossCards = [...new Set(WORLDS.flatMap(w => w.levels.map(l => l.boss)))].filter(k => k && !(BOSSES[k] && BOSSES[k].noBump));
+    const have = CARDS.filter(c => seen.has(c.k)).length + bossCards.filter(k => unlocked.has(k)).length;
+    $('albumSub').textContent = `${have} מתוך ${CARDS.length + bossCards.length} קלפים. כל פתוגן שתחסלו בונה זיכרון חיסוני: עם הזמן חלק מהם יגיעו כבר מסומנים בנוגדנים. קלף עם מסגרת זהב: מצאתם זן נדיר.`;
+    for (const c of CARDS) {
+      const open = seen.has(c.k), b = document.createElement('button');
+      b.className = 'acard' + (open ? '' : ' locked') + (goldSeen.has(c.k) ? ' gold' : '');
+      if (open) {
+        b.appendChild(cardThumb(c.k));
+        const tier = PATHOGEN.has(c.k) ? memTier(c.k) : -1;
+        b.insertAdjacentHTML('beforeend', `<b></b><small class="mem"></small><small></small>`);
+        b.querySelector('b').textContent = c.n;
+        b.querySelector('.mem').textContent = tier >= 0 ? '★'.repeat(tier) + '☆'.repeat(3 - tier) : c.friend ? 'ידיד' : '';
+        b.querySelector('small:last-child').textContent = PATHOGEN.has(c.k) ? `חוסלו ${kc[c.k] || 0}` : WORLDS.find(w => w.id === c.w).name;
+        b.onclick = () => detail(c.n, `${(ENCY[c.e] || ['', ''])[1]}${tier >= 0 ? ` זיכרון חיסוני: ${tier}/3. ${tier ? `${tier * 10}% מהם מגיעים כבר מסומנים בנוגדנים, כמו אחרי חיסון.` : 'חסלו 10 כדי להתחיל לבנות זיכרון.'}` : ''}`);
+      } else { b.innerHTML = '<b>???</b><small></small>'; b.querySelector('small').textContent = `מסתתר ב: ${WORLDS.find(w => w.id === c.w).name}`; b.disabled = true; }
+      box.appendChild(b);
+    }
+    for (const k of bossCards) {
+      const open = unlocked.has(k), b = document.createElement('button'); b.className = 'acard' + (open ? '' : ' locked');
+      if (open) { b.appendChild(cardThumb(k, 84, true)); b.insertAdjacentHTML('beforeend', '<b></b><small>בוס</small>'); b.querySelector('b').textContent = (ENCY[k] || [k])[0]; b.onclick = () => detail((ENCY[k] || [k])[0], (ENCY[k] || ['', ''])[1]); }
+      else { b.innerHTML = '<b>???</b><small>בוס</small>'; b.disabled = true; }
+      box.appendChild(b);
+    }
+  } else if (albumTab === 'ach') {
+    $('albumSub').textContent = `${ACH.filter(a => ach.has(a.id)).length} מתוך ${ACH.length} הישגים`;
+    for (const a of ACH) {
+      const b = document.createElement('button'); b.className = 'acard' + (ach.has(a.id) ? ' gold' : ' locked');
+      b.innerHTML = '<span style="font-size:2rem"></span><b></b><small></small>';
+      b.querySelector('span').textContent = ach.has(a.id) ? a.ic : '🔒'; b.querySelector('b').textContent = a.n; b.querySelector('small').textContent = a.d;
+      b.onclick = () => detail(a.n, a.d);
+      box.appendChild(b);
+    }
+  } else {
+    $('albumSub').textContent = 'כובעים ואביזרים לתא שלכם. רק בשביל הכיף: הם לא משנים את היכולות.';
+    for (const h of HATS) {
+      const ok = h.ok(), b = document.createElement('button'); b.className = 'acard' + (ok ? '' : ' locked') + (hat === h.id ? ' gold' : '');
+      const c = document.createElement('canvas'); c.width = 168; c.height = 168;
+      const keep = ctx; ctx = c.getContext('2d'); ctx.scale(2, 2); circle(42, 50, 26, '#efe8f8', '#8a7aa0', 3); face(42, 50, 34, {}); drawHat(h.id, 42, 50, 26); ctx = keep;
+      b.appendChild(c); b.insertAdjacentHTML('beforeend', '<b></b><small></small>');
+      b.querySelector('b').textContent = h.n; b.querySelector('small').textContent = ok ? (hat === h.id ? 'עליכם עכשיו' : 'לחצו כדי ללבוש') : h.d;
+      if (ok) b.onclick = () => { hat = h.id; pset('bp4-hat', hat); sfx.right(); renderAlbum(); };
+      else b.disabled = true;
+      box.appendChild(b);
+    }
+  }
+}
+
+// ---- wardrobe: hats drawn above any hero
+let hat = pget('bp4-hat', 'none');
+const maxCellLevel = () => Math.max(...Object.keys(HEROES).map(cellLevel));
+const HATS = [
+  { id: 'none', n: 'בלי כלום', d: '', ok: () => true },
+  { id: 'party', n: 'כובע מסיבה', d: 'אספו 5 כוכבים', ok: () => totalStars() >= 5 },
+  { id: 'cap', n: 'כובע מצחייה', d: 'העלו תא כלשהו לרמה 3', ok: () => maxCellLevel() >= 3 },
+  { id: 'glasses', n: 'משקפי מדען', d: 'ענו נכון על 10 שאלות', ok: () => life.quizOk >= 10 },
+  { id: 'bow', n: 'פפיון', d: 'אספו 15 כוכבים', ok: () => totalStars() >= 15 },
+  { id: 'chef', n: 'כובע שף', d: 'סיימו את מערכת העיכול', ok: () => prog.done.gut != null },
+  { id: 'halo', n: 'הילה זהובה', d: 'מצאו 3 זנים נדירים', ok: () => life.gold >= 3 },
+  { id: 'crown', n: 'כתר', d: 'אספו 40 כוכבים', ok: () => totalStars() >= 40 },
+];
+function drawHat(id, x, y, r) {
+  const top = y - r * 0.92;
+  if (id === 'party') { ctx.fillStyle = '#ff6ab0'; ctx.strokeStyle = '#8a1a50'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - r * 0.4, top + 4); ctx.lineTo(x + r * 0.05, top - r * 0.9); ctx.lineTo(x + r * 0.45, top + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); circle(x + r * 0.05, top - r * 0.9, r * 0.12, '#ffe082'); for (let i = 0; i < 3; i++) circle(x - r * 0.2 + i * r * 0.2, top - r * 0.2 - i * r * 0.18, r * 0.06, '#7ad0ff'); }
+  else if (id === 'cap') { ctx.fillStyle = '#4a7ae0'; ctx.strokeStyle = '#1a3a8a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, top + r * 0.2, r * 0.48, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.ellipse(x + r * 0.45, top + r * 0.2, r * 0.38, r * 0.1, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+  else if (id === 'glasses') { ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 3; const ey = y - r * 0.15; ctx.beginPath(); ctx.arc(x - r * 0.3, ey, r * 0.22, 0, 7); ctx.moveTo(x + r * 0.52, ey); ctx.arc(x + r * 0.3, ey, r * 0.22, 0, 7); ctx.moveTo(x - r * 0.08, ey); ctx.lineTo(x + r * 0.08, ey); ctx.stroke(); }
+  else if (id === 'bow') { ctx.fillStyle = '#e04a5a'; ctx.strokeStyle = '#7a1020'; ctx.lineWidth = 2; const by = y + r * 0.72; ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x - r * 0.35, by - r * 0.2); ctx.lineTo(x - r * 0.35, by + r * 0.2); ctx.closePath(); ctx.moveTo(x, by); ctx.lineTo(x + r * 0.35, by - r * 0.2); ctx.lineTo(x + r * 0.35, by + r * 0.2); ctx.closePath(); ctx.fill(); ctx.stroke(); circle(x, by, r * 0.09, '#ff8a9a', '#7a1020', 2); }
+  else if (id === 'chef') { ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#9a9a9a'; ctx.lineWidth = 2; ctx.fillRect(x - r * 0.35, top - r * 0.1, r * 0.7, r * 0.3); ctx.strokeRect(x - r * 0.35, top - r * 0.1, r * 0.7, r * 0.3); for (const dx of [-0.25, 0, 0.25]) { ctx.beginPath(); ctx.arc(x + dx * r, top - r * 0.25, r * 0.25, 0, 7); ctx.fill(); ctx.stroke(); } }
+  else if (id === 'halo') { ctx.strokeStyle = 'rgba(255, 220, 90, 0.95)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(x, top - r * 0.25, r * 0.45, r * 0.13, 0, 0, 7); ctx.stroke(); }
+  else if (id === 'crown') { ctx.fillStyle = '#ffd54f'; ctx.strokeStyle = '#8a6a00'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - r * 0.4, top + 4); ctx.lineTo(x - r * 0.4, top - r * 0.35); ctx.lineTo(x - r * 0.2, top - r * 0.1); ctx.lineTo(x, top - r * 0.45); ctx.lineTo(x + r * 0.2, top - r * 0.1); ctx.lineTo(x + r * 0.4, top - r * 0.35); ctx.lineTo(x + r * 0.4, top + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); circle(x, top - r * 0.05, r * 0.07, '#e04a5a'); }
+}
+
+// ---- achievements
+const ach = new Set(pget('bp4-ach', []));
+const ACH = [
+  { id: 'patient', ic: '🧒', n: 'יש לי מטופל', d: 'נתתם שם למטופל שלכם' },
+  { id: 'firstboss', ic: '👑', n: 'הבוס הראשון', d: 'הבסתם בוס' },
+  { id: 'combo10', ic: '🔥', n: 'סערת ציטוקינים', d: 'הגעתם לקומבו x10' },
+  { id: 'stars3', ic: '⭐', n: 'שלושה כוכבים', d: 'שלב עם 3 כוכבים' },
+  { id: 'world3', ic: '🌟', n: 'עולם מושלם', d: 'כל השלבים בעולם אחד עם 3 כוכבים' },
+  { id: 'gold1', ic: '🪙', n: 'זן נדיר', d: 'מצאתם זן נדיר (פתוגן זהב)' },
+  { id: 'gold5', ic: '💰', n: 'אספנים', d: 'מצאתם 5 זנים נדירים' },
+  { id: 'untouched', ic: '🛡️', n: 'בלי שריטה', d: 'סיימתם שלב בלי שהמד ירד בכלל' },
+  { id: 'sites20', ic: '🧽', n: 'מנקים מקצועיים', d: 'ניקיתם 20 אזורים נגועים' },
+  { id: 'glutton', ic: '🍔', n: 'עיניים גדולות מהפגוזום', d: 'ניסיתם לבלוע 20 פעם עם פגוזום מלא' },
+  { id: 'lab1', ic: '🧪', n: 'מדענים', d: 'קניתם שדרוג ראשון במעבדה' },
+  { id: 'labmax', ic: '🏆', n: 'מעבדה מלאה', d: 'שדרגתם קו במעבדה עד הסוף' },
+  { id: 'lvl5', ic: '💪', n: 'תא ותיק', d: 'העליתם תא לרמה 5' },
+  { id: 'quiz2', ic: '🎓', n: 'מושלם בחידון', d: 'ענו נכון על שתי השאלות בחידון' },
+  { id: 'hard', ic: '💜', n: 'כוכב סגול', d: 'סיימתם שלב ברמת קושי קשה' },
+  { id: 'memory', ic: '🧠', n: 'זיכרון חיסוני', d: 'זיכרון מלא (3/3) לפתוגן אחד' },
+  { id: 'missions5', ic: '📋', n: 'משימתיים', d: 'השלמתם 5 משימות' },
+  { id: 'body', ic: '🫀', n: 'כל הגוף', d: 'סיימתם את כל 8 העולמות' },
+  { id: 'daily', ic: '📅', n: 'בדיקה יומית', d: 'השלמתם אתגר יומי' },
+  { id: 'days3', ic: '🗓️', n: 'שלושה ימי סיור', d: 'שיחקתם ב־3 ימים שונים' },
+];
+function achieve(id) {
+  if (ach.has(id) || !ACH.find(a => a.id === id)) return;
+  ach.add(id); pset('bp4-ach', [...ach]);
+  const a = ACH.find(a => a.id === id); toast(`הישג חדש: ${a.ic} ${a.n}`); sfx.achieve(); gainAtp(10);
+}
+// ---- encyclopedia hints: which world each locked entry hides in
+function encyWorld(key) {
+  const keys = Object.keys(ENCY), own = k => { const w = WORLDS.find(w => w.levels.some(l => (l.entries || []).includes(k) || l.boss === k) || HEROES[k] && (w.hero === k || w.levels.some(l => l.hero === k))); return w; };
+  for (let i = keys.indexOf(key); i >= 0; i--) { const w = own(keys[i]); if (w) return w; }
+  return WORLDS[0];
+}
+
+Object.assign(META, {
+  onSpawn,
+  almostExtra(box) {
+    const next = HATS.find(h => !h.ok() && /כוכבים/.test(h.d));
+    if (next) { const need = +next.d.match(/\d+/)[0]; box.appendChild(pbar(`עוד ${need - totalStars()} כוכבים ל"${next.n}" בארון`, totalStars() / need)); }
+  },
+  onMap() {
+    renderPatientCard();
+    document.querySelectorAll('#bodySvg .organ').forEach((el, i) => {
+      const w = WORLDS[i]; if (!w || i > prog.open) return;
+      el.classList.toggle('healed', prog.done[w.id] != null); el.classList.toggle('sick', prog.done[w.id] == null);
+    });
+  },
+});
+const baseOnKill = META.onKill, baseOnBoss = META.onBoss, baseOnCombo = META.onCombo, baseOnSite = META.onSite, baseOnLab = META.onLab, baseOnQuiz = META.onQuiz, baseLevelDone = META.onLevelDone;
+Object.assign(META, {
+  onKill(e) {
+    baseOnKill(e);
+    kc[e.kind] = (kc[e.kind] || 0) + 1; life.kills++;
+    if ([10, 40, 120].includes(kc[e.kind]) && PATHOGEN.has(e.kind)) { toast(`זיכרון חיסוני ל${(CARDS.find(c => c.k === e.kind) || { n: e.kind }).n}: ${memTier(e.kind)}/3`); unlock('memory'); if (memTier(e.kind) === 3) achieve('memory'); }
+    if (life.kills % 10 === 0) { pset('bp4-kc', kc); saveLife(); }
+    if (e.gold) goldFound(e);
+  },
+  onBoss(b) { baseOnBoss(b); life.bosses++; saveLife(); achieve('firstboss'); },
+  onCombo(n) { baseOnCombo(n); if (n === 10) achieve('combo10'); },
+  onSite() { baseOnSite(); life.sites++; if (life.sites >= 20) achieve('sites20'); },
+  onLab() { baseOnLab(); achieve('lab1'); if (Object.values(lab).some(v => v >= 5)) achieve('labmax'); },
+  onQuiz(ok) { baseOnQuiz(ok); if (ok) { life.quizOk++; saveLife(); } },
+  onBounce() { life.bounces++; if (life.bounces >= 20) achieve('glutton'); },
+  onLevelDone(n, prev) {
+    baseLevelDone(n, prev);
+    pset('bp4-kc', kc); saveLife();
+    if (n === 3) achieve('stars3');
+    if (g.minFrac >= 0.999) achieve('untouched');
+    if (run.diff === 'hard') achieve('hard');
+    if (WD().levels.every((_, i) => starsOf(WD().id, i) % 10 === 3)) achieve('world3');
+    if (cellLevel(g.hero) >= 5) achieve('lvl5');
+  },
+});
+
+// ================= STAGE D: ADAPTIVE DIFFICULTY AND BODY EVENTS =================
+// The game quietly eases off after losses and pushes back after easy wins (per world, never shown).
+const dda = pget('bp4-dda', {});
+const nudgeDda = d => { const w = WD().id; dda[w] = Math.max(-1, Math.min(1, (dda[w] || 0) + d)); pset('bp4-dda', dda); };
+const BACTERIAL = new Set(['bacteria', 'pneumo', 'staph', 'salm', 'hpylori']);
+// Body events: sometimes a level comes with a twist, always with the biology behind it.
+const MODS = {
+  fever: { name: 'יום של חום', desc: 'החום גבוה מההתחלה: אתם מהירים יותר והפולשים מתרבים לאט, אבל הגוף מתעייף והמד יורד לאט מעצמו.', ency: 'fever', ok: () => fevers() },
+  antibiotic: { name: 'אנטיביוטיקה', desc: 'הרופא נתן אנטיביוטיקה: חיידקים מתים מעצמם מדי פעם. אבל חלק מהשורדים עמידים (מוטנטים). על וירוסים היא לא עובדת!', ency: 'antibiotic', ok: () => LV().enemies.some(([k]) => BACTERIAL.has(k)) },
+  dehydrated: { name: 'התייבשות', desc: 'לא שתו מספיק: הדם סמיך יותר, והכול זורם ונע לאט יותר, גם אתם.', ency: 'dehydration', ok: () => true },
+  vaccine: { name: 'חיסון', desc: 'הגוף חוסן מראש: בגל הראשון כל הפתוגנים מגיעים כבר מסומנים בנוגדנים.', ency: 'vaccine', ok: () => LV().enemies.some(([k]) => PATHOGEN.has(k)) },
+  adrenaline: { name: 'אדרנלין', desc: 'בהלה! הלב מאיץ והכול מהיר יותר, גם אתם. בונוס: ATP פי 1.5.', ency: 'adrenaline', ok: () => true },
+};
+Object.assign(ENCY, {
+  systole: ['סיסטולה ודיאסטולה', 'סיסטולה היא הרגע שבו חדרי הלב מתכווצים ודוחפים את הדם החוצה בכוח. דיאסטולה היא ההרפיה, שבה החדרים מתמלאים. במשחק: דחיפת זרם בסיסטולה חזקה יותר.'],
+  antibiotic: ['אנטיביוטיקה', 'תרופה שהורגת חיידקים או עוצרת את החלוקה שלהם. היא לא עובדת על וירוסים. כשמשתמשים בה יותר מדי, חיידקים עמידים שורדים ומתרבים, ולכן חשוב לקחת אותה רק לפי הוראות הרופא.'],
+  dehydration: ['התייבשות', 'כשהגוף מאבד יותר מים ממה שהוא מקבל, נפח הדם קטן והוא נעשה סמיך יותר. הלב צריך לעבוד קשה יותר והכליות חוסכות מים. הפתרון: לשתות.'],
+  vaccine: ['חיסון', 'חיסון מלמד את מערכת החיסון לזהות פתוגן בלי לחלות בו. כשהפתוגן האמיתי מגיע, יש כבר תאי זיכרון ונוגדנים שתופסים אותו מהר.'],
+  adrenaline: ['אדרנלין', 'הורמון שבלוטת יותרת הכליה משחררת בבהלה או בהתרגשות. הלב פועם מהר יותר, הנשימה מואצת, ויותר סוכר זמין לשרירים: "הילחם או ברח".'],
+});
+const baseOnSpawn = META.onSpawn, baseLevelDone2 = META.onLevelDone, baseOnGameOver = META.onGameOver;
+Object.assign(META, {
+  pickMod() {
+    const ok = Object.keys(MODS).filter(k => MODS[k].ok());
+    run.mod = run.daily ? run.mod : (run.world + run.level > 0 && Math.random() < 0.28 && ok.length) ? ok[Math.floor(Math.random() * ok.length)] : null;
+    if (run.mod && !MODS[run.mod].ok()) run.mod = null;
+    const el = $('introMod'); el.hidden = !run.mod;
+    if (run.mod) el.textContent = `אירוע בגוף: ${MODS[run.mod].name}. ${MODS[run.mod].desc}`;
+  },
+  onNewLevel() {
+    g.dda = dda[WD().id] || 0; g.mod = run.mod || null;
+    g.atpMul = 1; g.modSpd = 1; g.modFlow = 1; g.modSpawn = 1;
+    if (g.mod === 'dehydrated') { g.modSpd = 0.9; g.modFlow = 0.75; }
+    if (g.mod === 'adrenaline') { g.modSpd = 1.15; g.modSpawn = 0.85; g.atpMul = 1.5; }
+    if (g.mod === 'fever') g.temp = 38.6;
+    g.abxT = 3.5;
+    // a few big out-of-focus cells drift past in front, faster than the flow (depth)
+    g.fg = LV().bgCells === false ? [] : Array.from({ length: 3 }, (_, i) => ({ x: i * 420 + Math.random() * 200, y: 60 + Math.random() * (H - 120), s: 170 + Math.random() * 90, ph: Math.random() * 9, rot: Math.random() * 3 }));
+  },
+  tick(dt) {
+    if (g.hurtFx > 0) g.hurtFx -= dt;
+    for (const f of g.fg || []) { f.x -= (g.flow * 1.7 + 30) * dt; if (f.x < -200) { f.x = W + 200 + Math.random() * 300; f.y = 60 + Math.random() * (H - 120); } }
+    if (!g.mod || state !== 'play') return;
+    if (g.mod === 'fever') { g.temp = Math.max(g.temp, 38.4); if (g.phase !== 'exit') g.blood -= 0.2 * dt; }
+    if (g.mod === 'antibiotic') {
+      g.abxT -= dt;
+      if (g.abxT <= 0) {
+        g.abxT = 3.5;
+        const v = g.en.filter(e => BACTERIAL.has(e.kind) && !e.elite && !e.dead && e.x < W);
+        if (v.length) { const e = v[Math.floor(Math.random() * v.length)]; e.dead = true; g.pops.push({ x: e.x, y: e.y, t: 0, small: true }); addText(e.x, e.y - 24, 'אנטיביוטיקה!', '#9fd8ff'); unlock('antibiotic'); }
+      }
+    }
+  },
+  onSpawn(e) {
+    baseOnSpawn(e);
+    if (g.mod === 'dehydrated') { e.sp *= 0.9; e.vx = -e.sp; }
+    if (g.mod === 'adrenaline') { e.sp *= 1.15; e.vx = -e.sp; }
+    if (g.mod === 'antibiotic' && BACTERIAL.has(e.kind) && !e.gold && !e.elite && Math.random() < 0.12) { e.elite = true; e.r *= 1.3; e.sp *= 1.2; e.vx = -e.sp; }
+    if (g.mod === 'vaccine' && g.wave === 1 && PATHOGEN.has(e.kind)) { e.tag = true; e.mem = true; unlock('vaccine'); }
+  },
+  onLevelDone(n, prev) {
+    if (g.atpMul > 1) g.atp *= g.atpMul;
+    baseLevelDone2(n, prev);
+    nudgeDda(n === 3 ? 0.35 : n === 1 ? -0.15 : 0.05);
+  },
+  onGameOver() { baseOnGameOver(); nudgeDda(-0.5); },
+});
+
+// ================= STAGE E: DAILY CHECKUP, SHARING, PROFILES, CONTINUE =================
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const seeded = str => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => { h += 0x6d2b79f5; let t = h; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+// Days played: counts up, never resets, never scolds for a missed day.
+if (life.lastDay !== dayKey()) { life.days = (life.days || 0) + 1; life.lastDay = dayKey(); saveLife(); }
+if (life.days >= 3) setTimeout(() => achieve('days3'), 1500);
+let daily = pget('bp4-daily', { day: '', best: 0, done: false });
+// Today's checkup: the same level, cell and body event for everyone on this date (from worlds you've opened).
+function dailyPlan() {
+  const r = seeded('bp-' + dayKey()), w = Math.floor(r() * (prog.open + 1)), lv = Math.floor(r() * WORLDS[w].levels.length);
+  const heroes = ['neut', 'macro', 'bcell', 'nk'], hero = heroes[Math.floor(r() * heroes.length)];
+  const saved = { world: run.world, level: run.level };
+  run.world = w; run.level = lv;
+  const ok = Object.keys(MODS).filter(k => MODS[k].ok());
+  const mod = ok[Math.floor(r() * ok.length)];
+  run.world = saved.world; run.level = saved.level;
+  return { w, lv, hero, mod };
+}
+function renderDaily() {
+  if (daily.day !== dayKey()) daily = { day: dayKey(), best: 0, done: false };
+  const d = dailyPlan(), wd = WORLDS[d.w];
+  $('mapDaily').textContent = `📅 בדיקה יומית: ${wd.icon} ${wd.levels[d.lv].name} · ${MODS[d.mod].name}${daily.done ? ` · השיא שלכם היום: ${daily.best.toLocaleString()}` : ''}`;
+}
+$('mapDaily').onclick = () => {
+  const d = dailyPlan(); sfx.click();
+  Object.assign(run, { world: d.w, level: d.lv, score: 0, kills: 0, up: {}, daily: dayKey(), mod: d.mod });
+  if (d.w === 0) run.type = d.hero;
+  newLevel(); showIntro();
+  $('introNum').textContent = `📅 בדיקה יומית · ${WD().icon} ${WD().name}`;
+};
+const baseOnMap = META.onMap, baseLevelDone3 = META.onLevelDone;
+Object.assign(META, {
+  onMap() { if (baseOnMap) baseOnMap(); renderDaily(); $('mapChips').insertAdjacentHTML('beforeend', `<span class="chip">🗓️ ${life.days} ימי סיור</span>`); },
+  onLevelDone(n, prev) {
+    baseLevelDone3(n, prev);
+    $('doneShare').hidden = false;
+    if (!run.daily) return;
+    if (daily.day !== dayKey()) daily = { day: dayKey(), best: 0, done: false };
+    const first = !daily.done, rec = g.score > daily.best;
+    daily.done = true; daily.best = Math.max(daily.best, g.score); pset('bp4-daily', daily);
+    if (first) { gainAtp(15); achieve('daily'); }
+    $('doneAlmost').textContent = `📅 בדיקה יומית: ${rec ? 'שיא חדש להיום!' : `השיא שלכם היום ${daily.best.toLocaleString()}`}${first ? ' +15 ATP על הבדיקה הראשונה היום.' : ''} מחר מחכה בדיקה אחרת.`;
+  },
+  dailyEnd() { run.daily = null; run.mod = null; toast('הבדיקה היומית הושלמה. אפשר לנסות לשפר את השיא כל היום.'); openMap(); },
+});
+// Share card: a picture of the result to send to family (no accounts, nothing uploaded).
+function shareCard() {
+  const c = document.createElement('canvas'); c.width = 800; c.height = 420;
+  const x = c.getContext('2d'), wd = WD(), n = levelStars().n;
+  const gr = x.createLinearGradient(0, 0, 0, 420); gr.addColorStop(0, '#5a1a12'); gr.addColorStop(1, '#2a0c06');
+  x.fillStyle = gr; x.fillRect(0, 0, 800, 420);
+  x.fillStyle = 'rgba(220, 60, 60, 0.35)';
+  for (let i = 0; i < 14; i++) { x.beginPath(); x.ellipse((i * 137) % 800, (i * 83) % 420, 40, 28, i, 0, 7); x.fill(); }
+  x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#ffe082';
+  x.font = `bold 44px ${FONT_D}`; x.fillText('סיירת זרם הדם', 400, 80);
+  x.fillStyle = '#fff6ee'; x.font = `30px ${FONT_D}`;
+  x.fillText(`${wd.icon} ${wd.name} · ${LV().name}`, 400, 150);
+  x.font = `56px ${FONT_D}`; x.fillStyle = '#ffd54f'; x.fillText('★'.repeat(n) + '☆'.repeat(3 - n), 400, 230);
+  x.font = `28px ${FONT_B}`; x.fillStyle = '#fff6ee';
+  x.fillText(`ניקוד ${g.score.toLocaleString()} · ${run.kills} פתוגנים`, 400, 290);
+  if (patient) x.fillText(`${patient.name} ${GF('מרגיש', 'מרגישה')} יותר טוב!`, 400, 340);
+  if (run.daily) { x.fillStyle = '#9fd8ff'; x.fillText(`📅 הבדיקה היומית של ${dayKey()}`, 400, 385); }
+  return c;
+}
+$('doneShare').onclick = () => {
+  sfx.click();
+  const c = shareCard(), text = `השגתי ${g.score.toLocaleString()} נקודות בסיירת זרם הדם!`;
+  const fallback = () => { const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = 'bloodstream-patrol.png'; a.click(); toast('התמונה נשמרה'); };
+  if (c.toBlob && navigator.canShare) c.toBlob(b => {
+    const f = new File([b], 'bloodstream-patrol.png', { type: 'image/png' });
+    if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], text }).catch(() => {}); else fallback();
+  }); else fallback();
+};
+// Family profiles: each player keeps their own patient, stars, ATP and album on this device.
+let profiles = store.get('bp4-profiles', [{ id: 'main', name: 'ראשי' }]);
+const profName = () => (profiles.find(p => p.id === profile) || profiles[0]).name;
+function renderProfiles() {
+  const box = $('profileList'); box.innerHTML = '';
+  profiles.forEach(pr => {
+    const b = document.createElement('button'); b.className = 'btn ghost'; b.textContent = pr.name;
+    b.setAttribute('aria-pressed', pr.id === profile);
+    b.onclick = () => { if (pr.id === profile) return; store.set('bp4-cur', pr.id); location.reload(); };
+    box.appendChild(b);
+  });
+  $('profileAdd').hidden = profiles.length >= 5;
+}
+$('toProfiles').textContent = `שחקן: ${profName()}`;
+$('toProfiles').onclick = () => { sfx.click(); renderProfiles(); state = 'profile'; show('profileScreen'); };
+$('profileBack').onclick = () => { sfx.click(); state = 'title'; show('titleScreen'); };
+$('profileNew').onclick = () => {
+  const name = $('profileName').value.trim(); if (!name) return;
+  const id = 'p' + Date.now().toString(36);
+  profiles.push({ id, name }); store.set('bp4-profiles', profiles);
+  store.set('bp4-cur', id); location.reload();
+};
+// Continue: straight back to the newest open world.
+function setupContinue() {
+if (prog.open > 0 || Object.keys(prog.done).length || totalStars() > 0) {
+  const cw = WORLDS[prog.open];
+  $('toContinue').hidden = false; $('toContinue').textContent = `המשיכו: ${cw.icon} ${cw.name}`;
+  $('toSelect').className = 'btn ghost';
+  $('toContinue').onclick = () => {
+    initAudio(); sfx.click();
+    if (!patient) { openMap(); return; }
+    run.world = prog.open; run.level = 0; run.daily = null; mapSel = prog.open; newLevel(); renderSelect(); show('selectScreen'); state = 'select';
+  };
+}
+}
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
@@ -2573,7 +3482,7 @@ const fevers = () => LV().fever ?? WD().fever ?? false;
 
 function unlock(key, quiet) {
   if (!ENCY[key] || unlocked.has(key)) return;
-  unlocked.add(key); store.set('bp2-ency', [...unlocked]);
+  unlocked.add(key); pset('bp2-ency', [...unlocked]);
   if (!quiet) toast(`נפתח באנציקלופדיה: ${ENCY[key][0]}`);
 }
 let toastT = null, toastQ = [];
@@ -2595,20 +3504,27 @@ function newLevel() {
     hero: heroKey(), flow: lv.flow ?? 90, pickT: 3, ymax: lv.ymax,
     t: 0, scroll: 0, wave: 1, waveT: 0, phase: 'waves', banner: 2.6, bannerText: `גל 1`, bannerSub: lv.goal.split('.')[0],
     shake: 0, score: run.score, kills: run.kills, combo: 0, comboT: 0,
-    maxBlood: 100 + 20 * up('maxb'), blood: 100 + 20 * up('maxb'), bloodCalm: 0,
+    maxBlood: 100 + 20 * up('maxb') + 5 * META.labLv('heal'), blood: 100 + 20 * up('maxb') + 5 * META.labLv('heal'), bloodCalm: 0, atp: 0,
     spawnT: 1.5, rbcT: 0, rbcCount: 0, temp: 37, feverSeen: false, arrowSeen: false,
     p: { x: 230, y: H / 2, vx: 0, vy: 0, face: 1, chomp: -1, abilT: 0, charge: 999, shotT: 0 },
     en: [], rbcs: [], plts: [], allies: [], sites: [], shots: [], pops: [], texts: [], dots: [], trail: [], cyto: [], bg: [],
     boss: null, gap: null, net: null, exiting: -1,
+    parts: [], fxr: [], freeze: 0, flash: 0, scoreBump: 0, lastScore: run.score,
+    goalN: 0, goalMet: 0, goalMiss: false, minFrac: 1, stats: { acts: 0, kills: 0, gold: 0, maxCombo: 0, sites: 0, hurt: 0 },
   };
+  g.p.gut = [];
   g.p.charge = cdTime();
   if (lv.rbcFlow !== false) for (let i = 0; i < 26 / (lv.rbcEvery || 1); i++) g.rbcs.push(makeRbc(20 + i * 38 * (lv.rbcEvery || 1) + Math.random() * 30));
   if (lv.pickup !== false) for (let i = 0; i < 3; i++) g.plts.push(makePlatelet(150 + i * 300));
   for (let i = 0; i < (lv.bgCount ?? 48); i++) g.bg.push({ x: Math.random() * (W + 100), y: WALL + 10 + Math.random() * (H - WALL * 2 - 20), s: rnd(42, 56), vx: -rnd(40, 65), ph: Math.random() * 8, rot: Math.random() * 6, spin: rnd(-0.4, 0.4) });
   for (let i = 0; i < 70; i++) g.dots.push({ x: Math.random() * W, y: WALL + Math.random() * (H - WALL * 2), r: rnd(1.2, 3.4), s: rnd(0.6, 1.4), glu: Math.random() < 0.3, rot: Math.random() * 6 });
   if (M() && M().init) M().init(lv);
+  META.onNewLevel();
 }
-const cdTime = () => C().cd * Math.pow(0.8, up('cd'));
+const cdTime = () => C().cd * Math.pow(0.8, up('cd')) * (1 - 0.06 * META.labLv('abil'));
+// wave goal: good actions needed this wave (measured per level with the bot), and the clock for the goal star
+const waveGoal = () => Math.max(2, Math.round((LV().goalN || 10) * ({ calm: 0.6, easy: 0.8, normal: 1, hard: 1.15 }[run.diff] || 1)));
+const waveLen = () => LV().waveLen || 26;
 const radius = () => 45 * C().size * (1 + 0.1 * up('size')) * (g.p.abilT > 0 && C().abil === 'grow' ? 1.7 : 1);
 const wallY = top => top ? WALL : H - WALL;
 function makeRbc(x = W + 60) {
@@ -2640,6 +3556,7 @@ function spawnEnemy(kind, x = W + 40, y = rnd(WALL + 40, H - WALL - 40), goal) {
   }
   e.vx = -e.sp;
   g.en.push(e);
+  META.onSpawn(e);
   return e;
 }
 function pickKind() {
@@ -2655,51 +3572,114 @@ function spawnBoss() {
   if (B && B.init) B.init(g.boss);
   unlock(lv.boss);
   sfx.boss();
+  const bl = BOSS_SAY[lv.boss]; if (bl) { g.boss.sayText = bl[0]; g.boss.sayT = 3.5; } else META.say('boss', true);
 }
 
 // ================= SCORING / EVENTS =================
 function addText(x, y, s, c = '#fff6ee') { g.texts.push({ x, y, t: 0, s, c }); }
-function eat(e, by = 'player') {
+// ---- juice: particles, hit-stop, flash, phone buzz
+const KIND_COLOR = { virus: '#a5d66b', bacteria: '#8fe0c8', sporozoite: '#dca8ee', merozoite: '#ee9fdc' };
+const kindColor = k => (KINDS[k] && KINDS[k].color) || KIND_COLOR[k] || '#fff1b8';
+function burst(x, y, color, n = 10, sp = 170, life = 0.55, size = 3.2) {
+  if (!g || g.parts.length > 320) return;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = sp * rnd(0.35, 1);
+    g.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: life * rnd(0.7, 1.2), c: color, s: size * rnd(0.6, 1.3) });
+  }
+}
+function ring(x, y, color, r = 60) { if (g) g.fxr.push({ x, y, t: 0, r, c: color }); }
+const hitStop = t => { g.freeze = Math.max(g.freeze || 0, t); };
+const flash = a => { g.flash = Math.max(g.flash || 0, a); };
+function buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (_) {} }
+// every good action moves the wave goal forward
+function progress(n = 1) { if (!g) return; g.stats.acts += n; if (g.phase === 'waves') g.goalN += n; META.onAction(); }
+function comboTick() {
+  const before = g.combo;
+  g.combo = g.comboT > 0 ? Math.min(10, g.combo + 1) : 1; g.comboT = 1.6;
+  if (g.combo !== before && (g.combo === 5 || g.combo === 10)) {
+    sfx.combo(g.combo); flash(0.25); ring(g.p.x, g.p.y, '#ffe082', 120);
+    addText(g.p.x, g.p.y - 95, g.combo === 10 ? 'סערת ציטוקינים! x10' : 'שרשרת ציטוקינים! מהירות+', '#ffe082');
+    META.onCombo(g.combo);
+  }
+}
+function eat(e, by = 'player', ext = false) {
   e.dead = true;
   if (!(KINDS[e.kind] && KINDS[e.kind].noPop)) g.pops.push({ x: e.x, y: e.y, t: 0, small: e.kind !== 'virus' });
   if (e.host) e.host.hosted = Math.max(0, e.host.hosted - 1);
   g.kills++;
-  if (by !== 'player') { g.score += 40; sfx.chomp(1); return; }
-  g.combo = g.comboT > 0 ? Math.min(10, g.combo + 1) : 1; g.comboT = 1.6;
+  if (by !== 'player') { g.score += 40; sfx.chomp(1); burst(e.x, e.y, kindColor(e.kind), 5, 110); return; }
+  comboTick();
   const base = KINDS[e.kind] ? KINDS[e.kind].pts : { virus: 100, bacteria: 80, sporozoite: 150, merozoite: 60 }[e.kind];
-  const mult = (e.kind === 'bacteria' && perk('bact2') ? 2 : 1) * (e.tag ? 1.5 : 1);
+  const mult = (e.kind === 'bacteria' && perk('bact2') ? 2 : 1) * (e.tag ? 1.5 : 1) * (e.gold ? 5 : e.elite ? 2 : 1);
   const pts = Math.round(base * g.combo * mult);
   g.score += pts;
   heal(1.5);
   g.p.chomp = 0; g.p.face = e.x < g.p.x ? -1 : 1;
   sfx.chomp(g.combo);
-  addText(e.x, e.y - 26, g.combo > 1 ? `+${pts} x${g.combo}` : `+${pts}`);
+  addText(e.x, e.y - 26, g.combo > 1 ? `+${pts} x${g.combo}` : `+${pts}`, e.gold ? '#ffd54f' : undefined);
+  // engulfed pathogens are sucked in toward the cell; NET kills happen outside it
+  burst(e.x, e.y, kindColor(e.kind), 7 + g.combo, ext ? 200 : 140);
+  if (!ext) for (let i = 0; i < 5; i++) g.parts.push({ x: e.x + rnd(-14, 14), y: e.y + rnd(-14, 14), vx: 0, vy: 0, t: 0, life: 0.32, c: kindColor(e.kind), s: 3.5, home: true });
+  if (g.combo >= 3 || e.gold || e.elite) hitStop(e.gold ? 0.12 : 0.035);
+  if (e.gold) { flash(0.4); ring(e.x, e.y, '#ffd54f', 90); sfx.rare(); buzz(40); } else buzz(8);
+  if (!ext) phagoAdd(e);
+  progress();
+  META.onKill(e);
 }
 function heal(n) { g.blood = Math.min(g.maxBlood, g.blood + n); }
 // score + combo for non-eating good actions (deliveries, sorting, clearing)
 function award(pts, x, y, label, color = '#c5f7c0') {
-  g.combo = g.comboT > 0 ? Math.min(10, g.combo + 1) : 1; g.comboT = 1.6;
+  comboTick();
   const v = Math.round(pts * g.combo); g.score += v;
   addText(x, y, `${label ? label + ' ' : ''}+${v}${g.combo > 1 ? ' x' + g.combo : ''}`, color);
+  burst(x, y + 20, '#fff3a8', 6 + g.combo, 130, 0.5, 2.6); ring(x, y + 20, 'rgba(255, 243, 168, 0.9)', 46);
+  sfx.good(g.combo); buzz(6); progress();
   return v;
 }
+// ---- phagosome: engulfed pathogens sit in the cell and are digested one by one
+const DIGEST = { virus: 0.45, bacteria: 0.9, sporozoite: 0.8, merozoite: 0.35 };
+const phago = () => C().phago || null;
+const phagoCap = () => phago() ? phago().cap + (META.labLv('dig') >= 2 ? 1 : 0) + (META.labLv('dig') >= 4 ? 1 : 0) : 99;
+const phagoFull = () => !!phago() && !(g.p.abilT > 0 && C().abil === 'grow') && g.p.gut.length >= phagoCap();
+function phagoAdd(e) {
+  if (!phago() || (g.p.abilT > 0 && C().abil === 'grow')) return;
+  const base = (KINDS[e.kind] && KINDS[e.kind].dig) || DIGEST[e.kind] || 0.6;
+  const t = base * phago().dig * (1 - 0.08 * META.labLv('dig'));
+  g.p.gut.push({ c: kindColor(e.kind), t, max: t, a: Math.random() * 6 });
+}
+function phagoTick(dt) {
+  const q = g.p.gut[0];
+  if (!q) return;
+  q.t -= dt * (1 + Math.max(0, g.temp - 37.5) * 0.15);
+  if (q.t <= 0) { g.p.gut.shift(); sfx.digest(); burst(g.p.x, g.p.y, q.c, 4, 60, 0.4, 2); }
+}
+// a full cell bounces pathogens away and says why
+function phagoBounce(e, dp) {
+  const p = g.p, l = dp || 1;
+  e.x = p.x + (e.x - p.x) / l * (radius() + e.r + 8); e.y = p.y + (e.y - p.y) / l * (radius() + e.r + 8);
+  e.vx = (e.x - p.x) / l * 160; e.vy = (e.y - p.y) / l * 160;
+  META.onBounce();
+  if (g.t - (g.fullMsg || -9) > 2) { g.fullMsg = g.t; addText(p.x, p.y - 80, 'הפגוזום מלא! מעכלים...', '#ffcc80'); META.say('full'); unlock('phagosome'); }
+}
 function hurtBlood(n, why, x, y, color = '#ffd54f') {
-  g.blood -= n * D().dmg; g.bloodCalm = 0;
+  g.blood -= n * D().dmg * (g.dda < 0 ? 1 + 0.3 * g.dda : 1); g.bloodCalm = 0; g.stats.hurt += n;
+  if (n >= 4) { g.hurtFx = 0.35; buzz(30); }
   if (why) addText(x, y, why, color);
 }
 function makeSite(kind, x, top) {
   g.sites.push({ kind, x, top, t: 0, emitT: kind === 'vessel' ? 2 : 0, clr: 0 });
   hurtBlood(kind === 'vessel' ? 5 : 4, kind === 'vessel' ? 'הדופן נדבקה!' : 'תא כבד נדבק!', x, wallY(top) + (top ? 40 : -40), '#c5e17a');
-  g.shake = 0.15; sfx.infect();
+  g.shake = 0.15; sfx.infect(); META.say('infect');
   unlock(kind === 'vessel' ? 'endothelium' : 'liver');
 }
 function clearSite(s) {
-  s.dead = true; g.score += 200; g.blood = Math.min(g.maxBlood, g.blood + 3);
+  s.dead = true; g.score += 200; g.blood = Math.min(g.maxBlood, g.blood + 3); progress(); META.onSite();
+  burst(s.x, wallY(s.top), '#c5f7c0', 14, 180); ring(s.x, wallY(s.top), '#c5f7c0', 70);
   addText(s.x, wallY(s.top) + (s.top ? 46 : -46), '+200 נוקה!', '#c5f7c0'); sfx.clear();
   for (let i = 0; i < 8; i++) g.pops.push({ x: s.x + rnd(-30, 30), y: wallY(s.top) + rnd(-10, 10), t: rnd(0, 0.1), small: true });
 }
 function killInfectedRbc(c) {
-  c.dead = true; g.score += 150; g.blood = Math.min(g.maxBlood, g.blood + 1);
+  c.dead = true; g.score += 150; g.blood = Math.min(g.maxBlood, g.blood + 1); progress(); burst(c.x, c.y, '#e59be0', 12, 160);
   addText(c.x, c.y - 30, '+150 תא נגוע סולק', '#c5f7c0'); sfx.clear(); g.pops.push({ x: c.x, y: c.y, t: 0 });
 }
 
@@ -2709,16 +3689,20 @@ function useAbility() {
   if (state !== 'play' || p.abilT > 0 || p.charge < cdTime()) return;
   p.charge = 0;
   const t = C().abil;
+  ring(p.x, p.y, '#ffe082', 110); burst(p.x, p.y, '#ffe082', 14, 240, 0.45, 2.6); buzz(20);
+  // the colony's biofilm only breaks under an ability used close to it
+  if (g.boss && g.boss.film > 0 && Math.hypot(g.boss.x - p.x, g.boss.y - p.y) < g.boss.r + 220) { g.boss.film--; g.boss.filmT = 12; addText(g.boss.x, g.boss.y - g.boss.r - 30, g.boss.film ? `שכבת ביופילם נקרעה! נשארו ${g.boss.film}` : 'הביופילם התפרק! עכשיו תקפו', '#9fe0cf'); sfx.burst(); unlock('biofilm'); }
   if (C().useAbility) { C().useAbility(p); addText(p.x, p.y - 80, C().ability + '!', '#ffe082'); return; }
   if (t === 'net') {
     g.net = { x: p.x, y: p.y, t: 0 }; sfx.net();
-    for (const e of g.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < 175) eat(e);
+    for (const e of g.en) if (!e.dead && Math.hypot(e.x - p.x, e.y - p.y) < 175) eat(e, 'player', true);
     if (g.boss && Math.hypot(g.boss.x - p.x, g.boss.y - p.y) < 175 + g.boss.r) damageBoss(3);
   } else if (t === 'antibody') {
     sfx.ability();
     for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; g.shots.push({ x: p.x, y: p.y, vx: Math.cos(a) * 480, vy: Math.sin(a) * 480, t: 0, rot: a }); }
   } else {
     p.abilT = t === 'dash' ? 1.4 : 3; sfx.ability();
+    if (t === 'dash' && WD().id === 'heart' && beatPhase() < 0.35) { p.abilT = 2.2; award(80, p.x, p.y - 60, 'דחיפה בקצב!', '#ffb3b3'); unlock('systole'); }
   }
   addText(p.x, p.y - 80, C().ability + '!', '#ffe082');
 }
@@ -2731,9 +3715,20 @@ function damageBoss(n) {
   const b = g.boss; if (!b || b.hp <= 0) return;
   b.hp -= n; g.shake = 0.12; sfx.bossHit();
   addText(b.x + rnd(-40, 40), b.y - b.r - 10, `-${n % 1 ? n.toFixed(1) : n}`, '#ffe082');
+  if (b.y > -100) { burst(b.x + rnd(-b.r, b.r) * 0.4, b.y + rnd(-b.r, b.r) * 0.4, '#ffe082', 10, 220); hitStop(0.045); buzz(25); }
+  // bosses get angrier at 2/3 and 1/3 health
+  const stage = b.hp / b.max <= 0.34 ? 3 : b.hp / b.max <= 0.67 ? 2 : 1;
+  if (b.hp > 0 && stage > (b.stage || 1)) {
+    b.stage = stage; sfx.warn(); flash(0.3);
+    banner(stage === 3 ? 'הבוס בשלב אחרון!' : 'הבוס התעצבן!', BOSSES[b.kind] && BOSSES[b.kind].noBump ? 'עוד קצת!' : 'זהירות: הוא מתכונן להסתער. ראו את הקו האדום וזוזו', 2);
+    META.say('bossAngry');
+  }
   if (b.hp <= 0) {
     sfx.bossDown(); g.score += 2000; addText(b.x, b.y, '+2000', '#ffe082');
     for (let i = 0; i < 18; i++) g.pops.push({ x: b.x + rnd(-90, 90), y: b.y + rnd(-90, 90), t: rnd(0, 0.3) });
+    if (b.y > -100) { burst(b.x, b.y, '#ffe082', 40, 420, 0.9, 4.5); ring(b.x, b.y, '#fff3a8', 220); }
+    hitStop(0.25); flash(0.7); buzz(120);
+    META.onBoss(b);
     g.boss = null; g.phase = 'exit';
     g.gap = { x: W * 0.5, top: !!LV().exitTop, y: LV().exitTop ? WALL : H - WALL, t: 0 };
     g.banner = 3; g.bannerText = 'הבוס הובס!'; g.bannerSub = LV().exitSub || 'דיאפדזה: שחו לפתח שנפתח בדופן התחתונה';
@@ -2743,7 +3738,7 @@ function damageBoss(n) {
 
 // ================= FLOW =================
 function show(id) {
-  ['titleScreen', 'mapScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen']
+  ['titleScreen', 'mapScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen', 'labScreen', ...EXTRA_SCREENS]
     .forEach(s => { $(s).hidden = s !== id; });
   const playing = id === null;
   $('abilityBtn').hidden = !playing; $('corner').hidden = !playing;
@@ -2759,7 +3754,7 @@ function renderEncy() {
     if (unlocked.has(k)) {
       b.innerHTML = `<b></b>`; b.querySelector('b').textContent = ENCY[k][0];
       b.onclick = () => { $('encyDetail').innerHTML = '<h3></h3><p></p>'; $('encyDetail').querySelector('h3').textContent = ENCY[k][0]; $('encyDetail').querySelector('p').textContent = ENCY[k][1]; sfx.click(); };
-    } else { b.innerHTML = '<b>???</b>טרם נפתח'; b.disabled = true; }
+    } else { const w = encyWorld(k); b.innerHTML = '<b>???</b><small></small>'; b.querySelector('small').textContent = `מסתתר ב: ${w.icon} ${w.name}`; b.disabled = true; }
     grid.appendChild(b);
   });
 }
@@ -2793,7 +3788,9 @@ function renderSelect() {
     b.querySelector('b').textContent = c.name;
     b.querySelector('.d').textContent = c.desc;
     b.querySelector('.ab').textContent = `יכולת: ${c.ability}`;
-    b.querySelector('.pk').textContent = c.perk;
+    b.querySelector('.pk').textContent = `${c.perk} · פגוזום: ${c.phago.cap} מקומות, עיכול ${c.phago.dig < 0.8 ? 'מהיר' : c.phago.dig > 1.2 ? 'איטי' : 'רגיל'}`;
+    b.insertAdjacentHTML('beforeend', '<small class="lv"></small>');
+    b.querySelector('.lv').textContent = `רמה ${cellLevel(k)} · ${xp[k] || 0} XP`;
     b.onclick = () => { run.type = k; sfx.click(); renderSelect(); };
     box.appendChild(b);
   }
@@ -2807,6 +3804,7 @@ function showIntro() {
   $('introName').textContent = lv.name;
   $('introText').textContent = lv.intro;
   $('introGoal').textContent = lv.goal;
+  META.pickMod();
   state = 'intro'; show('introScreen');
 }
 function startLevel() {
@@ -2818,6 +3816,7 @@ function startLevel() {
   unlock(g.hero);
   state = 'play'; show(null); last = performance.now();
   sfx.wave(); startMusic();
+  META.onStart();
 }
 function togglePause() {
   if (state === 'play') { state = 'pause'; show('pauseScreen'); $('abilityBtn').hidden = true; stopMusic(); }
@@ -2825,25 +3824,34 @@ function togglePause() {
 }
 function gameOver(line) {
   state = 'over'; stopMusic(); sfx.over();
-  best = Math.max(best, g.score); store.set('bp2-best', best);
+  best = Math.max(best, g.score); pset('bp2-best', best);
   $('finalScore').textContent = g.score.toLocaleString();
   $('finalLevel').textContent = `${WD().name} ${run.level + 1}`;
   $('bestScore').textContent = best.toLocaleString();
   $('overLine').textContent = line;
+  META.onGameOver();
   show('overScreen');
 }
 function finishLevel() {
-  state = 'done'; stopMusic(); sfx.exit();
+  state = 'done'; stopMusic(); sfx.victory();
   run.score = g.score; run.kills = g.kills;
   $('doneTitle').textContent = `${LV().name}: הושלם!`;
   const dn = LV().done || WD().done;
   $('doneEyebrow').textContent = dn.eyebrow; $('doneText').textContent = dn.text;
   $('doneScore').textContent = run.score.toLocaleString();
   $('doneKills').textContent = run.kills;
+  const st = levelStars(), prevStars = saveStars(st.n);
+  showStars(st.n, run.diff === 'hard');
+  $('doneCrit').innerHTML = '';
+  for (const c of st.crit) { const li = document.createElement('li'); li.className = c.ok ? 'ok' : ''; li.textContent = `${c.ok ? '✓' : '✗'} ${c.text}`; $('doneCrit').appendChild(li); }
+  if (run.diff === 'hard') { const li = document.createElement('li'); li.className = 'ok'; li.textContent = '✓ כוכב סגול: הושלם ברמת קושי קשה'; $('doneCrit').appendChild(li); }
+  META.onLevelDone(st.n, prevStars);
   show('doneScreen');
 }
 let quizSet = [], quizI = 0;
+let quizRight = 0;
 function startQuiz() {
+  quizRight = 0;
   const pool = WD().quiz.map((q, i) => i).sort(() => Math.random() - 0.5);
   quizSet = pool.slice(0, 2); quizI = 0; renderQuiz(); show('quizScreen'); state = 'quiz';
 }
@@ -2856,7 +3864,7 @@ function renderQuiz() {
     const b = document.createElement('button'); b.textContent = o;
     b.onclick = () => {
       [...box.children].forEach(c => { c.disabled = true; if (c.dataset.ok === '1') c.classList.add('right'); });
-      if (ok) { run.score += 300; sfx.right(); $('quizFb').textContent = `נכון! +300. ${expl}`; }
+      if (ok) { run.score += 300; sfx.right(); META.onQuiz(true); if (++quizRight === 2) achieve('quiz2'); $('quizFb').textContent = `נכון! +300 ו־5 ATP. ${expl}`; }
       else { b.classList.add('wrong'); sfx.wrong(); $('quizFb').textContent = `לא בדיוק. ${expl}`; }
       $('quizNext').hidden = false; $('quizNext').focus();
     };
@@ -2866,6 +3874,7 @@ function renderQuiz() {
 }
 $('quizNext').onclick = () => { quizI++; if (quizI < quizSet.length) renderQuiz(); else showUpgrades(); };
 function showUpgrades() {
+  if (run.daily) { META.dailyEnd(); return; }
   if (run.level >= WD().levels.length - 1) { winGame(); return; }
   state = 'upgrade';
   const nextLv = WD().levels[run.level + 1];
@@ -2882,14 +3891,16 @@ function showUpgrades() {
   show('upScreen');
 }
 function winGame() {
-  state = 'win'; best = Math.max(best, run.score); store.set('bp2-best', best);
+  state = 'win'; best = Math.max(best, run.score); pset('bp2-best', best);
   const wd = WD(), last = run.world >= WORLDS.length - 1;
   prog.done[wd.id] = Math.max(prog.done[wd.id] || 0, run.score);
   prog.open = Math.max(prog.open, Math.min(WORLDS.length - 1, run.world + 1));
-  store.set('bp3-prog', prog);
+  pset('bp3-prog', prog);
   $('winTitle').textContent = last ? 'כל הגוף נחקר!' : `העולם "${wd.name}" הושלם!`;
   $('winLine').textContent = last ? 'עברתם בכל הגוף: מהדם ועד המוח. עכשיו אתם יודעים איך הצוות הענק הזה עובד יחד!' : wd.win;
-  $('winNext').textContent = last ? '' : `נפתח עולם חדש במפת הגוף: ${WORLDS[run.world + 1].icon} ${WORLDS[run.world + 1].name}`;
+  if (patient) $('winNext').dataset.thanks = `${patient.name}: "תודה! ${wd.thanks || `ה${wd.name.replace(/^ה/, '')} שלי ${GF('מרגיש', 'מרגישה')} הרבה יותר טוב`}" `;
+  if (WORLDS.every(w => prog.done[w.id] != null)) achieve('body');
+  $('winNext').textContent = (patient ? $('winNext').dataset.thanks : '') + (last ? '' : `נפתח עולם חדש במפת הגוף: ${WORLDS[run.world + 1].icon} ${WORLDS[run.world + 1].name}`);
   $('winScore').textContent = run.score.toLocaleString(); $('winBest').textContent = best.toLocaleString();
   if (!last) mapSel = run.world + 1;
   show('winScreen'); sfx.bossDown();
@@ -2897,7 +3908,7 @@ function winGame() {
 function toMenu() { stopMusic(); openMap(); }
 
 // ---- body map
-const prog = Object.assign({ open: 0, done: {} }, store.get('bp3-prog', {}));
+const prog = Object.assign({ open: 0, done: {} }, pget('bp3-prog', {}));
 let mapSel = 0;
 const ORGANS = {
   blood:  '<path d="M106 132 L100 70 M106 132 L60 120 L40 230 M106 132 L140 120 L162 230 M106 132 L95 230 L74 380 M106 132 L110 230 L128 380" fill="none" stroke="#e53950" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -2926,7 +3937,8 @@ function renderMap() {
     b.innerHTML = '<span class="ic"></span><span><b></b><small></small></span>';
     b.querySelector('.ic').textContent = i > prog.open ? '🔒' : w.icon;
     b.querySelector('b').textContent = `${i + 1}. ${w.name}`;
-    b.querySelector('small').textContent = prog.done[w.id] != null ? `✓ הושלם · ${prog.done[w.id].toLocaleString()}` : i > prog.open ? 'נעול' : `${w.levels.length} שלבים`;
+    const ws = worldStars(w.id), wh = worldHard(w.id);
+    b.querySelector('small').textContent = i > prog.open ? 'נעול' : `★ ${ws}/${w.levels.length * 3}${wh ? ` · 💜 ${wh}` : ''}${prog.done[w.id] != null ? ' · ✓ הושלם' : ` · ${w.levels.length} שלבים`}`;
     b.onclick = () => { mapSel = i; sfx.click(); renderMap(); };
     box.appendChild(b);
   });
@@ -2934,21 +3946,28 @@ function renderMap() {
   $('mapRoute').querySelector('b').textContent = `${sel.icon} ${sel.name}: ${sel.blurb}`;
   $('mapRoute').querySelector('span').textContent = sel.route;
   $('mapGo').disabled = mapSel > prog.open;
+  $('mapChips').innerHTML = `<span class="chip">⚡ ${atp} ATP</span><span class="chip">★ ${totalStars()}</span>`;
+  renderMissions($('mapMissions'));
+  if (META.onMap) META.onMap();
   $('mapUnlock').hidden = prog.open >= WORLDS.length - 1;
 }
-function openMap() { state = 'map'; renderMap(); show('mapScreen'); }
+function openMap() {
+  if (!patient) { state = 'patient'; patDraft = { look: 0, kind: 'girl' }; renderPatientForm(); show('patientScreen'); return; }
+  state = 'map'; renderMap(); show('mapScreen');
+}
 
 $('toSelect').onclick = () => { initAudio(); sfx.click(); openMap(); };
 $('toEncy').onclick = () => { sfx.click(); openEncy('titleScreen'); };
 $('mapBack').onclick = () => { show('titleScreen'); state = 'title'; };
 $('mapEncy').onclick = () => { sfx.click(); openEncy('mapScreen'); };
-$('mapUnlock').onclick = () => { prog.open = WORLDS.length - 1; store.set('bp3-prog', prog); sfx.click(); renderMap(); };
+$('mapUnlock').onclick = () => { prog.open = WORLDS.length - 1; pset('bp3-prog', prog); sfx.click(); renderMap(); };
 $('mapGo').onclick = () => {
   if (mapSel > prog.open) return;
+  run.daily = null;
   run.world = mapSel; run.level = 0; sfx.click(); newLevel(); renderSelect(); show('selectScreen'); state = 'select';
 };
 $('selectBack').onclick = openMap;
-$('selectGo').onclick = () => { run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
+$('selectGo').onclick = () => { run.daily = null; run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
 $('introGo').onclick = startLevel;
 $('resumeBtn').onclick = togglePause;
 $('pauseBtn').onclick = togglePause;
@@ -2968,6 +3987,8 @@ function update(dt) {
   const lv = LV(), p = g.p, cell = C(), mech = M();
   g.flow = lv.flow ?? 90;
   if (mech && mech.flow) g.flow = mech.flow(dt);
+  g.flow *= g.modFlow || 1;
+  META.tick(dt);
   const fl = g.flow / 90;
   g.t += dt; g.scroll += dt * g.flow;
   if (g.banner > 0) g.banner -= dt;
@@ -2975,23 +3996,33 @@ function update(dt) {
   const feverSlow = 1 + Math.max(0, g.temp - 37.5) * 0.35;
 
   // waves → boss → exit
+  // waves → boss → exit. A wave ends early when its goal is met; the clock only decides the star.
   if (g.phase === 'waves') {
     g.waveT += dt;
-    if (g.waveT > (lv.waveLen || 26)) {
-      g.waveT = 0;
+    const met = g.goalN >= waveGoal(), late = g.waveT > waveLen();
+    if (met || late) {
+      if (met) { g.goalMet++; sfx.goal(); ring(p.x, p.y, '#ffe082', 140); flash(0.3); }
+      else { g.goalMiss = true; addText(p.x, p.y - 90, 'הזמן נגמר: בלי כוכב היעדים', '#ffcc80'); }
+      g.waveT = 0; g.goalN = 0;
       if (g.wave >= 3) spawnBoss();
       else {
-        g.wave++; g.banner = 2.4; g.bannerText = `גל ${g.wave}`;
+        g.wave++; g.banner = 2.4; g.bannerText = met ? `יעד הושג! גל ${g.wave}` : `גל ${g.wave}`;
         g.bannerSub = lv.facts[(g.wave + run.level) % lv.facts.length];
-        g.blood = Math.min(g.maxBlood, g.blood + 20); sfx.wave();
-        addText(p.x, p.y - 70, 'גל הושלם: הדם התאושש', '#c5f7c0');
+        g.blood = Math.min(g.maxBlood, g.blood + 12); if (!met) sfx.wave();
+        addText(p.x, p.y - 70, `גל הושלם: ${WD().meter} +12`, '#c5f7c0');
+        META.say('wave');
       }
     }
   }
 
-  // blood recovers while calm
+  // the body recovers slowly while calm; most healing comes from good actions
   g.bloodCalm += dt;
-  if (g.bloodCalm > 1.5 && g.blood < g.maxBlood) g.blood = Math.min(g.maxBlood, g.blood + 3 * (1 + 0.5 * up('regen')) * dt);
+  if (g.bloodCalm > 1.5 && g.blood < g.maxBlood) g.blood = Math.min(g.maxBlood, g.blood + 1.8 * (1 + 0.5 * up('regen')) * (1 + 0.15 * META.labLv('heal')) * dt);
+  g.minFrac = Math.min(g.minFrac, Math.max(0, g.blood) / g.maxBlood);
+  if (g.blood < g.maxBlood * 0.3) META.say('low');
+  if (g.sayT > 0) g.sayT -= dt;
+  if (g.boss && g.boss.sayT > 0) g.boss.sayT -= dt;
+  phagoTick(dt);
 
   // fever: rises with the infection load
   if (!fevers()) g.temp = 37;
@@ -3007,6 +4038,7 @@ function update(dt) {
   const ab = $('abilityBtn');
   ab.classList.toggle('on', p.abilT > 0);
   ab.classList.toggle('cool', p.abilT <= 0 && p.charge < cdTime());
+  if (ab.style.setProperty) ab.style.setProperty('--cd', p.abilT > 0 ? 1 : Math.min(1, p.charge / cdTime()).toFixed(2));
   if (g.net) { g.net.t += dt; if (g.net.t > 0.5) g.net = null; }
 
   // movement
@@ -3017,7 +4049,8 @@ function update(dt) {
   if (keys.has('arrowdown') || keys.has('s') || keys.has('ד')) ay += 1;
   if (pointer) { const dx = pointer.x - p.x, dy = pointer.y - p.y, l = Math.hypot(dx, dy); if (l > 12) { ax = dx / l * Math.min(1, l / 80); ay = dy / l * Math.min(1, l / 80); } }
   const abilSpeed = p.abilT > 0 ? (cell.abil === 'burst' || cell.abil === 'dash' ? 1.9 : 1.25) : 1;
-  const MAX = 300 * cell.spd * (1 + 0.12 * up('spd')) * abilSpeed * (1 + Math.max(0, g.temp - 37.5) * 0.08) * (p.slow > 0 ? 0.55 : 1);
+  const chain = (g.combo >= 5 && g.comboT > 0 ? 1.1 : 1) * (g.modSpd || 1), stuffed = phagoFull() ? 0.8 : 1;
+  const MAX = 300 * cell.spd * (1 + 0.12 * up('spd')) * (1 + 0.05 * META.labLv('move')) * META.speedMul() * abilSpeed * chain * stuffed * (1 + Math.max(0, g.temp - 37.5) * 0.08) * (p.slow > 0 ? 0.55 : 1);
   if (p.slow > 0) p.slow -= dt;
   p.vx += (ax * MAX - p.vx) * Math.min(1, dt * 7);
   p.vy += (ay * MAX - p.vy) * Math.min(1, dt * 7);
@@ -3059,7 +4092,7 @@ function update(dt) {
     if (g.spawnT <= 0) {
       spawnEnemy(pickKind());
       if (g.wave >= 3 && Math.random() < 0.25) spawnEnemy(pickKind());
-      const lvMul = lv.spawnMul || 1;
+      const lvMul = (lv.spawnMul || 1) * (1 - 0.15 * (g.dda || 0)) * (1 - 0.05 * run.level) * (g.modSpawn || 1);
       g.spawnT = Math.max(0.6, 1.9 - g.wave * 0.14) * D().spawn * lvMul * (g.boss ? 1.8 : 1) * rnd(0.7, 1.3);
     }
   }
@@ -3182,7 +4215,7 @@ function update(dt) {
     }
 
     // engulfed by touching the white cell
-    if (dp < rad + e.r + 4) { eat(e); continue; }
+    if (dp < rad + e.r + 4) { if (phagoFull()) phagoBounce(e, dp); else { eat(e); continue; } }
     const ally = g.allies.find(a => Math.hypot(a.x - e.x, a.y - e.y) < 70);
     if (ally) { ally.chomp = 0; eat(e, 'ally'); continue; }
     if (e.tag) { if (e.x < -50) e.dead = true; continue; } // neutralized pathogens can't infect
@@ -3198,7 +4231,7 @@ function update(dt) {
           if (e.kind === 'virus') {
             if (c.hosted >= 2) continue;
             e.host = c; c.hosted++; e.ang = Math.atan2(e.y - c.y, e.x - c.x);
-            addText(c.x, c.y - 40, 'טרמפיסט!', '#c5e17a'); unlock('hitchhiker');
+            addText(c.x, c.y - 40, ['הצילו! טרמפיסט!', 'אוי! תורידו אותו!', 'טרמפיסט!'][Math.floor(Math.random() * 3)], '#c5e17a'); unlock('hitchhiker');
           } else if (e.kind === 'merozoite') {
             e.dead = true; c.mal = 0.001; sfx.infect(); hurtBlood(1, 'תא אדום נדבק!', c.x, c.y - 40, '#e59be0'); unlock('infectedrbc');
           }
@@ -3219,19 +4252,33 @@ function update(dt) {
     const B = BOSSES[b.kind] || {};
     b.t += dt; b.hitCd -= dt;
     if (B.move) B.move(b, dt);
-    else {
+    else if (b.tele > 0) { // telegraph: the boss shivers, then charges along this line
+      b.tele -= dt; b.x += Math.sin(g.t * 60) * 1.5;
+      if (b.tele <= 0) { b.dashing = true; sfx.boss(); g.shake = 0.2; }
+    } else if (b.dashing) {
+      b.x -= 900 * dt; burst(b.x + b.r, b.y + rnd(-b.r, b.r) * 0.6, 'rgba(255,255,255,0.6)', 1, 60, 0.4, 3);
+      if (b.x < b.r + 30) b.dashing = false;
+    } else {
       b.x += ((W - 200) - b.x) * Math.min(1, dt * 0.8);
       b.y = H / 2 + Math.sin(b.t * 0.7) * (H / 2 - WALL - b.r - 10);
     }
+    if ((b.stage || 1) >= 2 && !B.move && !B.noBump) {
+      b.chT = (b.chT ?? 2.5) - dt;
+      if (b.chT <= 0 && !(b.tele > 0) && !b.dashing) { b.tele = 0.9; b.chT = b.stage === 3 ? 4.5 : 6.5; sfx.warn(); }
+    }
+    if (b.film != null && b.film < 3) { b.filmT -= dt; if (b.filmT <= 0) { b.film++; b.filmT = 12; addText(b.x, b.y - b.r - 30, 'הביופילם צמח מחדש', '#9fe0cf'); } }
     b.emitT -= dt;
     const k = { cluster: 'virus', colony: 'bacteria', schizont: 'merozoite', rosette: 'merozoite' }[b.kind] || B.emit;
     if (b.emitT <= 0 && k) {
-      b.emitT = (B.emitEvery || 1.9) * D().spawn;
+      b.emitT = (B.emitEvery || 1.9) * D().spawn * ({ 2: 0.8, 3: 0.62 }[b.stage] || 1);
       spawnEnemy(k, b.x - b.r, b.y + rnd(-40, 40), b.kind === 'schizont' ? 'escape' : B.emitGoal);
     }
     if (B.update) B.update(b, dt, rad);
     const d = Math.hypot(p.x - b.x, p.y - b.y);
-    if (g.boss && !B.noBump && d < rad + b.r && b.hitCd <= 0) {
+    if (g.boss && !B.noBump && d < rad + b.r && b.hitCd <= 0 && b.dashing) {
+      b.hitCd = 0.8; const kx = (p.x - b.x) / (d || 1), ky = (p.y - b.y) / (d || 1);
+      p.vx = kx * 700; p.vy = ky * 700; hurtBlood(5, 'הבוס הסתער עליכם!', p.x, p.y - 60, '#ff8a80'); g.shake = 0.3; buzz(60);
+    } else if (g.boss && !B.noBump && d < rad + b.r && b.hitCd <= 0) {
       b.hitCd = 0.32;
       const kx = (p.x - b.x) / (d || 1), ky = (p.y - b.y) / (d || 1);
       p.vx = kx * 520; p.vy = ky * 520;
@@ -3262,9 +4309,22 @@ function update(dt) {
   for (const c of g.cyto) { c.t += dt; c.x += (c.vx - 60) * dt; c.y += c.vy * dt; }
   g.cyto = g.cyto.filter(c => c.t < 1.6);
 
+  if (g.blood <= 0 && D().noLose) { g.blood = 1; if (!g.calmMsg) { g.calmMsg = true; addText(p.x, p.y - 90, 'מצב רגוע: אי אפשר להפסיד. המשיכו!', '#9fd8ff'); } }
   if (g.blood <= 0) { g.blood = 0; gameOver(lv.lose || (lv.id === 'lung' ? 'החיידקים השתלטו על הדם!' : lv.id === 'liver' ? 'הטפילים יצאו מהכבד לדם!' : 'הזיהום התפשט בכל הגוף!')); return; }
 
   g.pops.forEach(o => o.t += dt); g.pops = g.pops.filter(o => o.t < 5 / 12);
+  for (const q of g.parts) {
+    q.t += dt;
+    if (q.home) { q.x += (p.x - q.x) * Math.min(1, dt * 12); q.y += (p.y - q.y) * Math.min(1, dt * 12); }
+    else { q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 1 - dt * 2.5; q.vy *= 1 - dt * 2.5; }
+  }
+  g.parts = g.parts.filter(q => q.t < q.life);
+  for (const r of g.fxr) r.t += dt;
+  g.fxr = g.fxr.filter(r => r.t < 0.45);
+  if (g.flash > 0) g.flash = Math.max(0, g.flash - dt * 2.2);
+  if (g.score !== g.lastScore) { g.scoreBump = 1; g.lastScore = g.score; }
+  if (g.scoreBump > 0) g.scoreBump = Math.max(0, g.scoreBump - dt * 5);
+  g.stats.maxCombo = Math.max(g.stats.maxCombo, g.combo);
   for (const o of g.texts) { o.t += dt; o.y -= 40 * dt; }
   g.texts = g.texts.filter(o => o.t < 1.1);
   for (const d of g.dots) { d.x -= g.flow * d.s * dt; if (d.x < -5) { d.x = W + 5; d.y = WALL + Math.random() * (H - WALL * 2); } }
@@ -3300,12 +4360,12 @@ function genericEnemy(e, K, dt, rad, dp, fl) {
     e.y = Math.max(WALL + e.r * 0.6, Math.min((g.ymax || H - WALL) - e.r * 0.6, e.y));
     if (!K.noRot) e.rot = Math.atan2(e.vy, e.vx - 30 * fl);
   }
-  if (K.tick) { K.tick(e, dt, rad); if (e.dead) return; }
+  if (K.tick && !(e.tag && K.touch === 'eat')) { K.tick(e, dt, rad); if (e.dead) return; } // antibody-tagged pathogens can't infect or divide
   if (dp < rad + e.r + 4) {
     const t = typeof K.touch === 'function' ? K.touch(e, rad, dp) : K.touch;
-    if (t === 'eat') { eat(e); if (K.onEat) K.onEat(e); return; }
-    if (t === 'collect') { e.dead = true; K.onCollect(e); return; }
-    if (t === 'push' && e.pushT < 0.6) push(e, rad, dp);
+    if (t === 'eat') { if (phagoFull()) phagoBounce(e, dp); else { eat(e); if (K.onEat) K.onEat(e); return; } }
+    if (t === 'collect') { e.dead = true; K.onCollect(e); if (e.gold) goldFound(e); return; }
+    if (t === 'push' && e.pushT < 0.6) { push(e, rad, dp); if (e.gold) goldFound(e); }
     else if (t === 'hazard' && e.hitCd <= 0) {
       e.hitCd = 0.8; knock(e, dp);
       if (K.onHit) K.onHit(e); else hurtBlood(K.dmg || 3, K.hitText || 'אאוץ׳!', p.x, p.y - 50, '#ff8a80');
@@ -3395,6 +4455,11 @@ function drawSite(s) {
   }
 }
 function drawEnemy(e) {
+  ctx.fillStyle = 'rgba(40, 6, 2, 0.18)'; ctx.beginPath(); ctx.ellipse(e.x + 5, e.y + e.r * 0.9 + 6, e.r * 0.9, e.r * 0.3, 0, 0, 7); ctx.fill();
+  if (e.gold || e.elite) { drawRare(e, () => drawEnemyBody(e)); return; }
+  drawEnemyBody(e);
+}
+function drawEnemyBody(e) {
   if (KINDS[e.kind]) KINDS[e.kind].draw(e);
   else if (e.kind === 'virus') sprite(img.virus, Math.floor(g.t * 10 + e.ph), e.x, e.y, 72);
   else {
@@ -3422,6 +4487,14 @@ function drawY(x, y, rot, s) {
 }
 function drawBoss(b) {
   const flash = b.hitCd > 0.2;
+  if (b.tele > 0) { // charge warning
+    const a = 0.35 + 0.35 * Math.sin(g.t * 30);
+    ctx.fillStyle = `rgba(255, 60, 60, ${a * 0.35})`; ctx.fillRect(0, b.y - b.r * 0.7, b.x, b.r * 1.4);
+    ctx.strokeStyle = `rgba(255, 90, 90, ${a + 0.3})`; ctx.lineWidth = 3; ctx.setLineDash && ctx.setLineDash([14, 10]);
+    ctx.beginPath(); ctx.moveTo(b.x - b.r, b.y - b.r * 0.7); ctx.lineTo(0, b.y - b.r * 0.7); ctx.moveTo(b.x - b.r, b.y + b.r * 0.7); ctx.lineTo(0, b.y + b.r * 0.7); ctx.stroke();
+    ctx.setLineDash && ctx.setLineDash([]);
+    label('!הסתערות', b.x - b.r - 90, b.y + 6, 22, '#ff8a80');
+  }
   ctx.save();
   if (b.kind === 'cluster') {
     for (let i = 0; i < 6; i++) { const a = b.t * 0.8 + i * 1.05; sprite(img.virus, Math.floor(g.t * 10 + i), b.x + Math.cos(a) * 110, b.y + Math.sin(a) * 95, 70); }
@@ -3433,6 +4506,10 @@ function drawBoss(b) {
       const a = i * 0.52 + b.t * 0.3, r = 30 + (i % 3) * 22;
       ctx.save(); ctx.translate(b.x + Math.cos(a) * r, b.y + Math.sin(a) * r * 0.8); ctx.rotate(a * 2);
       ctx.drawImage(BACT, -28, -12, 56, 25); ctx.restore();
+    }
+    for (let k = 0; k < (b.film || 0); k++) { // biofilm layers
+      ctx.strokeStyle = `rgba(170, 235, 210, ${0.55 - k * 0.1})`; ctx.fillStyle = `rgba(150, 220, 190, ${0.12})`; ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.ellipse(b.x, b.y, 122 + k * 16, 104 + k * 14, Math.sin(b.t * 0.8 + k) * 0.15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     }
   } else if (b.kind === 'schizont') {
     const gr = ctx.createRadialGradient(b.x - 20, b.y - 20, 10, b.x, b.y, 100);
@@ -3520,6 +4597,7 @@ function draw() {
   if (g.boss) drawBoss(g.boss);
   if (mech && mech.drawMid) mech.drawMid();
   for (const o of g.pops) sprite(img.pop, Math.floor(o.t * 12), o.x, o.y, o.small ? 70 : 110);
+  drawFx();
 
   // antibodies in flight
   ctx.strokeStyle = '#9fd8ff'; ctx.lineWidth = 3;
@@ -3545,6 +4623,13 @@ function draw() {
 
   // player
   const p = g.p, rad = radius(), size = rad / 45 * 150, hero = C(), sheets = tinted[hero.tintOf || g.hero];
+  {
+    const sl = ctx.createRadialGradient(p.x, p.y, rad * 0.5, p.x, p.y, rad * 3.2);
+    sl.addColorStop(0, 'rgba(255, 240, 210, 0.16)'); sl.addColorStop(1, 'rgba(255, 240, 210, 0)');
+    ctx.fillStyle = sl; ctx.beginPath(); ctx.arc(p.x, p.y, rad * 3.2, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(40, 6, 2, 0.22)'; ctx.beginPath(); ctx.ellipse(p.x + 6, p.y + rad * 0.95 + 6, rad * 0.95, rad * 0.3, 0, 0, 7); ctx.fill();
+  }
+  const spd = Math.min(1, Math.hypot(p.vx || 0, p.vy || 0) / 420), wob = 1 + Math.sin(g.t * 9) * 0.02;
   if (hero.draw) {
     const squeeze = g.exiting >= 0 ? Math.max(0.15, 1 - g.exiting) : 1;
     if (p.abilT > 0) {
@@ -3566,12 +4651,14 @@ function draw() {
       gl.addColorStop(0, 'rgba(255, 224, 130, 0.45)'); gl.addColorStop(1, 'rgba(255, 224, 130, 0)');
       ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(p.x, p.y, size * 0.6, 0, 7); ctx.fill();
     }
-    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(squeeze, 1 / Math.max(0.6, squeeze)); ctx.translate(-p.x, -p.y);
+    ctx.save(); ctx.translate(p.x, p.y); ctx.scale(squeeze * (1 + spd * 0.08) * wob, 1 / Math.max(0.6, squeeze) * (1 - spd * 0.06) / wob); ctx.translate(-p.x, -p.y);
     if (p.chomp >= 0) sprite(sheets.attack, 2 + Math.min(2, Math.floor(p.chomp * 10)), p.x, p.y, size, p.face < 0);
     else sprite(sheets.idle, Math.floor(g.t * 8), p.x, p.y, size, p.face < 0);
     ctx.restore();
   }
 
+  drawPhago(p, rad);
+  if (hat !== 'none' && g.exiting < 0) drawHat(hat, p.x, p.y - (hero.draw ? 0 : rad * 0.05), rad * (hero.draw ? 0.95 : 0.85));
   if (mech && mech.drawFront) mech.drawFront();
   // chemotaxis arrow toward the nearest alarm signal
   if (state === 'play') {
@@ -3598,16 +4685,48 @@ function draw() {
   }
   ctx.globalAlpha = 1;
 
+  // out-of-focus foreground cells for depth
+  if (g.fg && g.fg.length) {
+    if (canBlur) ctx.filter = 'blur(7px)';
+    for (const f of g.fg) sprite(img.rbc, Math.floor(g.t * 4 + f.ph), f.x, f.y, f.s, false, 0.22, f.rot, 0.8);
+    if (canBlur) ctx.filter = 'none';
+  }
   // fever warmth + microscope vignette
   if (g.temp > 37.4) { ctx.fillStyle = `rgba(255, 110, 40, ${Math.min(0.2, (g.temp - 37.4) * 0.08)})`; ctx.fillRect(0, 0, W, H); }
   const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, W * 0.62);
   vg.addColorStop(0, 'rgba(30, 8, 4, 0)'); vg.addColorStop(1, st.vig || 'rgba(30, 8, 4, 0.45)');
   ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
+  if (g.hurtFx > 0) {
+    const hv = ctx.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.6);
+    hv.addColorStop(0, 'rgba(200, 0, 20, 0)'); hv.addColorStop(1, `rgba(200, 0, 20, ${g.hurtFx * 1.2})`);
+    ctx.fillStyle = hv; ctx.fillRect(0, 0, W, H);
+  }
+  if (g.flash > 0) { ctx.fillStyle = `rgba(255, 250, 230, ${g.flash * 0.45})`; ctx.fillRect(0, 0, W, H); }
+
   // scale bar (red cell 7.5 µm ≈ 60 px)
   if (lv.scale !== false) scaleBar(lv.scale);
 
-  if (state === 'play' || state === 'pause') hud();
+  drawBossSay();
+  if (g.lastBossSay && g.lastBossSay.t > 0) { g.lastBossSay.t -= 1 / 60; ctx.globalAlpha = Math.min(1, g.lastBossSay.t); label(g.lastBossSay.text, g.lastBossSay.x, Math.max(80, g.lastBossSay.y - 60), 18, '#ffd6d0'); ctx.globalAlpha = 1; }
+  if (state === 'play' || state === 'pause') { hud(); drawNarrator(); }
+}
+function drawFx() {
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (const q of g.parts) { ctx.globalAlpha = Math.max(0, 1 - q.t / q.life); ctx.fillStyle = q.c; ctx.beginPath(); ctx.arc(q.x, q.y, q.s * (q.home ? 1 - q.t / q.life : 1), 0, 7); ctx.fill(); }
+  ctx.restore(); ctx.globalAlpha = 1;
+  for (const r of g.fxr) { const k = r.t / 0.45; ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.c; ctx.lineWidth = 4 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, r.r * (0.3 + k), 0, 7); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+}
+// what the cell has swallowed, shrinking as the lysosome digests it
+function drawPhago(p, rad) {
+  if (!p.gut || !p.gut.length) return;
+  p.gut.forEach((q, i) => {
+    const a = q.a + g.t * 1.5, r = rad * (0.18 + 0.12 * (i % 3)), k = i === 0 ? Math.max(0.25, q.t / q.max) : 1;
+    ctx.globalAlpha = 0.8; circle(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 6 * k + 2, q.c, 'rgba(60, 20, 60, 0.6)', 1.5);
+    if (i === 0) circle(p.x + Math.cos(a) * r, p.y + Math.sin(a) * r, 9, null, 'rgba(255, 200, 120, 0.7)', 1.5);
+  });
+  ctx.globalAlpha = 1;
 }
 function scaleBar(label = '10 µm') {
   ctx.direction = 'ltr';
@@ -3640,12 +4759,32 @@ function hud() {
   if (M() && M().hud) M().hud();
   // score and stage
   ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#2a0c06';
-  ctx.font = `28px ${FONT_D}`;
-  const sc = g.score.toLocaleString();
-  ctx.strokeText(sc, 380, 41); ctx.fillStyle = '#fff6ee'; ctx.fillText(sc, 380, 41);
-  ctx.font = `18px ${FONT_D}`;
+  const sc = g.score.toLocaleString(), bump = 1 + g.scoreBump * 0.25;
+  ctx.save(); ctx.translate(380, 32); ctx.scale(bump, bump); ctx.font = `28px ${FONT_D}`;
+  ctx.strokeText(sc, 0, 9); ctx.fillStyle = g.scoreBump > 0.5 ? '#ffe082' : '#fff6ee'; ctx.fillText(sc, 0, 9); ctx.restore();
+  ctx.font = `600 13px ${FONT_B}`; ctx.fillStyle = '#ffe082'; ctx.textAlign = 'center'; ctx.direction = 'ltr';
+  ctx.fillText(`⚡ ${Math.round(g.atp)} ATP`, 250, 88); ctx.direction = 'rtl';
+  if (g.combo > 1 && g.comboT > 0) {
+    ctx.font = `${18 + g.combo * 1.5}px ${FONT_D}`; ctx.lineWidth = 5;
+    ctx.strokeText(`x${g.combo}`, 380, 72); ctx.fillStyle = g.combo >= 5 ? '#ffe082' : '#fff6ee'; ctx.fillText(`x${g.combo}`, 380, 72);
+    ctx.fillStyle = 'rgba(255, 224, 130, 0.8)'; ctx.fillRect(355, 78, 50 * (g.comboT / 1.6), 3);
+  }
+  ctx.font = `18px ${FONT_D}`; ctx.lineWidth = 6;
   const stage = g.phase === 'waves' ? `שלב ${run.level + 1} · גל ${g.wave}/3` : g.phase === 'boss' ? `שלב ${run.level + 1} · בוס` : `שלב ${run.level + 1} · יציאה`;
-  ctx.strokeText(stage, 250, 39); ctx.fillStyle = '#d7ccf5'; ctx.fillText(stage, 250, 39);
+  ctx.strokeText(stage, 250, 33); ctx.fillStyle = '#d7ccf5'; ctx.fillText(stage, 250, 33);
+  if (g.phase === 'waves') { // wave goal: progress bar plus the clock for the goal star
+    const gn = waveGoal(), fr = Math.min(1, g.goalN / gn), left = Math.max(0, Math.ceil(waveLen() - g.waveT));
+    ctx.fillStyle = 'rgba(42, 12, 6, 0.75)'; roundRect(180, 42, 140, 12, 6); ctx.fill();
+    ctx.fillStyle = fr >= 1 ? '#9be59b' : '#b49ae8'; roundRect(182, 44, 136 * fr, 8, 4); ctx.fill();
+    ctx.font = `600 12px ${FONT_B}`; ctx.textAlign = 'center'; ctx.fillStyle = '#fff6ee'; ctx.direction = 'rtl';
+    ctx.fillText(`יעד הגל ${Math.min(g.goalN, gn)}/${gn} · ⏱ ${left}`, 250, 68);
+  }
+  if (phago()) { // phagosome slots
+    const cap = phagoCap(), n = g.p.gut.length;
+    ctx.font = `600 12px ${FONT_B}`; ctx.textAlign = 'right'; ctx.direction = 'rtl'; ctx.fillStyle = n >= cap ? '#ffcc80' : '#f0c9a8';
+    ctx.fillText('פגוזום', W - 236 - 186, 62);
+    for (let i = 0; i < cap; i++) circle(W - 236 - 186 - 64 - i * 14, 58, 5, i < n ? (n >= cap ? '#ffab66' : '#d7ccf5') : 'rgba(42,12,6,0.75)', '#f0c9a8', 1.2);
+  }
 
   if (g.boss) {
     const bw = 380, bx = W / 2 - bw / 2;
@@ -3677,7 +4816,7 @@ function roundRect(x, y, w, h, r) {
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
-  if (state === 'play') update(dt);
+  if (state === 'play') { if (g.freeze > 0) g.freeze -= dt; else update(dt); }
   else if (g && state !== 'pause') { const f = LV().flow ?? 90; g.t += dt; g.scroll += dt * f; moveBg(dt); for (const d of g.dots) { d.x -= f * d.s * dt; if (d.x < -5) d.x = W + 5; } }
   draw();
   requestAnimationFrame(loop);
@@ -3685,6 +4824,7 @@ function loop(now) {
 function boot() {
   fit();
   setMuted(muted);
+  setupContinue();
   newLevel();
   Promise.all(loads).then(() => {
     for (const [k, c] of Object.entries(HEROES)) if (!c.draw && !c.tintOf && img.wbcIdle && img.wbcAttack) tinted[k] = { idle: tintSheet(img.wbcIdle, c.filter, c.tint), attack: tintSheet(img.wbcAttack, c.filter, c.tint) };

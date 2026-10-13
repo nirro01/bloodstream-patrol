@@ -62,8 +62,9 @@ setTimeout(() => {
     for (const h of heroes) {
       for (let l = 0; l < worlds[w].levels.length; l++) {
         const name = `${worlds[w].id}/${l + 1}${h ? '/' + h : ''}`;
+        if (process.env.TRACE) console.log('..', name);
         try {
-          bp.run.world = w; bp.run.level = l; if (h) bp.run.type = h; bp.run.up = {}; bp.run.diff = 'normal';
+          bp.run.world = w; bp.run.level = l; if (h) bp.run.type = h; bp.run.up = {}; bp.run.diff = process.env.DIFF || 'normal'; bp.run.mod = process.env.MOD || null;
           bp.startLevel();
           let t = 0, minBlood = 1e9, bossSeen = false;
           while (t < SECS && bp.state === 'play') {
