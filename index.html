@@ -186,6 +186,25 @@ canvas { display: block; width: 100%; height: 100%; }
 .pips span { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #ffe082; }
 .pips span.on { background: #ffe082; }
 .lab .btn { font-size: clamp(0.8rem, 1.7vw, 1rem); padding: 5px 14px; }
+.patient { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.04); border-radius: 14px; padding: 4px 10px; text-align: start; font-size: clamp(0.72rem, 1.5vw, 0.88rem); color: var(--muted); }
+.patient:empty { display: none; }
+.patient svg { width: 52px; height: 52px; flex: none; }
+.patient b { color: var(--ink); font-family: var(--display); font-weight: 400; font-size: 1.05rem; display: block; }
+.field { display: flex; gap: 8px; align-items: center; font-weight: 600; }
+.field input { font-family: var(--body); font-size: 1rem; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--defender); background: rgba(255,255,255,.06); color: var(--ink); width: 12em; }
+.look { background: rgba(255,255,255,.04); border: 2px solid rgba(180,154,232,.35); border-radius: 14px; padding: 4px; cursor: pointer; }
+.look[aria-pressed="true"] { border-color: var(--defender); background: rgba(180,154,232,.18); }
+.look svg { width: 64px; height: 64px; display: block; }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; width: 100%; }
+.acard { display: grid; justify-items: center; gap: 2px; padding: 6px; border-radius: 14px; background: rgba(255,255,255,.05); border: 2px solid rgba(180,154,232,.35); color: var(--ink); font-family: var(--body); cursor: pointer; min-width: 0; }
+.acard.gold { border-color: #ffd54f; box-shadow: 0 0 12px rgba(255,213,79,.4); }
+.acard.locked { opacity: .5; cursor: default; }
+.acard canvas { width: 84px; height: 84px; }
+.acard b { font-family: var(--display); font-weight: 400; font-size: .92rem; }
+.acard small { color: var(--muted); font-size: .7rem; }
+.acard .mem { color: #9fd8ff; letter-spacing: 2px; }
+.organ.sick { filter: saturate(.35) brightness(.8); }
+.organ.healed { filter: drop-shadow(0 0 4px #ffe082); }
 @media (prefers-reduced-motion: reduce) { .brain-idle, .brain-hurt, .wbc { animation-duration: 3s; } }
 </style>
 
@@ -222,6 +241,7 @@ canvas { display: block; width: 100%; height: 100%; }
         <div class="map">
           <svg class="body" id="bodySvg" viewBox="0 0 200 400" role="img" aria-label="מפת גוף האדם"></svg>
           <div class="map-side">
+            <div class="patient" id="mapPatient"></div>
             <div class="worlds" id="worldPicks"></div>
             <div class="route" id="mapRoute"></div>
             <div class="missions" id="mapMissions"></div>
@@ -231,6 +251,7 @@ canvas { display: block; width: 100%; height: 100%; }
           <button class="btn ghost" id="mapBack">חזרה</button>
           <button class="btn ghost" id="mapEncy">אנציקלופדיה</button>
           <button class="btn ghost" id="mapLab">מעבדה ⚡</button>
+          <button class="btn ghost" id="mapAlbum">אלבום 🃏</button>
           <button class="btn" id="mapGo">לעולם הזה</button>
         </div>
         <button class="linkish" id="mapUnlock">פתיחת כל העולמות (להורים ולמורים)</button>
@@ -360,6 +381,33 @@ canvas { display: block; width: 100%; height: 100%; }
       </div>
     </div>
 
+    <!-- my patient: the child whose body the map is -->
+    <div class="overlay" id="patientScreen" hidden>
+      <div class="card">
+        <div class="hero">
+          <div class="sprite brain-idle" role="img" aria-label="המוח"></div>
+          <div class="speech">כל גוף שייך למישהו! למי שייך הגוף שאתם שומרים עליו?</div>
+        </div>
+        <h2>המטופל שלי</h2>
+        <div class="row" id="patLooks"></div>
+        <div class="seg" id="patKind"><button data-k="boy">ילד</button><button data-k="girl" aria-pressed="true">ילדה</button></div>
+        <label class="field">שם: <input id="patName" maxlength="14" autocomplete="off" placeholder="למשל: נועה"></label>
+        <button class="btn" id="patGo">יוצאים לשמור עליו</button>
+      </div>
+    </div>
+
+    <!-- album: pathogen cards with immune memory, achievements, and the wardrobe -->
+    <div class="overlay" id="albumScreen" hidden>
+      <div class="card wide">
+        <h2>האלבום</h2>
+        <div class="seg" id="albumTabs"><button data-t="cards" aria-pressed="true">קלפים</button><button data-t="ach">הישגים</button><button data-t="hats">ארון</button></div>
+        <p id="albumSub"></p>
+        <div class="album" id="albumGrid"></div>
+        <div class="ency-detail" id="albumDetail" hidden></div>
+        <button class="btn" id="albumClose">חזרה</button>
+      </div>
+    </div>
+
     <!-- lab: permanent upgrades bought with ATP -->
     <div class="overlay" id="labScreen" hidden>
       <div class="card wide">
@@ -409,8 +457,8 @@ const store = {
 };
 let best = store.get('bp2-best', 0);
 // meta-progression hooks: no-ops here, filled in by the META section further down
-const EXTRA_SCREENS = []; // overlay ids added by later sections
-const META = { onAction() {}, onKill() {}, onCombo() {}, onSite() {}, onBoss() {}, onLevelDone() {}, onStart() {}, say() {}, labLv: () => 0, speedMul: () => 1 };
+const EXTRA_SCREENS = ['patientScreen', 'albumScreen']; // overlay ids added by later sections
+const META = { onSpawn() {}, onBounce() {}, onMap: null, onAction() {}, onKill() {}, onCombo() {}, onSite() {}, onBoss() {}, onLevelDone() {}, onStart() {}, say() {}, labLv: () => 0, speedMul: () => 1 };
 const unlocked = new Set(store.get('bp2-ency', []));
 
 // ================= CONTENT =================
@@ -474,6 +522,9 @@ const ENCY = {
   cluster: ['צבר וירוסים', 'במציאות תא נגוע אחד יכול לשחרר אלפי עותקים של וירוס בבת אחת. במשחק הם מופיעים כגוש ענק.'],
   colony: ['מושבת חיידקים', 'חיידקים יכולים להתקבץ ולהפריש שכבה דביקה (ביופילם) שמגינה עליהם מתאי חיסון ומאנטיביוטיקה.'],
   biofilm: ['ביופילם', 'שכבה דביקה של סוכרים וחלבונים שחיידקים מפרישים סביב המושבה. היא מקשה על תאי חיסון ועל אנטיביוטיקה להגיע אליהם, ולכן זיהומים כאלה עקשניים. במשחק: רק יכולת שמופעלת ליד המושבה קורעת אותה.'],
+  rarestrain: ['זן נדיר', 'לכל פתוגן יש הרבה זנים: גרסאות שונות מעט זו מזו. חלק נדירים מאוד. במשחק זן נדיר זוהר בזהב ושווה הרבה נקודות ו־ATP, והוא מקבל מסגרת זהב באלבום.'],
+  mutation: ['מוטציה', 'כשפתוגן משתכפל, לפעמים נוצרת טעות קטנה בחומר התורשתי שלו. רוב המוטציות לא משנות כלום, אבל חלקן עוזרות לו: למשל לשחות מהר יותר או להתחמק מנוגדנים. כך נוצרים זנים חדשים של שפעת כל שנה. במשחק: "מוטנט" גדול ומהיר יותר ושווה פי 2.'],
+  memory: ['זיכרון חיסוני', 'אחרי שהגוף ניצח פתוגן, נשארים בו תאי B ו־T "זיכרון". בפעם הבאה הם מזהים אותו מהר מאוד ומייצרים נוגדנים כמעט מיד. זה גם הרעיון של חיסון: מלמדים את הגוף מראש, בלי להיות חולים.'],
   phagosome: ['פגוזום וליזוזום', 'כשתא בולע פתוגן, הוא עוטף אותו בבועה שנקראת פגוזום. בועה אחרת, הליזוזום, מתאחה איתה ושופכת אנזימים שמפרקים את הפתוגן. במשחק: לכל תא יש מקום מוגבל, וצריך זמן לעכל.'],
   schizont: ['סכיזונט כבדי', 'בתוך תא כבד אחד טפיל המלריה מתחלק לעשרות אלפי מרוזואיטים, ואז משחרר את כולם לדם בבת אחת.'],
   rosette: ['רוזטה', 'תא אדום נגוע במלריה שתאים אדומים בריאים נדבקים אליו. הגוש חוסם נימים קטנים, וזו אחת הסיבות למלריה קשה.'],
@@ -2725,6 +2776,7 @@ function missionEvent(ev, v = 1) {
     m.have = d.max ? Math.max(m.have, v) : m.have + v; changed = true;
     if (m.have >= m.n) {
       toast(`משימה הושלמה: ${d.text(m.n)} (+${d.atp} ATP)`); sfx.rare();
+      life.missions++; saveLife(); if (life.missions >= 5) achieve('missions5');
       gainAtp(d.atp, g && state === 'play' ? g.p.x : null, g ? g.p.y - 110 : 0);
       missions[i] = newMission(missions.map(x => x.id));
     }
@@ -2744,7 +2796,7 @@ function renderMissions(box) {
 
 // ---- the brain narrates: short lines on events, with a cooldown so it never nags
 const SAY = {
-  start: ['יאללה, לעבודה!', 'אני סומך עליכם, סיירת!', 'מה יש לנו היום? בואו נגלה.', 'נשימה עמוקה... ויוצאים!'],
+  start: ['יאללה, לעבודה!', 'אני סומך עליכם, סיירת!', '{n} {סומך} עליכם!', 'מה יש לנו היום? בואו נגלה.', 'נשימה עמוקה... ויוצאים!'],
   wave: ['גל הושלם! הגוף אומר תודה.', 'יפה! ועכשיו הגל הבא.', 'אתם תותחים. או ליתר דיוק: פגוציטים.'],
   combo: ['וואו, איזו שרשרת!', 'הציטוקינים משתוללים!', 'זה כבר מופע!', 'אפשר לקבל חתימה?'],
   low: ['אוי, זה דגדג... ולא בקטע טוב.', 'מהר! הגוף צריך אתכם.', 'אני מתחיל להרגיש לא טוב...', 'אולי כדאי לנקות את הזיהום?'],
@@ -2770,7 +2822,7 @@ function say(ev, force) {
   if (!g || state !== 'play') return;
   if (!force && g.t - (g.sayAt ?? -99) < 7) return;
   const pool = SAY[ev]; if (!pool) return;
-  g.sayAt = g.t; g.sayText = pool[Math.floor(Math.random() * pool.length)]; g.sayT = 3.2;
+  g.sayAt = g.t; g.sayText = pool[Math.floor(Math.random() * pool.length)].replace('{n}', pname()).replace('{סומך}', GF('סומך', 'סומכת')); g.sayT = 3.2;
 }
 function drawNarrator() {
   if (!(g.sayT > 0)) return;
@@ -2794,7 +2846,7 @@ function drawBossSay() {
   ctx.fillStyle = '#ffd6d0'; ctx.fillText(b.sayText, bx, by);
   ctx.globalAlpha = 1;
 }
-const LOSE_JOKES = ['המטופל קיבל נזלת. אפצ׳י! נסו שוב.', 'המוח מבקש הפסקת שוקו ואז עוד ניסיון.', 'גם תאי חיסון מפסידים לפעמים. בגלל זה יש זיכרון חיסוני!', 'הגוף חזק: הוא ייתן לכם עוד הזדמנות.', 'אל דאגה, הכדוריות האדומות כבר מגישות מרק עוף.'];
+const LOSE_JOKES = ['{n} {קיבל} נזלת. אפצ׳י! נסו שוב.', 'המוח מבקש הפסקת שוקו ואז עוד ניסיון.', 'גם תאי חיסון מפסידים לפעמים. בגלל זה יש זיכרון חיסוני!', 'הגוף חזק: הוא ייתן לכם עוד הזדמנות.', 'אל דאגה, הכדוריות האדומות כבר מגישות מרק עוף.'];
 
 Object.assign(META, {
   labLv: k => lab[k] || 0,
@@ -2824,7 +2876,8 @@ Object.assign(META, {
   },
   onGameOver() {
     const n = bankAtp();
-    $('overJoke').textContent = `${LOSE_JOKES[Math.floor(Math.random() * LOSE_JOKES.length)]} ${n ? `שמרתם ${n} ATP.` : ''}`;
+    const j = LOSE_JOKES[Math.floor(Math.random() * LOSE_JOKES.length)].replace('{n}', pname()).replace('{קיבל}', GF('קיבל', 'קיבלה'));
+    $('overJoke').textContent = `${j} ${n ? `שמרתם ${n} ATP.` : ''}`;
   },
 });
 // "almost there" bars: the next lab upgrade, the hero's next level and the closest mission
@@ -2844,6 +2897,276 @@ function renderAlmost(box) {
   if (m) box.appendChild(pbar(`משימה: ${missionDef(m).text(m.n)} (${Math.min(m.have, m.n)}/${m.n})`, m.have / m.n));
   if (META.almostExtra) META.almostExtra(box);
 }
+
+// ================= STAGE C: MY PATIENT, ALBUM, RARE STRAINS, HATS, ACHIEVEMENTS =================
+let patient = pget('bp4-pat', null);
+let life = Object.assign({ kills: 0, sites: 0, gold: 0, quizOk: 0, bounces: 0, bosses: 0, missions: 0, days: 0 }, pget('bp4-life', {}));
+const kc = pget('bp4-kc', {}), goldSeen = new Set(pget('bp4-gold', [])), seen = new Set(pget('bp4-seen', []));
+const saveLife = () => pset('bp4-life', life);
+const GF = (m, f) => patient && patient.kind === 'boy' ? m : f; // Hebrew gender forms for the patient
+const pname = () => (patient && patient.name) || GF('המטופל', 'המטופלת');
+// ---- the patient's face: four looks, the mood follows how healthy the body is
+const LOOKS = [
+  { skin: '#f6d2b0', hair: '#6a3a1a' }, { skin: '#e8b48a', hair: '#1e1208' },
+  { skin: '#b97a50', hair: '#141008' }, { skin: '#f9e0c8', hair: '#d8a040' },
+];
+function patientSvg(look = 0, kind = 'girl', mood = 0.5) {
+  const L = LOOKS[look] || LOOKS[0], m = Math.max(0, Math.min(1, mood));
+  const mouth = m > 0.66 ? 'M40 66 Q50 76 60 66' : m > 0.33 ? 'M41 68 Q50 72 59 68' : 'M41 71 Q50 64 59 71';
+  const hair = kind === 'girl'
+    ? `<path d="M22 46 C20 18 80 18 78 46 L80 74 C74 64 74 40 50 34 C26 40 26 64 20 74 Z" fill="${L.hair}"/>`
+    : `<path d="M24 44 C22 20 78 20 76 44 C70 32 30 32 24 44 Z" fill="${L.hair}"/>`;
+  const cheeks = m > 0.33 ? '<circle cx="34" cy="62" r="5" fill="#ff8aa0" opacity=".45"/><circle cx="66" cy="62" r="5" fill="#ff8aa0" opacity=".45"/>' : '<circle cx="34" cy="60" r="5" fill="#9adf9a" opacity=".35"/><circle cx="66" cy="60" r="5" fill="#9adf9a" opacity=".35"/>';
+  const extra = m < 0.34 ? '<path d="M70 30 l4 8 l-8 0 z" fill="#8fd0ff"/>' : m > 0.9 ? '<text x="76" y="28" font-size="16">✨</text>' : '';
+  return `<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="52" r="30" fill="${L.skin}" stroke="#5a2a1a" stroke-width="2"/>${hair}${cheeks}
+    <ellipse cx="40" cy="52" rx="4" ry="5" fill="#2a1010"/><ellipse cx="60" cy="52" rx="4" ry="5" fill="#2a1010"/>
+    <path d="${mouth}" fill="none" stroke="#5a1a1a" stroke-width="3" stroke-linecap="round"/>${extra}</svg>`;
+}
+const bodyHealth = () => { const all = WORLDS.reduce((a, w) => a + w.levels.length * 3, 0); return Math.min(1, 0.15 + 0.85 * totalStars() / all); };
+const moodText = m => m > 0.85 ? GF('מרגיש מצוין!', 'מרגישה מצוין!') : m > 0.6 ? GF('מרגיש הרבה יותר טוב', 'מרגישה הרבה יותר טוב') : m > 0.35 ? GF('מתחיל להחלים', 'מתחילה להחלים') : GF('לא מרגיש טוב. הוא צריך אתכם!', 'לא מרגישה טוב. היא צריכה אתכם!');
+let patDraft = { look: 0, kind: 'girl' };
+function renderPatientForm() {
+  const box = $('patLooks'); box.innerHTML = '';
+  LOOKS.forEach((_, i) => {
+    const b = document.createElement('button'); b.className = 'look'; b.setAttribute('aria-pressed', patDraft.look === i); b.setAttribute('aria-label', `מראה ${i + 1}`);
+    b.innerHTML = patientSvg(i, patDraft.kind, 0.5);
+    b.onclick = () => { patDraft.look = i; sfx.click(); renderPatientForm(); };
+    box.appendChild(b);
+  });
+  document.querySelectorAll('#patKind button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === patDraft.kind));
+  $('patGo').textContent = patDraft.kind === 'boy' ? 'יוצאים לשמור עליו' : 'יוצאים לשמור עליה';
+}
+document.querySelectorAll('#patKind button').forEach(b => b.onclick = () => { patDraft.kind = b.dataset.k; sfx.click(); renderPatientForm(); });
+$('patGo').onclick = () => {
+  patient = { name: ($('patName').value || '').trim().slice(0, 14) || (patDraft.kind === 'boy' ? 'יואב' : 'נועה'), look: patDraft.look, kind: patDraft.kind };
+  pset('bp4-pat', patient); sfx.right(); achieve('patient'); openMap();
+};
+function renderPatientCard() {
+  const box = $('mapPatient');
+  if (!patient) { box.innerHTML = ''; return; }
+  const m = bodyHealth();
+  box.innerHTML = `${patientSvg(patient.look, patient.kind, m)}<span><b></b><span></span></span>`;
+  box.querySelector('b').textContent = patient.name;
+  box.querySelector('span span').textContent = `${moodText(m)} · בריאות הגוף ${Math.round(m * 100)}%`;
+}
+
+// ---- rare strains (gold) and mutants (elite)
+const PATHOGEN = new Set(['virus', 'bacteria', 'sporozoite', 'merozoite', 'fluv', 'pneumo', 'staph']);
+const GOLDABLE = new Set([...PATHOGEN, 'salm', 'hpylori', 'ldl', 'dust', 'pollen', 'soot', 'glu', 'amino', 'starch', 'protein', 'fat', 'bglu', 'bo2', 'epo', 'gcsf', 'mcsf', 'il7', 'tpo', 'plasmin', 'hdl', 'o2']);
+const memTier = k => [10, 40, 120].filter(v => (kc[k] || 0) >= v).length;
+function onSpawn(e) {
+  if (!g || g.phase === undefined) return;
+  if (!seen.has(e.kind)) { seen.add(e.kind); pset('bp4-seen', [...seen]); }
+  if (GOLDABLE.has(e.kind) && Math.random() < (g.goldChance || 1 / 45)) { e.gold = true; e.sp *= 0.85; e.vx = -e.sp; }
+  else if (PATHOGEN.has(e.kind)) {
+    if (Math.random() < 0.03 + 0.025 * g.wave + (g.dda || 0) * 0.04) { e.elite = true; e.r *= 1.3; e.sp *= 1.2; e.vx = -e.sp; unlock('mutation'); }
+    else if (Math.random() < memTier(e.kind) * 0.1) { e.tag = true; e.mem = true; }
+  }
+}
+function goldFound(e) {
+  if (e.goldDone) return; e.goldDone = true;
+  g.stats.gold++; life.gold++; saveLife();
+  if (!goldSeen.has(e.kind)) { goldSeen.add(e.kind); pset('bp4-gold', [...goldSeen]); }
+  gainAtp(15, e.x, e.y - 50); missionEvent('gold'); say('gold', true); unlock('rarestrain');
+  if (!e.dead || !PATHOGEN.has(e.kind)) { flash(0.4); ring(e.x, e.y, '#ffd54f', 90); sfx.rare(); burst(e.x, e.y, '#ffd54f', 24, 260); }
+  achieve('gold1'); if (life.gold >= 5) achieve('gold5');
+}
+function drawRare(e, drawFn) { // gold glow and mutant size around the normal drawing
+  if (e.gold) {
+    const gl = ctx.createRadialGradient(e.x, e.y, 2, e.x, e.y, e.r * 2.4 + 8);
+    gl.addColorStop(0, 'rgba(255, 220, 90, 0.7)'); gl.addColorStop(1, 'rgba(255, 220, 90, 0)');
+    ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(e.x, e.y, e.r * 2.4 + 8, 0, 7); ctx.fill();
+  }
+  const sc = e.elite ? 1.3 : 1;
+  ctx.save();
+  if (sc !== 1) { ctx.translate(e.x, e.y); ctx.scale(sc, sc); ctx.translate(-e.x, -e.y); }
+  if (e.gold && 'filter' in ctx) ctx.filter = 'sepia(1) saturate(3.5) hue-rotate(-12deg) brightness(1.15)';
+  drawFn();
+  ctx.restore();
+  if (e.gold) { for (let i = 0; i < 3; i++) { const a = g.t * 3 + i * 2.1; circle(e.x + Math.cos(a) * (e.r + 10), e.y + Math.sin(a) * (e.r + 10), 2.2, '#fff6b0'); } }
+  if (e.elite) label('מוטנט!', e.x, e.y - e.r * 1.4 - 6, 12, '#ff8a80');
+  else if (e.gold) label('זן נדיר', e.x, e.y - e.r - 14, 12, '#ffe082');
+}
+
+// ---- album cards
+const CARDS = [
+  { k: 'virus', n: 'וירוס', e: 'virus', w: 'blood' }, { k: 'bacteria', n: 'חיידק', e: 'bacteria', w: 'blood' },
+  { k: 'sporozoite', n: 'ספורוזואיט', e: 'sporozoite', w: 'blood' }, { k: 'merozoite', n: 'מרוזואיט', e: 'merozoite', w: 'blood' },
+  { k: 'clot', n: 'קריש קטן', e: 'clot', w: 'heart' }, { k: 'ldl', n: 'LDL', e: 'cholesterol', w: 'heart' }, { k: 'plasmin', n: 'פלסמין', e: 'plasmin', w: 'heart', friend: true },
+  { k: 'dust', n: 'אבק', e: 'particle', w: 'lungs' }, { k: 'pollen', n: 'אבקן', e: 'particle', w: 'lungs' }, { k: 'soot', n: 'פיח', e: 'smoke', w: 'lungs' },
+  { k: 'fluv', n: 'וירוס שפעת', e: 'flu', w: 'lungs' }, { k: 'pneumo', n: 'פנאומוקוק', e: 'pneumococcus', w: 'lungs' },
+  { k: 'starch', n: 'עמילן', e: 'amylase', w: 'gut', friend: true }, { k: 'protein', n: 'חלבון', e: 'protease', w: 'gut', friend: true }, { k: 'fat', n: 'שומן', e: 'lipase', w: 'gut', friend: true },
+  { k: 'salm', n: 'סלמונלה', e: 'salmonella', w: 'gut' }, { k: 'hpylori', n: 'הליקובקטר', e: 'hpylori', w: 'gut' }, { k: 'fiber', n: 'סיב תזונתי', e: 'fiber', w: 'gut', friend: true },
+  { k: 'glu', n: 'גלוקוז', e: 'glucosuria', w: 'kidney', friend: true }, { k: 'urea', n: 'אוריאה', e: 'urea', w: 'kidney' }, { k: 'toxin', n: 'רעלן', e: 'toxin', w: 'kidney' },
+  { k: 'staph', n: 'סטפילוקוק', e: 'staph', w: 'skin' }, { k: 'fibrin', n: 'פיברין', e: 'fibrin', w: 'skin', friend: true },
+  { k: 'epo', n: 'EPO', e: 'epo', w: 'marrow', friend: true }, { k: 'gcsf', n: 'G-CSF', e: 'signals', w: 'marrow', friend: true },
+  { k: 'bbac', n: 'חיידק מול המחסום', e: 'bbb', w: 'brain' }, { k: 'nt', n: 'נוירוטרנסמיטר', e: 'synapse', w: 'brain', friend: true },
+];
+function cardThumb(k, size = 84, boss) {
+  const c = document.createElement('canvas'); c.width = size * 2; c.height = size * 2;
+  const keep = ctx; ctx = c.getContext('2d'); ctx.scale(2, 2);
+  try {
+    if (boss) { const B = BOSSES[k] || {}, r = B.r || 95, sc = size / (r * 2.9); ctx.translate(size / 2, size / 2); ctx.scale(sc, sc); drawBoss({ kind: k, x: 0, y: 0, t: 1, r, hp: 1, max: 1, hitCd: 0 }); }
+    else { const K = KINDS[k] || {}, r = K.r || 20, sc = Math.min(1.6, size / (r * 4)); ctx.translate(size / 2, size / 2); ctx.scale(sc, sc); drawEnemy({ kind: k, x: 0, y: 0, ph: 0, rot: 0, r, tag: false, top: true, sub: 'starch' }); }
+  } catch (_) {}
+  ctx = keep; return c;
+}
+let albumTab = 'cards', albumReturn = 'mapScreen';
+function openAlbum(from) { albumReturn = from; renderAlbum(); show('albumScreen'); }
+document.querySelectorAll('#albumTabs button').forEach(b => b.onclick = () => { albumTab = b.dataset.t; sfx.click(); renderAlbum(); });
+$('albumClose').onclick = () => { sfx.click(); if (albumReturn === 'mapScreen') openMap(); else show(albumReturn); };
+$('mapAlbum').onclick = () => { sfx.click(); openAlbum('mapScreen'); };
+function detail(title, text) { const d = $('albumDetail'); d.hidden = false; d.innerHTML = '<h3></h3><p></p>'; d.querySelector('h3').textContent = title; d.querySelector('p').textContent = text; sfx.click(); }
+function renderAlbum() {
+  document.querySelectorAll('#albumTabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === albumTab));
+  const box = $('albumGrid'); box.innerHTML = ''; $('albumDetail').hidden = true;
+  if (albumTab === 'cards') {
+    const bossCards = [...new Set(WORLDS.flatMap(w => w.levels.map(l => l.boss)))].filter(k => k && !(BOSSES[k] && BOSSES[k].noBump));
+    const have = CARDS.filter(c => seen.has(c.k)).length + bossCards.filter(k => unlocked.has(k)).length;
+    $('albumSub').textContent = `${have} מתוך ${CARDS.length + bossCards.length} קלפים. כל פתוגן שתחסלו בונה זיכרון חיסוני: עם הזמן חלק מהם יגיעו כבר מסומנים בנוגדנים. קלף עם מסגרת זהב: מצאתם זן נדיר.`;
+    for (const c of CARDS) {
+      const open = seen.has(c.k), b = document.createElement('button');
+      b.className = 'acard' + (open ? '' : ' locked') + (goldSeen.has(c.k) ? ' gold' : '');
+      if (open) {
+        b.appendChild(cardThumb(c.k));
+        const tier = PATHOGEN.has(c.k) ? memTier(c.k) : -1;
+        b.insertAdjacentHTML('beforeend', `<b></b><small class="mem"></small><small></small>`);
+        b.querySelector('b').textContent = c.n;
+        b.querySelector('.mem').textContent = tier >= 0 ? '★'.repeat(tier) + '☆'.repeat(3 - tier) : c.friend ? 'ידיד' : '';
+        b.querySelector('small:last-child').textContent = PATHOGEN.has(c.k) ? `חוסלו ${kc[c.k] || 0}` : WORLDS.find(w => w.id === c.w).name;
+        b.onclick = () => detail(c.n, `${(ENCY[c.e] || ['', ''])[1]}${tier >= 0 ? ` זיכרון חיסוני: ${tier}/3. ${tier ? `${tier * 10}% מהם מגיעים כבר מסומנים בנוגדנים, כמו אחרי חיסון.` : 'חסלו 10 כדי להתחיל לבנות זיכרון.'}` : ''}`);
+      } else { b.innerHTML = '<b>???</b><small></small>'; b.querySelector('small').textContent = `מסתתר ב: ${WORLDS.find(w => w.id === c.w).name}`; b.disabled = true; }
+      box.appendChild(b);
+    }
+    for (const k of bossCards) {
+      const open = unlocked.has(k), b = document.createElement('button'); b.className = 'acard' + (open ? '' : ' locked');
+      if (open) { b.appendChild(cardThumb(k, 84, true)); b.insertAdjacentHTML('beforeend', '<b></b><small>בוס</small>'); b.querySelector('b').textContent = (ENCY[k] || [k])[0]; b.onclick = () => detail((ENCY[k] || [k])[0], (ENCY[k] || ['', ''])[1]); }
+      else { b.innerHTML = '<b>???</b><small>בוס</small>'; b.disabled = true; }
+      box.appendChild(b);
+    }
+  } else if (albumTab === 'ach') {
+    $('albumSub').textContent = `${ACH.filter(a => ach.has(a.id)).length} מתוך ${ACH.length} הישגים`;
+    for (const a of ACH) {
+      const b = document.createElement('button'); b.className = 'acard' + (ach.has(a.id) ? ' gold' : ' locked');
+      b.innerHTML = '<span style="font-size:2rem"></span><b></b><small></small>';
+      b.querySelector('span').textContent = ach.has(a.id) ? a.ic : '🔒'; b.querySelector('b').textContent = a.n; b.querySelector('small').textContent = a.d;
+      b.onclick = () => detail(a.n, a.d);
+      box.appendChild(b);
+    }
+  } else {
+    $('albumSub').textContent = 'כובעים ואביזרים לתא שלכם. רק בשביל הכיף: הם לא משנים את היכולות.';
+    for (const h of HATS) {
+      const ok = h.ok(), b = document.createElement('button'); b.className = 'acard' + (ok ? '' : ' locked') + (hat === h.id ? ' gold' : '');
+      const c = document.createElement('canvas'); c.width = 168; c.height = 168;
+      const keep = ctx; ctx = c.getContext('2d'); ctx.scale(2, 2); circle(42, 50, 26, '#efe8f8', '#8a7aa0', 3); face(42, 50, 34, {}); drawHat(h.id, 42, 50, 26); ctx = keep;
+      b.appendChild(c); b.insertAdjacentHTML('beforeend', '<b></b><small></small>');
+      b.querySelector('b').textContent = h.n; b.querySelector('small').textContent = ok ? (hat === h.id ? 'עליכם עכשיו' : 'לחצו כדי ללבוש') : h.d;
+      if (ok) b.onclick = () => { hat = h.id; pset('bp4-hat', hat); sfx.right(); renderAlbum(); };
+      else b.disabled = true;
+      box.appendChild(b);
+    }
+  }
+}
+
+// ---- wardrobe: hats drawn above any hero
+let hat = pget('bp4-hat', 'none');
+const maxCellLevel = () => Math.max(...Object.keys(HEROES).map(cellLevel));
+const HATS = [
+  { id: 'none', n: 'בלי כלום', d: '', ok: () => true },
+  { id: 'party', n: 'כובע מסיבה', d: 'אספו 5 כוכבים', ok: () => totalStars() >= 5 },
+  { id: 'cap', n: 'כובע מצחייה', d: 'העלו תא כלשהו לרמה 3', ok: () => maxCellLevel() >= 3 },
+  { id: 'glasses', n: 'משקפי מדען', d: 'ענו נכון על 10 שאלות', ok: () => life.quizOk >= 10 },
+  { id: 'bow', n: 'פפיון', d: 'אספו 15 כוכבים', ok: () => totalStars() >= 15 },
+  { id: 'chef', n: 'כובע שף', d: 'סיימו את מערכת העיכול', ok: () => prog.done.gut != null },
+  { id: 'halo', n: 'הילה זהובה', d: 'מצאו 3 זנים נדירים', ok: () => life.gold >= 3 },
+  { id: 'crown', n: 'כתר', d: 'אספו 40 כוכבים', ok: () => totalStars() >= 40 },
+];
+function drawHat(id, x, y, r) {
+  const top = y - r * 0.92;
+  if (id === 'party') { ctx.fillStyle = '#ff6ab0'; ctx.strokeStyle = '#8a1a50'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - r * 0.4, top + 4); ctx.lineTo(x + r * 0.05, top - r * 0.9); ctx.lineTo(x + r * 0.45, top + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); circle(x + r * 0.05, top - r * 0.9, r * 0.12, '#ffe082'); for (let i = 0; i < 3; i++) circle(x - r * 0.2 + i * r * 0.2, top - r * 0.2 - i * r * 0.18, r * 0.06, '#7ad0ff'); }
+  else if (id === 'cap') { ctx.fillStyle = '#4a7ae0'; ctx.strokeStyle = '#1a3a8a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, top + r * 0.2, r * 0.48, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.ellipse(x + r * 0.45, top + r * 0.2, r * 0.38, r * 0.1, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+  else if (id === 'glasses') { ctx.strokeStyle = '#2a2a2a'; ctx.lineWidth = 3; const ey = y - r * 0.15; ctx.beginPath(); ctx.arc(x - r * 0.3, ey, r * 0.22, 0, 7); ctx.moveTo(x + r * 0.52, ey); ctx.arc(x + r * 0.3, ey, r * 0.22, 0, 7); ctx.moveTo(x - r * 0.08, ey); ctx.lineTo(x + r * 0.08, ey); ctx.stroke(); }
+  else if (id === 'bow') { ctx.fillStyle = '#e04a5a'; ctx.strokeStyle = '#7a1020'; ctx.lineWidth = 2; const by = y + r * 0.72; ctx.beginPath(); ctx.moveTo(x, by); ctx.lineTo(x - r * 0.35, by - r * 0.2); ctx.lineTo(x - r * 0.35, by + r * 0.2); ctx.closePath(); ctx.moveTo(x, by); ctx.lineTo(x + r * 0.35, by - r * 0.2); ctx.lineTo(x + r * 0.35, by + r * 0.2); ctx.closePath(); ctx.fill(); ctx.stroke(); circle(x, by, r * 0.09, '#ff8a9a', '#7a1020', 2); }
+  else if (id === 'chef') { ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#9a9a9a'; ctx.lineWidth = 2; ctx.fillRect(x - r * 0.35, top - r * 0.1, r * 0.7, r * 0.3); ctx.strokeRect(x - r * 0.35, top - r * 0.1, r * 0.7, r * 0.3); for (const dx of [-0.25, 0, 0.25]) { ctx.beginPath(); ctx.arc(x + dx * r, top - r * 0.25, r * 0.25, 0, 7); ctx.fill(); ctx.stroke(); } }
+  else if (id === 'halo') { ctx.strokeStyle = 'rgba(255, 220, 90, 0.95)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(x, top - r * 0.25, r * 0.45, r * 0.13, 0, 0, 7); ctx.stroke(); }
+  else if (id === 'crown') { ctx.fillStyle = '#ffd54f'; ctx.strokeStyle = '#8a6a00'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x - r * 0.4, top + 4); ctx.lineTo(x - r * 0.4, top - r * 0.35); ctx.lineTo(x - r * 0.2, top - r * 0.1); ctx.lineTo(x, top - r * 0.45); ctx.lineTo(x + r * 0.2, top - r * 0.1); ctx.lineTo(x + r * 0.4, top - r * 0.35); ctx.lineTo(x + r * 0.4, top + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); circle(x, top - r * 0.05, r * 0.07, '#e04a5a'); }
+}
+
+// ---- achievements
+const ach = new Set(pget('bp4-ach', []));
+const ACH = [
+  { id: 'patient', ic: '🧒', n: 'יש לי מטופל', d: 'נתתם שם למטופל שלכם' },
+  { id: 'firstboss', ic: '👑', n: 'הבוס הראשון', d: 'הבסתם בוס' },
+  { id: 'combo10', ic: '🔥', n: 'סערת ציטוקינים', d: 'הגעתם לקומבו x10' },
+  { id: 'stars3', ic: '⭐', n: 'שלושה כוכבים', d: 'שלב עם 3 כוכבים' },
+  { id: 'world3', ic: '🌟', n: 'עולם מושלם', d: 'כל השלבים בעולם אחד עם 3 כוכבים' },
+  { id: 'gold1', ic: '🪙', n: 'זן נדיר', d: 'מצאתם זן נדיר (פתוגן זהב)' },
+  { id: 'gold5', ic: '💰', n: 'אספנים', d: 'מצאתם 5 זנים נדירים' },
+  { id: 'untouched', ic: '🛡️', n: 'בלי שריטה', d: 'סיימתם שלב בלי שהמד ירד בכלל' },
+  { id: 'sites20', ic: '🧽', n: 'מנקים מקצועיים', d: 'ניקיתם 20 אזורים נגועים' },
+  { id: 'glutton', ic: '🍔', n: 'עיניים גדולות מהפגוזום', d: 'ניסיתם לבלוע 20 פעם עם פגוזום מלא' },
+  { id: 'lab1', ic: '🧪', n: 'מדענים', d: 'קניתם שדרוג ראשון במעבדה' },
+  { id: 'labmax', ic: '🏆', n: 'מעבדה מלאה', d: 'שדרגתם קו במעבדה עד הסוף' },
+  { id: 'lvl5', ic: '💪', n: 'תא ותיק', d: 'העליתם תא לרמה 5' },
+  { id: 'quiz2', ic: '🎓', n: 'מושלם בחידון', d: 'ענו נכון על שתי השאלות בחידון' },
+  { id: 'hard', ic: '💜', n: 'כוכב סגול', d: 'סיימתם שלב ברמת קושי קשה' },
+  { id: 'memory', ic: '🧠', n: 'זיכרון חיסוני', d: 'זיכרון מלא (3/3) לפתוגן אחד' },
+  { id: 'missions5', ic: '📋', n: 'משימתיים', d: 'השלמתם 5 משימות' },
+  { id: 'body', ic: '🫀', n: 'כל הגוף', d: 'סיימתם את כל 8 העולמות' },
+  { id: 'daily', ic: '📅', n: 'בדיקה יומית', d: 'השלמתם אתגר יומי' },
+  { id: 'days3', ic: '🗓️', n: 'שלושה ימי סיור', d: 'שיחקתם ב־3 ימים שונים' },
+];
+function achieve(id) {
+  if (ach.has(id) || !ACH.find(a => a.id === id)) return;
+  ach.add(id); pset('bp4-ach', [...ach]);
+  const a = ACH.find(a => a.id === id); toast(`הישג חדש: ${a.ic} ${a.n}`); sfx.rare(); gainAtp(10);
+}
+// ---- encyclopedia hints: which world each locked entry hides in
+function encyWorld(key) {
+  const keys = Object.keys(ENCY), own = k => { const w = WORLDS.find(w => w.levels.some(l => (l.entries || []).includes(k) || l.boss === k) || HEROES[k] && (w.hero === k || w.levels.some(l => l.hero === k))); return w; };
+  for (let i = keys.indexOf(key); i >= 0; i--) { const w = own(keys[i]); if (w) return w; }
+  return WORLDS[0];
+}
+
+Object.assign(META, {
+  onSpawn,
+  almostExtra(box) {
+    const next = HATS.find(h => !h.ok() && /כוכבים/.test(h.d));
+    if (next) { const need = +next.d.match(/\d+/)[0]; box.appendChild(pbar(`עוד ${need - totalStars()} כוכבים ל"${next.n}" בארון`, totalStars() / need)); }
+  },
+  onMap() {
+    renderPatientCard();
+    document.querySelectorAll('#bodySvg .organ').forEach((el, i) => {
+      const w = WORLDS[i]; if (!w || i > prog.open) return;
+      el.classList.toggle('healed', prog.done[w.id] != null); el.classList.toggle('sick', prog.done[w.id] == null);
+    });
+  },
+});
+const baseOnKill = META.onKill, baseOnBoss = META.onBoss, baseOnCombo = META.onCombo, baseOnSite = META.onSite, baseOnLab = META.onLab, baseOnQuiz = META.onQuiz, baseLevelDone = META.onLevelDone;
+Object.assign(META, {
+  onKill(e) {
+    baseOnKill(e);
+    kc[e.kind] = (kc[e.kind] || 0) + 1; life.kills++;
+    if ([10, 40, 120].includes(kc[e.kind]) && PATHOGEN.has(e.kind)) { toast(`זיכרון חיסוני ל${(CARDS.find(c => c.k === e.kind) || { n: e.kind }).n}: ${memTier(e.kind)}/3`); unlock('memory'); if (memTier(e.kind) === 3) achieve('memory'); }
+    if (life.kills % 10 === 0) { pset('bp4-kc', kc); saveLife(); }
+    if (e.gold) goldFound(e);
+  },
+  onBoss(b) { baseOnBoss(b); life.bosses++; saveLife(); achieve('firstboss'); },
+  onCombo(n) { baseOnCombo(n); if (n === 10) achieve('combo10'); },
+  onSite() { baseOnSite(); life.sites++; if (life.sites >= 20) achieve('sites20'); },
+  onLab() { baseOnLab(); achieve('lab1'); if (Object.values(lab).some(v => v >= 5)) achieve('labmax'); },
+  onQuiz(ok) { baseOnQuiz(ok); if (ok) { life.quizOk++; saveLife(); } },
+  onBounce() { life.bounces++; if (life.bounces >= 20) achieve('glutton'); },
+  onLevelDone(n, prev) {
+    baseLevelDone(n, prev);
+    pset('bp4-kc', kc); saveLife();
+    if (n === 3) achieve('stars3');
+    if (g.minFrac >= 0.999) achieve('untouched');
+    if (run.diff === 'hard') achieve('hard');
+    if (WD().levels.every((_, i) => starsOf(WD().id, i) % 10 === 3)) achieve('world3');
+    if (cellLevel(g.hero) >= 5) achieve('lvl5');
+  },
+});
 
 // ================= INPUT =================
 const keys = new Set();
@@ -2954,6 +3277,7 @@ function spawnEnemy(kind, x = W + 40, y = rnd(WALL + 40, H - WALL - 40), goal) {
   }
   e.vx = -e.sp;
   g.en.push(e);
+  META.onSpawn(e);
   return e;
 }
 function pickKind() {
@@ -3055,6 +3379,7 @@ function phagoBounce(e, dp) {
   const p = g.p, l = dp || 1;
   e.x = p.x + (e.x - p.x) / l * (radius() + e.r + 8); e.y = p.y + (e.y - p.y) / l * (radius() + e.r + 8);
   e.vx = (e.x - p.x) / l * 160; e.vy = (e.y - p.y) / l * 160;
+  META.onBounce();
   if (g.t - (g.fullMsg || -9) > 2) { g.fullMsg = g.t; addText(p.x, p.y - 80, 'הפגוזום מלא! מעכלים...', '#ffcc80'); META.say('full'); unlock('phagosome'); }
 }
 function hurtBlood(n, why, x, y, color = '#ffd54f') {
@@ -3148,7 +3473,7 @@ function renderEncy() {
     if (unlocked.has(k)) {
       b.innerHTML = `<b></b>`; b.querySelector('b').textContent = ENCY[k][0];
       b.onclick = () => { $('encyDetail').innerHTML = '<h3></h3><p></p>'; $('encyDetail').querySelector('h3').textContent = ENCY[k][0]; $('encyDetail').querySelector('p').textContent = ENCY[k][1]; sfx.click(); };
-    } else { b.innerHTML = '<b>???</b>טרם נפתח'; b.disabled = true; }
+    } else { const w = encyWorld(k); b.innerHTML = '<b>???</b><small></small>'; b.querySelector('small').textContent = `מסתתר ב: ${w.icon} ${w.name}`; b.disabled = true; }
     grid.appendChild(b);
   });
 }
@@ -3242,7 +3567,9 @@ function finishLevel() {
   show('doneScreen');
 }
 let quizSet = [], quizI = 0;
+let quizRight = 0;
 function startQuiz() {
+  quizRight = 0;
   const pool = WD().quiz.map((q, i) => i).sort(() => Math.random() - 0.5);
   quizSet = pool.slice(0, 2); quizI = 0; renderQuiz(); show('quizScreen'); state = 'quiz';
 }
@@ -3255,7 +3582,7 @@ function renderQuiz() {
     const b = document.createElement('button'); b.textContent = o;
     b.onclick = () => {
       [...box.children].forEach(c => { c.disabled = true; if (c.dataset.ok === '1') c.classList.add('right'); });
-      if (ok) { run.score += 300; sfx.right(); META.onQuiz(true); $('quizFb').textContent = `נכון! +300 ו־5 ATP. ${expl}`; }
+      if (ok) { run.score += 300; sfx.right(); META.onQuiz(true); if (++quizRight === 2) achieve('quiz2'); $('quizFb').textContent = `נכון! +300 ו־5 ATP. ${expl}`; }
       else { b.classList.add('wrong'); sfx.wrong(); $('quizFb').textContent = `לא בדיוק. ${expl}`; }
       $('quizNext').hidden = false; $('quizNext').focus();
     };
@@ -3288,7 +3615,9 @@ function winGame() {
   store.set('bp3-prog', prog);
   $('winTitle').textContent = last ? 'כל הגוף נחקר!' : `העולם "${wd.name}" הושלם!`;
   $('winLine').textContent = last ? 'עברתם בכל הגוף: מהדם ועד המוח. עכשיו אתם יודעים איך הצוות הענק הזה עובד יחד!' : wd.win;
-  $('winNext').textContent = last ? '' : `נפתח עולם חדש במפת הגוף: ${WORLDS[run.world + 1].icon} ${WORLDS[run.world + 1].name}`;
+  if (patient) $('winNext').dataset.thanks = `${patient.name}: "תודה! ${wd.thanks || `ה${wd.name.replace(/^ה/, '')} שלי ${GF('מרגיש', 'מרגישה')} הרבה יותר טוב`}" `;
+  if (WORLDS.every(w => prog.done[w.id] != null)) achieve('body');
+  $('winNext').textContent = (patient ? $('winNext').dataset.thanks : '') + (last ? '' : `נפתח עולם חדש במפת הגוף: ${WORLDS[run.world + 1].icon} ${WORLDS[run.world + 1].name}`);
   $('winScore').textContent = run.score.toLocaleString(); $('winBest').textContent = best.toLocaleString();
   if (!last) mapSel = run.world + 1;
   show('winScreen'); sfx.bossDown();
@@ -3339,7 +3668,10 @@ function renderMap() {
   if (META.onMap) META.onMap();
   $('mapUnlock').hidden = prog.open >= WORLDS.length - 1;
 }
-function openMap() { state = 'map'; renderMap(); show('mapScreen'); }
+function openMap() {
+  if (!patient) { state = 'patient'; patDraft = { look: 0, kind: 'girl' }; renderPatientForm(); show('patientScreen'); return; }
+  state = 'map'; renderMap(); show('mapScreen');
+}
 
 $('toSelect').onclick = () => { initAudio(); sfx.click(); openMap(); };
 $('toEncy').onclick = () => { sfx.click(); openEncy('titleScreen'); };
@@ -3740,12 +4072,12 @@ function genericEnemy(e, K, dt, rad, dp, fl) {
     e.y = Math.max(WALL + e.r * 0.6, Math.min((g.ymax || H - WALL) - e.r * 0.6, e.y));
     if (!K.noRot) e.rot = Math.atan2(e.vy, e.vx - 30 * fl);
   }
-  if (K.tick) { K.tick(e, dt, rad); if (e.dead) return; }
+  if (K.tick && !(e.tag && K.touch === 'eat')) { K.tick(e, dt, rad); if (e.dead) return; } // antibody-tagged pathogens can't infect or divide
   if (dp < rad + e.r + 4) {
     const t = typeof K.touch === 'function' ? K.touch(e, rad, dp) : K.touch;
     if (t === 'eat') { if (phagoFull()) phagoBounce(e, dp); else { eat(e); if (K.onEat) K.onEat(e); return; } }
-    if (t === 'collect') { e.dead = true; K.onCollect(e); return; }
-    if (t === 'push' && e.pushT < 0.6) push(e, rad, dp);
+    if (t === 'collect') { e.dead = true; K.onCollect(e); if (e.gold) goldFound(e); return; }
+    if (t === 'push' && e.pushT < 0.6) { push(e, rad, dp); if (e.gold) goldFound(e); }
     else if (t === 'hazard' && e.hitCd <= 0) {
       e.hitCd = 0.8; knock(e, dp);
       if (K.onHit) K.onHit(e); else hurtBlood(K.dmg || 3, K.hitText || 'אאוץ׳!', p.x, p.y - 50, '#ff8a80');
@@ -3835,6 +4167,10 @@ function drawSite(s) {
   }
 }
 function drawEnemy(e) {
+  if (e.gold || e.elite) { drawRare(e, () => drawEnemyBody(e)); return; }
+  drawEnemyBody(e);
+}
+function drawEnemyBody(e) {
   if (KINDS[e.kind]) KINDS[e.kind].draw(e);
   else if (e.kind === 'virus') sprite(img.virus, Math.floor(g.t * 10 + e.ph), e.x, e.y, 72);
   else {
@@ -4026,6 +4362,7 @@ function draw() {
   }
 
   drawPhago(p, rad);
+  if (hat !== 'none' && g.exiting < 0) drawHat(hat, p.x, p.y - (hero.draw ? 0 : rad * 0.05), rad * (hero.draw ? 0.95 : 0.85));
   if (mech && mech.drawFront) mech.drawFront();
   // chemotaxis arrow toward the nearest alarm signal
   if (state === 'play') {
@@ -4119,7 +4456,7 @@ function hud() {
   ctx.save(); ctx.translate(380, 32); ctx.scale(bump, bump); ctx.font = `28px ${FONT_D}`;
   ctx.strokeText(sc, 0, 9); ctx.fillStyle = g.scoreBump > 0.5 ? '#ffe082' : '#fff6ee'; ctx.fillText(sc, 0, 9); ctx.restore();
   ctx.font = `600 13px ${FONT_B}`; ctx.fillStyle = '#ffe082'; ctx.textAlign = 'center'; ctx.direction = 'ltr';
-  ctx.fillText(`⚡ ${Math.round(g.atp)} ATP`, 470, 36); ctx.direction = 'rtl';
+  ctx.fillText(`⚡ ${Math.round(g.atp)} ATP`, 250, 88); ctx.direction = 'rtl';
   if (g.combo > 1 && g.comboT > 0) {
     ctx.font = `${18 + g.combo * 1.5}px ${FONT_D}`; ctx.lineWidth = 5;
     ctx.strokeText(`x${g.combo}`, 380, 72); ctx.fillStyle = g.combo >= 5 ? '#ffe082' : '#fff6ee'; ctx.fillText(`x${g.combo}`, 380, 72);
