@@ -168,6 +168,24 @@ canvas { display: block; width: 100%; height: 100%; }
 .pbar { display: grid; gap: 3px; text-align: start; font-size: clamp(0.7rem, 1.4vw, 0.85rem); color: var(--ink); }
 .pbar i { display: block; height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
 .pbar i b { display: block; height: 100%; background: linear-gradient(90deg, #8a76c4, #ffe082); border-radius: 4px; }
+.maphead { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.chips { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.chip { font-family: var(--display); font-size: clamp(0.8rem, 1.8vw, 1rem); background: rgba(255,255,255,.07); border: 1px solid rgba(255,224,130,.5); border-radius: 999px; padding: 2px 10px; color: #ffe082; white-space: nowrap; }
+.missions { display: grid; gap: 4px; font-size: clamp(0.7rem, 1.4vw, 0.82rem); text-align: start; }
+.missions:empty { display: none; }
+.missions .m { display: grid; gap: 2px; background: rgba(255,255,255,.04); border-radius: 10px; padding: 4px 8px; }
+.missions .m i { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.missions .m i b { display: block; height: 100%; background: #9be59b; }
+.labgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; }
+@media (max-width: 640px) { .labgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.lab { display: grid; gap: 6px; justify-items: center; padding: 10px 8px; background: rgba(255,255,255,.04); border: 2px solid rgba(180,154,232,.35); border-radius: 16px; min-width: 0; }
+.lab .ic { font-size: 1.6rem; }
+.lab b { font-family: var(--display); font-weight: 400; font-size: clamp(0.9rem, 1.8vw, 1.1rem); }
+.lab small { color: var(--muted); font-size: clamp(0.66rem, 1.3vw, 0.78rem); line-height: 1.35; }
+.pips { display: flex; gap: 4px; }
+.pips span { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #ffe082; }
+.pips span.on { background: #ffe082; }
+.lab .btn { font-size: clamp(0.8rem, 1.7vw, 1rem); padding: 5px 14px; }
 @media (prefers-reduced-motion: reduce) { .brain-idle, .brain-hurt, .wbc { animation-duration: 3s; } }
 </style>
 
@@ -200,17 +218,19 @@ canvas { display: block; width: 100%; height: 100%; }
     <!-- body map: world select -->
     <div class="overlay" id="mapScreen" hidden>
       <div class="card wide map-card">
-        <h2>מפת הגוף</h2>
+        <div class="maphead"><h2>מפת הגוף</h2><span class="chips" id="mapChips"></span></div>
         <div class="map">
           <svg class="body" id="bodySvg" viewBox="0 0 200 400" role="img" aria-label="מפת גוף האדם"></svg>
           <div class="map-side">
             <div class="worlds" id="worldPicks"></div>
             <div class="route" id="mapRoute"></div>
+            <div class="missions" id="mapMissions"></div>
           </div>
         </div>
         <div class="row">
           <button class="btn ghost" id="mapBack">חזרה</button>
           <button class="btn ghost" id="mapEncy">אנציקלופדיה</button>
+          <button class="btn ghost" id="mapLab">מעבדה ⚡</button>
           <button class="btn" id="mapGo">לעולם הזה</button>
         </div>
         <button class="linkish" id="mapUnlock">פתיחת כל העולמות (להורים ולמורים)</button>
@@ -305,6 +325,7 @@ canvas { display: block; width: 100%; height: 100%; }
           <div class="sprite brain-hurt" role="img" aria-label="המוח מסוחרר"></div>
           <div class="speech" id="overLine">אוי! הזיהום התפשט.</div>
         </div>
+        <p id="overJoke"></p>
         <h2>הסיור נכשל</h2>
         <div class="stats">
           <div><small>ניקוד</small><span id="finalScore">0</span></div>
@@ -314,6 +335,7 @@ canvas { display: block; width: 100%; height: 100%; }
         <div class="row">
           <button class="btn" id="retryBtn">נסו שוב את השלב</button>
           <button class="btn ghost" id="overMenu">לתפריט</button>
+          <button class="btn ghost" id="overLab">מעבדה ⚡</button>
         </div>
       </div>
     </div>
@@ -333,7 +355,19 @@ canvas { display: block; width: 100%; height: 100%; }
         <div class="row">
           <button class="btn" id="winMenu">למפת הגוף</button>
           <button class="btn ghost" id="winEncy">אנציקלופדיה</button>
+          <button class="btn ghost" id="winLab">מעבדה ⚡</button>
         </div>
+      </div>
+    </div>
+
+    <!-- lab: permanent upgrades bought with ATP -->
+    <div class="overlay" id="labScreen" hidden>
+      <div class="card wide">
+        <h2>המעבדה</h2>
+        <p>כאן משקיעים ATP, מטבע האנרגיה של התא, בשדרוגים שנשארים לתמיד, בכל העולמות.</p>
+        <div class="chips" id="labAtp"></div>
+        <div class="labgrid" id="labGrid"></div>
+        <button class="btn" id="labClose">חזרה</button>
       </div>
     </div>
 
@@ -375,7 +409,8 @@ const store = {
 };
 let best = store.get('bp2-best', 0);
 // meta-progression hooks: no-ops here, filled in by the META section further down
-const META = { onAction() {}, onKill() {}, onCombo() {}, onSite() {}, onBoss() {}, onLevelDone() {}, say() {}, labLv: () => 0, speedMul: () => 1 };
+const EXTRA_SCREENS = []; // overlay ids added by later sections
+const META = { onAction() {}, onKill() {}, onCombo() {}, onSite() {}, onBoss() {}, onLevelDone() {}, onStart() {}, say() {}, labLv: () => 0, speedMul: () => 1 };
 const unlocked = new Set(store.get('bp2-ency', []));
 
 // ================= CONTENT =================
@@ -588,7 +623,7 @@ function stopMusic() { musicOn = false; clearInterval(musicTimer); }
 // ================= SPRITES =================
 const SHEETS = {
   wbcIdle: ['white_blood_cell_idle', 8], wbcAttack: ['white_blood_cell_attack', 6],
-  virus: ['virus_idle', 8], pop: ['virus_pop', 5], rbc: ['red_blood_cell_float', 8],
+  virus: ['virus_idle', 8], pop: ['virus_pop', 5], rbc: ['red_blood_cell_float', 8], brain: ['brain_hero_idle', 6],
 };
 const img = {};
 const loads = Object.entries(SHEETS).map(([k, [file, frames]]) => new Promise(res => {
@@ -2612,6 +2647,204 @@ function showStars(n, hard) {
   box.setAttribute('aria-label', `${n} כוכבים מתוך 3`);
 }
 
+// ---- ATP: the energy currency. Earned by playing, spent in the lab on permanent upgrades.
+let atp = pget('bp4-atp', 0), lab = pget('bp4-lab', {}), xp = pget('bp4-xp', {});
+const LAB = [
+  { id: 'move', ic: '🦵', name: 'שלד אקטין', desc: 'פסאודופודים חזקים יותר: מהירות +5% לכל דרגה' },
+  { id: 'dig', ic: '🫧', name: 'ליזוזומים', desc: 'עיכול מהיר ב־8% לכל דרגה, ובדרגות 2 ו־4 עוד מקום בפגוזום' },
+  { id: 'abil', ic: '🔋', name: 'מיטוכונדריה', desc: 'היכולת נטענת מהר ב־6% לכל דרגה' },
+  { id: 'heal', ic: '🩹', name: 'גורמי גדילה', desc: 'התאוששות +15% ומקסימום המד +5 לכל דרגה' },
+];
+const LAB_COST = [20, 45, 80, 130, 200];
+const XPL = [0, 25, 60, 110, 180, 270, 380, 510, 660, 830];
+const cellLevel = k => XPL.filter(v => (xp[k] || 0) >= v).length;
+function gainAtp(n, x, y) {
+  if (!n) return;
+  if (g && state === 'play') { g.atp += n; if (x != null) addText(x, y, `+${n} ATP`, '#ffe082'); }
+  else { atp += n; pset('bp4-atp', atp); }
+}
+function bankAtp() { // move what this level earned into the wallet and the hero's XP
+  const n = Math.round(g.atp); g.atp = 0;
+  atp += n; xp[g.hero] = (xp[g.hero] || 0) + n;
+  pset('bp4-atp', atp); pset('bp4-xp', xp);
+  return n;
+}
+function cheapestLab() {
+  let best = null;
+  for (const L of LAB) { const lv = lab[L.id] || 0; if (lv < 5 && (!best || LAB_COST[lv] < best.cost)) best = { L, cost: LAB_COST[lv] }; }
+  return best;
+}
+function renderLab() {
+  $('labAtp').innerHTML = `<span class="chip">⚡ ${atp} ATP</span>`;
+  const box = $('labGrid'); box.innerHTML = '';
+  for (const L of LAB) {
+    const lv = lab[L.id] || 0, cost = LAB_COST[lv], d = document.createElement('div'); d.className = 'lab';
+    d.innerHTML = `<span class="ic"></span><b></b><small></small><span class="pips">${[0, 1, 2, 3, 4].map(i => `<span class="${i < lv ? 'on' : ''}"></span>`).join('')}</span><button class="btn"></button>`;
+    d.querySelector('.ic').textContent = L.ic; d.querySelector('b').textContent = L.name; d.querySelector('small').textContent = L.desc;
+    const b = d.querySelector('button');
+    if (lv >= 5) { b.textContent = 'מלא'; b.disabled = true; }
+    else {
+      b.textContent = `${cost} ATP`; b.disabled = atp < cost;
+      b.onclick = () => { if (atp < cost) return; atp -= cost; lab[L.id] = lv + 1; pset('bp4-atp', atp); pset('bp4-lab', lab); sfx.coin(); sfx.right(); META.onLab(); renderLab(); };
+    }
+    box.appendChild(d);
+  }
+}
+let labReturn = 'mapScreen';
+function openLab(from) { labReturn = from; renderLab(); show('labScreen'); }
+$('labClose').onclick = () => { sfx.click(); if (labReturn === 'mapScreen') openMap(); else show(labReturn); };
+$('mapLab').onclick = () => { sfx.click(); openLab('mapScreen'); };
+$('overLab').onclick = () => { sfx.click(); openLab('overScreen'); };
+$('winLab').onclick = () => { sfx.click(); openLab('winScreen'); };
+
+// ---- missions: always three small goals open; finishing one brings a new one
+const MISSIONS = [
+  { id: 'kills', ev: 'kill', ns: [25, 50, 90], text: n => `חסלו ${n} פולשים`, atp: 25 },
+  { id: 'acts', ev: 'act', ns: [60, 120, 200], text: n => `בצעו ${n} פעולות טובות`, atp: 25 },
+  { id: 'combo', ev: 'combo', max: true, ns: [5, 8, 10], text: n => `הגיעו לקומבו x${n}`, atp: 20 },
+  { id: 'stars3', ev: 'stars3', ns: [1, 2], text: n => n > 1 ? `השיגו 3 כוכבים ב־${n} שלבים` : 'השיגו 3 כוכבים בשלב', atp: 35 },
+  { id: 'sites', ev: 'site', ns: [4, 8], text: n => `נקו ${n} אזורים נגועים`, atp: 25 },
+  { id: 'boss', ev: 'boss', ns: [1, 3], text: n => n > 1 ? `הביסו ${n} בוסים` : 'הביסו בוס', atp: 30 },
+  { id: 'quiz', ev: 'quiz', ns: [3, 6], text: n => `ענו נכון על ${n} שאלות בחידון`, atp: 20 },
+  { id: 'gold', ev: 'gold', ns: [1], text: () => 'מצאו פתוגן זהב נדיר', atp: 40 },
+  { id: 'lab', ev: 'lab', ns: [1], text: () => 'קנו שדרוג במעבדה', atp: 15 },
+  { id: 'world', ev: 'worldnew', ns: [1], text: () => 'שחקו בעולם שעוד לא סיימתם', atp: 30 },
+];
+let missions = pget('bp4-mis', null);
+function newMission(exclude) {
+  const pool = MISSIONS.filter(m => !exclude.includes(m.id));
+  const m = pool[Math.floor(Math.random() * pool.length)];
+  return { id: m.id, n: m.ns[Math.floor(Math.random() * m.ns.length)], have: 0 };
+}
+if (!Array.isArray(missions) || missions.length !== 3) { missions = []; for (let i = 0; i < 3; i++) missions.push(newMission(missions.map(m => m.id))); pset('bp4-mis', missions); }
+const missionDef = m => MISSIONS.find(d => d.id === m.id);
+function missionEvent(ev, v = 1) {
+  let changed = false;
+  missions.forEach((m, i) => {
+    const d = missionDef(m); if (!d || d.ev !== ev) return;
+    m.have = d.max ? Math.max(m.have, v) : m.have + v; changed = true;
+    if (m.have >= m.n) {
+      toast(`משימה הושלמה: ${d.text(m.n)} (+${d.atp} ATP)`); sfx.rare();
+      gainAtp(d.atp, g && state === 'play' ? g.p.x : null, g ? g.p.y - 110 : 0);
+      missions[i] = newMission(missions.map(x => x.id));
+    }
+  });
+  if (changed) pset('bp4-mis', missions);
+}
+function renderMissions(box) {
+  box.innerHTML = '<b>משימות פתוחות</b>';
+  for (const m of missions) {
+    const d = missionDef(m), el = document.createElement('div'); el.className = 'm';
+    el.innerHTML = '<span></span><i><b></b></i>';
+    el.querySelector('span').textContent = `${d.text(m.n)} · ${Math.min(m.have, m.n)}/${m.n} · +${d.atp} ATP`;
+    el.querySelector('b').style.width = `${Math.min(100, m.have / m.n * 100)}%`;
+    box.appendChild(el);
+  }
+}
+
+// ---- the brain narrates: short lines on events, with a cooldown so it never nags
+const SAY = {
+  start: ['יאללה, לעבודה!', 'אני סומך עליכם, סיירת!', 'מה יש לנו היום? בואו נגלה.', 'נשימה עמוקה... ויוצאים!'],
+  wave: ['גל הושלם! הגוף אומר תודה.', 'יפה! ועכשיו הגל הבא.', 'אתם תותחים. או ליתר דיוק: פגוציטים.'],
+  combo: ['וואו, איזו שרשרת!', 'הציטוקינים משתוללים!', 'זה כבר מופע!', 'אפשר לקבל חתימה?'],
+  low: ['אוי, זה דגדג... ולא בקטע טוב.', 'מהר! הגוף צריך אתכם.', 'אני מתחיל להרגיש לא טוב...', 'אולי כדאי לנקות את הזיהום?'],
+  boss: ['מה זה הדבר הענק הזה?!', 'בוס! זכרו: תסתכלו על הרמז.', 'הוא נראה כועס. אז מה.'],
+  bossAngry: ['הוא התעצבן! תזוזו מהקו האדום!', 'זהירות, הסתערות!'],
+  bossDown: ['ניצחון! אני רוקד מבפנים.', 'בום! הגוף נקי.', 'זה היה אפי!'],
+  infect: ['אוי, משהו נדבק לדופן!', 'זיהום! החץ הצהוב יראה לכם לאן.', 'נקו את זה לפני שזה מתפשט!'],
+  full: ['התא מלא! תנו לליזוזום לעבוד רגע.', 'לאט לאט, תעכלו קודם.'],
+  gold: ['פתוגן זהב! נדיר מאוד!', 'וואו, ראיתם את הנצנוץ?'],
+  first: ['ביס ראשון! טעים?', 'הנה, ככה בולעים!'],
+};
+const BOSS_SAY = {
+  cluster: ['אנחנו הרבה, אתם אחד!', 'לא! התפרקנו!'], colony: ['הביופילם שלנו בלתי חדיר!', 'אוי, המעיל שלנו!'],
+  schizont: ['עוד רגע אני מתפוצץ במרוזואיטים!', 'נעצרתי בכבד...'], rosette: ['כולם נדבקים אליי!', 'התפזרנו...'],
+  thrombus: ['אני סוגר פה את הכביש!', 'פלסמין... החולשה שלי...'], smoke: ['פוף! אני משתק לכם את הריסים!', 'קח־קח... יצאתי.'],
+  pneumo: ['לקופסית שלי אי אפשר להיצמד!', 'בולעים אותנו?!'], bolus: ['לעסו אותי אם אתם יכולים!', 'נלעסתי...'],
+  hpcolony: ['האמוניה שלי מגינה עליי!', 'החומצה ניצחה...'], fatglob: ['אני גדולה מדי בשבילכם!', 'אמולסיה? לא!!'],
+  salminv: ['באנו מביצה לא מבושלת!', 'החיידקים הטובים... ניצחו...'], stone: ['אני אבן! אי אפשר להזיז אבן!', 'נשטפתי...'],
+  bigcut: ['החתך הזה לא ייסגר!', 'נסגרתי...'], staphcol: ['העור שלכם? עכשיו שלנו!', 'מוגלה... זה הסוף שלנו.'],
+  toxcloud: ['תכניסו אותי למוח!', 'המחסום... עצר אותי...'],
+};
+function say(ev, force) {
+  if (!g || state !== 'play') return;
+  if (!force && g.t - (g.sayAt ?? -99) < 7) return;
+  const pool = SAY[ev]; if (!pool) return;
+  g.sayAt = g.t; g.sayText = pool[Math.floor(Math.random() * pool.length)]; g.sayT = 3.2;
+}
+function drawNarrator() {
+  if (!(g.sayT > 0)) return;
+  const a = Math.min(1, g.sayT * 2, (3.2 - g.sayT) * 6), x = 22, y = 98;
+  ctx.globalAlpha = a;
+  sprite(img.brain, Math.floor(g.t * 8), x + 34, y + 30, 70);
+  ctx.font = `600 15px ${FONT_B}`; ctx.direction = 'rtl'; ctx.textAlign = 'right';
+  const w = Math.min(360, ctx.measureText(g.sayText).width + 26);
+  ctx.fillStyle = 'rgba(255, 246, 238, 0.95)'; roundRect(x + 70, y + 8, w, 34, 14); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x + 72, y + 24); ctx.lineTo(x + 62, y + 32); ctx.lineTo(x + 76, y + 32); ctx.fill();
+  ctx.fillStyle = '#3a1a26'; ctx.fillText(g.sayText, x + 70 + w - 13, y + 31);
+  ctx.globalAlpha = 1;
+}
+function drawBossSay() {
+  const b = g.boss; if (!b || !(b.sayT > 0) || b.y < 0) return;
+  ctx.globalAlpha = Math.min(1, b.sayT * 2);
+  ctx.font = `600 16px ${FONT_B}`; ctx.direction = 'rtl'; ctx.textAlign = 'center';
+  const w = ctx.measureText(b.sayText).width + 26, bx = Math.min(W - w / 2 - 10, Math.max(w / 2 + 10, b.x)), by = Math.max(70, b.y - b.r - 50);
+  ctx.fillStyle = 'rgba(40, 10, 10, 0.9)'; roundRect(bx - w / 2, by - 22, w, 34, 14); ctx.fill();
+  ctx.strokeStyle = '#ff8a80'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#ffd6d0'; ctx.fillText(b.sayText, bx, by);
+  ctx.globalAlpha = 1;
+}
+const LOSE_JOKES = ['המטופל קיבל נזלת. אפצ׳י! נסו שוב.', 'המוח מבקש הפסקת שוקו ואז עוד ניסיון.', 'גם תאי חיסון מפסידים לפעמים. בגלל זה יש זיכרון חיסוני!', 'הגוף חזק: הוא ייתן לכם עוד הזדמנות.', 'אל דאגה, הכדוריות האדומות כבר מגישות מרק עוף.'];
+
+Object.assign(META, {
+  labLv: k => lab[k] || 0,
+  speedMul: () => 1 + 0.015 * (cellLevel(g ? g.hero : run.type) - 1),
+  onAction() { if (g && state === 'play') { g.atp += 0.35; missionEvent('act'); } },
+  onKill(e) {
+    g.stats.kills++; missionEvent('kill');
+    if (g.stats.kills === 1) say('first', true);
+    if (e.host && !e.host.dead) addText(e.host.x, e.host.y - 44, ['תודה!', 'הצלתם אותי!', 'פיו!'][Math.floor(Math.random() * 3)], '#ffd6e0');
+  },
+  onCombo(n) { missionEvent('combo', n); say('combo', n === 10); if (n === 10) gainAtp(5); },
+  onSite() { g.stats.sites++; g.atp += 1; missionEvent('site'); },
+  onBoss(b) {
+    gainAtp(15, b.x, b.y - 60); missionEvent('boss'); say('bossDown', true);
+    const l = BOSS_SAY[b.kind]; if (l) { b.sayText = l[1]; b.sayT = 2.5; g.lastBossSay = { x: b.x, y: b.y, text: l[1], t: 2.5 }; }
+  },
+  onLab() { missionEvent('lab'); },
+  onStart() { say('start', true); if (run.level === 0 && prog.done[WD().id] == null) missionEvent('worldnew'); },
+  onQuiz(ok) { if (ok) { gainAtp(5); missionEvent('quiz'); } },
+  say,
+  onLevelDone(n, prev) {
+    const gained = bankAtp(), starBonus = Math.max(0, n - prev) * 10 + 5;
+    atp += starBonus; pset('bp4-atp', atp); xp[g.hero] = (xp[g.hero] || 0) + starBonus; pset('bp4-xp', xp);
+    if (n === 3) missionEvent('stars3');
+    $('doneAtpBox').hidden = false; $('doneAtp').textContent = `${gained + starBonus}`;
+    renderAlmost($('doneAlmost'));
+  },
+  onGameOver() {
+    const n = bankAtp();
+    $('overJoke').textContent = `${LOSE_JOKES[Math.floor(Math.random() * LOSE_JOKES.length)]} ${n ? `שמרתם ${n} ATP.` : ''}`;
+  },
+});
+// "almost there" bars: the next lab upgrade, the hero's next level and the closest mission
+function pbar(text, frac) {
+  const d = document.createElement('div'); d.className = 'pbar';
+  d.innerHTML = '<span></span><i><b></b></i>'; d.querySelector('span').textContent = text;
+  d.querySelector('b').style.width = `${Math.max(3, Math.min(100, frac * 100))}%`;
+  return d;
+}
+function renderAlmost(box) {
+  box.innerHTML = '';
+  const c = cheapestLab();
+  if (c) box.appendChild(pbar(atp >= c.cost ? `יש לכם מספיק ATP לשדרוג "${c.L.name}" במעבדה!` : `עוד ${c.cost - atp} ATP לשדרוג "${c.L.name}" במעבדה`, atp / c.cost));
+  const k = g ? g.hero : run.type, lv = cellLevel(k);
+  if (lv < XPL.length) { const lo = XPL[lv - 1], hi = XPL[lv]; box.appendChild(pbar(`${HEROES[k].name}: רמה ${lv}, עוד ${hi - (xp[k] || 0)} XP לרמה ${lv + 1}`, ((xp[k] || 0) - lo) / (hi - lo))); }
+  const m = [...missions].sort((a, b) => b.have / b.n - a.have / a.n)[0];
+  if (m) box.appendChild(pbar(`משימה: ${missionDef(m).text(m.n)} (${Math.min(m.have, m.n)}/${m.n})`, m.have / m.n));
+  if (META.almostExtra) META.almostExtra(box);
+}
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
@@ -2670,7 +2903,7 @@ function newLevel() {
     hero: heroKey(), flow: lv.flow ?? 90, pickT: 3, ymax: lv.ymax,
     t: 0, scroll: 0, wave: 1, waveT: 0, phase: 'waves', banner: 2.6, bannerText: `גל 1`, bannerSub: lv.goal.split('.')[0],
     shake: 0, score: run.score, kills: run.kills, combo: 0, comboT: 0,
-    maxBlood: 100 + 20 * up('maxb'), blood: 100 + 20 * up('maxb'), bloodCalm: 0,
+    maxBlood: 100 + 20 * up('maxb') + 5 * META.labLv('heal'), blood: 100 + 20 * up('maxb') + 5 * META.labLv('heal'), bloodCalm: 0, atp: 0,
     spawnT: 1.5, rbcT: 0, rbcCount: 0, temp: 37, feverSeen: false, arrowSeen: false,
     p: { x: 230, y: H / 2, vx: 0, vy: 0, face: 1, chomp: -1, abilT: 0, charge: 999, shotT: 0 },
     en: [], rbcs: [], plts: [], allies: [], sites: [], shots: [], pops: [], texts: [], dots: [], trail: [], cyto: [], bg: [],
@@ -2736,6 +2969,7 @@ function spawnBoss() {
   if (B && B.init) B.init(g.boss);
   unlock(lv.boss);
   sfx.boss();
+  const bl = BOSS_SAY[lv.boss]; if (bl) { g.boss.sayText = bl[0]; g.boss.sayT = 3.5; } else META.say('boss', true);
 }
 
 // ================= SCORING / EVENTS =================
@@ -2821,7 +3055,7 @@ function phagoBounce(e, dp) {
   const p = g.p, l = dp || 1;
   e.x = p.x + (e.x - p.x) / l * (radius() + e.r + 8); e.y = p.y + (e.y - p.y) / l * (radius() + e.r + 8);
   e.vx = (e.x - p.x) / l * 160; e.vy = (e.y - p.y) / l * 160;
-  if (g.t - (g.fullMsg || -9) > 2) { g.fullMsg = g.t; addText(p.x, p.y - 80, 'הפגוזום מלא! מעכלים...', '#ffcc80'); }
+  if (g.t - (g.fullMsg || -9) > 2) { g.fullMsg = g.t; addText(p.x, p.y - 80, 'הפגוזום מלא! מעכלים...', '#ffcc80'); META.say('full'); unlock('phagosome'); }
 }
 function hurtBlood(n, why, x, y, color = '#ffd54f') {
   g.blood -= n * D().dmg; g.bloodCalm = 0;
@@ -2830,7 +3064,7 @@ function hurtBlood(n, why, x, y, color = '#ffd54f') {
 function makeSite(kind, x, top) {
   g.sites.push({ kind, x, top, t: 0, emitT: kind === 'vessel' ? 2 : 0, clr: 0 });
   hurtBlood(kind === 'vessel' ? 5 : 4, kind === 'vessel' ? 'הדופן נדבקה!' : 'תא כבד נדבק!', x, wallY(top) + (top ? 40 : -40), '#c5e17a');
-  g.shake = 0.15; sfx.infect();
+  g.shake = 0.15; sfx.infect(); META.say('infect');
   unlock(kind === 'vessel' ? 'endothelium' : 'liver');
 }
 function clearSite(s) {
@@ -2898,7 +3132,7 @@ function damageBoss(n) {
 
 // ================= FLOW =================
 function show(id) {
-  ['titleScreen', 'mapScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen']
+  ['titleScreen', 'mapScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen', 'labScreen', ...EXTRA_SCREENS]
     .forEach(s => { $(s).hidden = s !== id; });
   const playing = id === null;
   $('abilityBtn').hidden = !playing; $('corner').hidden = !playing;
@@ -2949,6 +3183,8 @@ function renderSelect() {
     b.querySelector('.d').textContent = c.desc;
     b.querySelector('.ab').textContent = `יכולת: ${c.ability}`;
     b.querySelector('.pk').textContent = `${c.perk} · פגוזום: ${c.phago.cap} מקומות, עיכול ${c.phago.dig < 0.8 ? 'מהיר' : c.phago.dig > 1.2 ? 'איטי' : 'רגיל'}`;
+    b.insertAdjacentHTML('beforeend', '<small class="lv"></small>');
+    b.querySelector('.lv').textContent = `רמה ${cellLevel(k)} · ${xp[k] || 0} XP`;
     b.onclick = () => { run.type = k; sfx.click(); renderSelect(); };
     box.appendChild(b);
   }
@@ -2973,6 +3209,7 @@ function startLevel() {
   unlock(g.hero);
   state = 'play'; show(null); last = performance.now();
   sfx.wave(); startMusic();
+  META.onStart();
 }
 function togglePause() {
   if (state === 'play') { state = 'pause'; show('pauseScreen'); $('abilityBtn').hidden = true; stopMusic(); }
@@ -2985,6 +3222,7 @@ function gameOver(line) {
   $('finalLevel').textContent = `${WD().name} ${run.level + 1}`;
   $('bestScore').textContent = best.toLocaleString();
   $('overLine').textContent = line;
+  META.onGameOver();
   show('overScreen');
 }
 function finishLevel() {
@@ -3017,7 +3255,7 @@ function renderQuiz() {
     const b = document.createElement('button'); b.textContent = o;
     b.onclick = () => {
       [...box.children].forEach(c => { c.disabled = true; if (c.dataset.ok === '1') c.classList.add('right'); });
-      if (ok) { run.score += 300; sfx.right(); $('quizFb').textContent = `נכון! +300. ${expl}`; }
+      if (ok) { run.score += 300; sfx.right(); META.onQuiz(true); $('quizFb').textContent = `נכון! +300 ו־5 ATP. ${expl}`; }
       else { b.classList.add('wrong'); sfx.wrong(); $('quizFb').textContent = `לא בדיוק. ${expl}`; }
       $('quizNext').hidden = false; $('quizNext').focus();
     };
@@ -3096,6 +3334,9 @@ function renderMap() {
   $('mapRoute').querySelector('b').textContent = `${sel.icon} ${sel.name}: ${sel.blurb}`;
   $('mapRoute').querySelector('span').textContent = sel.route;
   $('mapGo').disabled = mapSel > prog.open;
+  $('mapChips').innerHTML = `<span class="chip">⚡ ${atp} ATP</span><span class="chip">★ ${totalStars()}</span>`;
+  renderMissions($('mapMissions'));
+  if (META.onMap) META.onMap();
   $('mapUnlock').hidden = prog.open >= WORLDS.length - 1;
 }
 function openMap() { state = 'map'; renderMap(); show('mapScreen'); }
@@ -3160,6 +3401,9 @@ function update(dt) {
   g.bloodCalm += dt;
   if (g.bloodCalm > 1.5 && g.blood < g.maxBlood) g.blood = Math.min(g.maxBlood, g.blood + 1.8 * (1 + 0.5 * up('regen')) * (1 + 0.15 * META.labLv('heal')) * dt);
   g.minFrac = Math.min(g.minFrac, Math.max(0, g.blood) / g.maxBlood);
+  if (g.blood < g.maxBlood * 0.3) META.say('low');
+  if (g.sayT > 0) g.sayT -= dt;
+  if (g.boss && g.boss.sayT > 0) g.boss.sayT -= dt;
   phagoTick(dt);
 
   // fever: rises with the infection load
@@ -3368,7 +3612,7 @@ function update(dt) {
           if (e.kind === 'virus') {
             if (c.hosted >= 2) continue;
             e.host = c; c.hosted++; e.ang = Math.atan2(e.y - c.y, e.x - c.x);
-            addText(c.x, c.y - 40, 'טרמפיסט!', '#c5e17a'); unlock('hitchhiker');
+            addText(c.x, c.y - 40, ['הצילו! טרמפיסט!', 'אוי! תורידו אותו!', 'טרמפיסט!'][Math.floor(Math.random() * 3)], '#c5e17a'); unlock('hitchhiker');
           } else if (e.kind === 'merozoite') {
             e.dead = true; c.mal = 0.001; sfx.infect(); hurtBlood(1, 'תא אדום נדבק!', c.x, c.y - 40, '#e59be0'); unlock('infectedrbc');
           }
@@ -3819,7 +4063,9 @@ function draw() {
   // scale bar (red cell 7.5 µm ≈ 60 px)
   if (lv.scale !== false) scaleBar(lv.scale);
 
-  if (state === 'play' || state === 'pause') hud();
+  drawBossSay();
+  if (g.lastBossSay && g.lastBossSay.t > 0) { g.lastBossSay.t -= 1 / 60; ctx.globalAlpha = Math.min(1, g.lastBossSay.t); label(g.lastBossSay.text, g.lastBossSay.x, Math.max(80, g.lastBossSay.y - 60), 18, '#ffd6d0'); ctx.globalAlpha = 1; }
+  if (state === 'play' || state === 'pause') { hud(); drawNarrator(); }
 }
 function drawFx() {
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
@@ -3872,6 +4118,8 @@ function hud() {
   const sc = g.score.toLocaleString(), bump = 1 + g.scoreBump * 0.25;
   ctx.save(); ctx.translate(380, 32); ctx.scale(bump, bump); ctx.font = `28px ${FONT_D}`;
   ctx.strokeText(sc, 0, 9); ctx.fillStyle = g.scoreBump > 0.5 ? '#ffe082' : '#fff6ee'; ctx.fillText(sc, 0, 9); ctx.restore();
+  ctx.font = `600 13px ${FONT_B}`; ctx.fillStyle = '#ffe082'; ctx.textAlign = 'center'; ctx.direction = 'ltr';
+  ctx.fillText(`⚡ ${Math.round(g.atp)} ATP`, 470, 36); ctx.direction = 'rtl';
   if (g.combo > 1 && g.comboT > 0) {
     ctx.font = `${18 + g.combo * 1.5}px ${FONT_D}`; ctx.lineWidth = 5;
     ctx.strokeText(`x${g.combo}`, 380, 72); ctx.fillStyle = g.combo >= 5 ? '#ffe082' : '#fff6ee'; ctx.fillText(`x${g.combo}`, 380, 72);
