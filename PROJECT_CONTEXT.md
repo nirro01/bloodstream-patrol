@@ -90,7 +90,7 @@ All four use the same white-cell sprite, recolored at runtime with a canvas `hue
 
 - **Quiz:** a bank of 13 Hebrew multiple-choice questions, each with an explanation. 2 random questions per level, with shuffled options.
 - **Encyclopedia:** 23 Hebrew entries that unlock on first encounter. The unlock list persists in `localStorage`.
-- **Storage keys:** `bp2-best` (high score), `bp2-ency` (unlocked entries), `bp2-muted`. All are wrapped in try/catch.
+- **Storage keys:** see section 12 for the full list. All are wrapped in try/catch.
 
 ---
 
@@ -183,6 +183,7 @@ Quick checks used before every publish:
 | v6 | Full Hebrew rebuild with **all 12 proposed improvements**: 4 organ levels, 4 cell types, bosses, wall infection, hitchhikers, malaria, bacteria, antibodies, chemotaxis, fever, diapedesis, encyclopedia, quiz, upgrades, difficulty | "תבצע את כל ההצעות" ("do all the suggestions") |
 
 | v7 | Body map home screen and 7 new worlds: heart, lungs, digestive system, kidneys, skin, bone marrow, brain | "תבצע הכל" on the worlds-expansion proposal (`/mnt/project-files/ideas/worlds-expansion.md`) |
+| v8 | Engagement layer: juice, wave goals and stars, phagosome, ATP lab and cell levels, missions, narrator, patient, rare strains, album, hats, achievements, adaptive difficulty, calm mode, body events, daily checkup, share card, family profiles (section 12) | "תבנה את הכל" on `/mnt/project-files/ideas/engagement-plan.md` |
 
 Versions 1–5 exist only as artifact history on claude.ai. Git history starts at v6.
 
@@ -252,3 +253,20 @@ Each world is one self-contained block in `index.html`, inserted before `// ====
 - Helpers: `WD()`, `LV()`, `C()`, `M()`, `perk()`, `award()`, `heal()`, `label()`, `banner()`, `wallShape()`, `infSite()`.
 
 Upgrades marked `pickup: true` are hidden when the next level has no pickups. Known quirk: combos make scores large in later worlds; accepted for now.
+
+---
+
+## 12. Engagement layer (v8)
+
+Built from `/mnt/project-files/ideas/engagement-plan.md` in five stages (one commit each). Code lives in `META` sections before `// ================= INPUT =================`; each later section wraps the earlier hook (`const base = META.x; Object.assign(META, { x() { base(); ... } })`).
+
+- **Stage A, feel:** particles/rings (`g.parts`, `g.fxr`), hit-stop (`g.freeze`), flash, haptics, combo milestones, `eat()` central kill path. Phagosome: each hero has `phago {cap, dig}`; a full cell can't swallow until it digests. Wave goals (`GOALS`, `waveGoal()`), stars per level (finish, all wave goals in time, meter never below 50%; hard adds a purple one). Bosses have 3 phases with a telegraphed charge; the colony has a biofilm.
+- **Stage B, progress:** ATP currency (banked at level end), lab with 4 lines (`LAB_COST`), XP and level per cell (+1.5% speed per level), 3 rotating missions, the brain narrator (`say()`), boss taunts, lose jokes, "almost there" bars.
+- **Stage C, ownership:** a named patient whose organs heal on the map, rare strains (gold, mutant elite, immune memory tags), card album, hats, 20 achievements, encyclopedia hints.
+- **Stage D, flow:** quiet per-world adaptive difficulty (`bp4-dda`, never shown), calm difficulty that can't be lost, body events (`MODS`: fever, antibiotic, dehydrated, vaccine, adrenaline; 28% of levels after the first), heart systole dash, airway breathing flow, gut fast-switch bonus, ability cooldown ring, depth graphics (foreground blur cells, shadows, spotlight, squash, hurt vignette).
+- **Stage E, social and habit:** daily checkup (same level, cell and event for the date, from worlds you've opened; +15 ATP once a day, best score kept), share card (canvas PNG via Web Share or download), days played counter that never resets, "המשיכו" button, up to 5 family profiles (switching reloads the page).
+- **Deliberately not built:** paid items, loot boxes, streaks that punish a missed day, timers that pressure the player to come back.
+
+Storage keys (all per profile through `pget/pset`; profile `main` uses the raw key, others prefix `<id>:`): `bp2-best`, `bp2-ency`, `bp3-prog`, `bp4-stars`, `bp4-atp`, `bp4-lab`, `bp4-xp`, `bp4-mis`, `bp4-pat`, `bp4-life`, `bp4-kc`, `bp4-gold`, `bp4-seen`, `bp4-hat`, `bp4-ach`, `bp4-dda`, `bp4-daily`. Device-wide: `bp2-muted`, `bp4-profiles`, `bp4-cur`.
+
+Harness: `MOD=<event>` and `DIFF=<difficulty>` environment variables force a body event or difficulty for every level; `TRACE=1` prints each level before it runs.

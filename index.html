@@ -172,6 +172,11 @@ canvas { display: block; width: 100%; height: 100%; }
 .ability { background: conic-gradient(rgba(180, 154, 232, 0.95) calc(var(--cd, 1) * 360deg), rgba(70, 56, 110, 0.92) 0); }
 .maphead { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .chips { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.profiles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0; }
+.profiles button[aria-pressed="true"] { border-color: #ffe082; background: rgba(255, 224, 130, .18); }
+#profileName { font: inherit; padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(255,224,130,.5); background: rgba(0,0,0,.25); color: #fff6ee; }
+.btn.small { font-size: .85rem; padding: 6px 14px; margin-top: 10px; }
+.daily { margin-top: 8px; width: 100%; }
 .chip { font-family: var(--display); font-size: clamp(0.8rem, 1.8vw, 1rem); background: rgba(255,255,255,.07); border: 1px solid rgba(255,224,130,.5); border-radius: 999px; padding: 2px 10px; color: #ffe082; white-space: nowrap; }
 .missions { display: grid; gap: 4px; font-size: clamp(0.7rem, 1.4vw, 0.82rem); text-align: start; }
 .missions:empty { display: none; }
@@ -230,9 +235,25 @@ canvas { display: block; width: 100%; height: 100%; }
         <h1>סיירת <span>זרם הדם</span></h1>
         <p>8 עולמות, כל אחד איבר אחר בגוף: הדם, הלב, הריאות, מערכת העיכול, הכליות, העור, מח העצם והמוח. בכל עולם משחקים בתא שבאמת עושה שם את העבודה, ולומדים איך הגוף עובד.</p>
         <div class="row">
+          <button class="btn" id="toContinue" hidden>המשיכו</button>
           <button class="btn" id="toSelect">התחילו</button>
           <button class="btn ghost" id="toEncy">אנציקלופדיה</button>
         </div>
+        <button class="btn ghost small" id="toProfiles">שחקן: ראשי</button>
+      </div>
+    </div>
+
+    <!-- family profiles -->
+    <div class="overlay" id="profileScreen" hidden>
+      <div class="card">
+        <h2>מי משחק?</h2>
+        <p>לכל שחקן יש מטופל, כוכבים, ATP ואלבום משלו.</p>
+        <div class="profiles" id="profileList"></div>
+        <div class="row" id="profileAdd">
+          <input id="profileName" maxlength="12" placeholder="שם שחקן חדש" aria-label="שם שחקן חדש">
+          <button class="btn ghost" id="profileNew">הוספה</button>
+        </div>
+        <div class="row"><button class="btn" id="profileBack">חזרה</button></div>
       </div>
     </div>
 
@@ -246,6 +267,7 @@ canvas { display: block; width: 100%; height: 100%; }
             <div class="patient" id="mapPatient"></div>
             <div class="worlds" id="worldPicks"></div>
             <div class="route" id="mapRoute"></div>
+            <button class="btn ghost daily" id="mapDaily"></button>
             <div class="missions" id="mapMissions"></div>
           </div>
         </div>
@@ -459,11 +481,15 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} },
 };
-let best = store.get('bp2-best', 0);
+// player profiles: 'main' keeps the original storage keys, other profiles prefix them
+let profile = store.get('bp4-cur', 'main');
+const P = k => profile === 'main' ? k : `${profile}:${k}`;
+const pget = (k, d) => store.get(P(k), d), pset = (k, v) => store.set(P(k), v);
+let best = pget('bp2-best', 0);
 // meta-progression hooks: no-ops here, filled in by the META section further down
-const EXTRA_SCREENS = ['patientScreen', 'albumScreen']; // overlay ids added by later sections
+const EXTRA_SCREENS = ['patientScreen', 'albumScreen', 'profileScreen']; // overlay ids added by later sections
 const META = { onGameOver() {}, onNewLevel() {}, tick() {}, pickMod() {}, onSpawn() {}, onBounce() {}, onMap: null, onAction() {}, onKill() {}, onCombo() {}, onSite() {}, onBoss() {}, onLevelDone() {}, onStart() {}, say() {}, labLv: () => 0, speedMul: () => 1 };
-const unlocked = new Set(store.get('bp2-ency', []));
+const unlocked = new Set(pget('bp2-ency', []));
 
 // ================= CONTENT =================
 const CELLS = {
@@ -2674,10 +2700,6 @@ const GOALS = {
   kidney: [16, 4], skin: [8, 5], marrow: [2, 3], brain: [10, 13, 3],
 };
 WORLDS.forEach(w => w.levels.forEach((lv, i) => { if (lv.goalN == null && GOALS[w.id]) lv.goalN = GOALS[w.id][i]; }));
-// player profiles: 'main' keeps the original storage keys, other profiles prefix them
-let profile = store.get('bp4-cur', 'main');
-const P = k => profile === 'main' ? k : `${profile}:${k}`;
-const pget = (k, d) => store.get(P(k), d), pset = (k, v) => store.set(P(k), v);
 let stars = pget('bp4-stars', {}); // { worldId: [stars per level] }, a level done on hard adds a purple 4th
 const starsOf = (wid, i) => (stars[wid] || [])[i] || 0;
 const worldStars = wid => (stars[wid] || []).reduce((a, n) => a + (n || 0) % 10, 0);
@@ -3245,6 +3267,115 @@ Object.assign(META, {
   onGameOver() { baseOnGameOver(); nudgeDda(-0.5); },
 });
 
+// ================= STAGE E: DAILY CHECKUP, SHARING, PROFILES, CONTINUE =================
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const seeded = str => { let h = 2166136261; for (const c of str) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return () => { h += 0x6d2b79f5; let t = h; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+// Days played: counts up, never resets, never scolds for a missed day.
+if (life.lastDay !== dayKey()) { life.days = (life.days || 0) + 1; life.lastDay = dayKey(); saveLife(); }
+if (life.days >= 3) setTimeout(() => achieve('days3'), 1500);
+let daily = pget('bp4-daily', { day: '', best: 0, done: false });
+// Today's checkup: the same level, cell and body event for everyone on this date (from worlds you've opened).
+function dailyPlan() {
+  const r = seeded('bp-' + dayKey()), w = Math.floor(r() * (prog.open + 1)), lv = Math.floor(r() * WORLDS[w].levels.length);
+  const heroes = ['neut', 'macro', 'bcell', 'nk'], hero = heroes[Math.floor(r() * heroes.length)];
+  const saved = { world: run.world, level: run.level };
+  run.world = w; run.level = lv;
+  const ok = Object.keys(MODS).filter(k => MODS[k].ok());
+  const mod = ok[Math.floor(r() * ok.length)];
+  run.world = saved.world; run.level = saved.level;
+  return { w, lv, hero, mod };
+}
+function renderDaily() {
+  if (daily.day !== dayKey()) daily = { day: dayKey(), best: 0, done: false };
+  const d = dailyPlan(), wd = WORLDS[d.w];
+  $('mapDaily').textContent = `📅 בדיקה יומית: ${wd.icon} ${wd.levels[d.lv].name} · ${MODS[d.mod].name}${daily.done ? ` · השיא שלכם היום: ${daily.best.toLocaleString()}` : ''}`;
+}
+$('mapDaily').onclick = () => {
+  const d = dailyPlan(); sfx.click();
+  Object.assign(run, { world: d.w, level: d.lv, score: 0, kills: 0, up: {}, daily: dayKey(), mod: d.mod });
+  if (d.w === 0) run.type = d.hero;
+  newLevel(); showIntro();
+  $('introNum').textContent = `📅 בדיקה יומית · ${WD().icon} ${WD().name}`;
+};
+const baseOnMap = META.onMap, baseLevelDone3 = META.onLevelDone;
+Object.assign(META, {
+  onMap() { if (baseOnMap) baseOnMap(); renderDaily(); $('mapChips').insertAdjacentHTML('beforeend', `<span class="chip">🗓️ ${life.days} ימי סיור</span>`); },
+  onLevelDone(n, prev) {
+    baseLevelDone3(n, prev);
+    $('doneShare').hidden = false;
+    if (!run.daily) return;
+    if (daily.day !== dayKey()) daily = { day: dayKey(), best: 0, done: false };
+    const first = !daily.done, rec = g.score > daily.best;
+    daily.done = true; daily.best = Math.max(daily.best, g.score); pset('bp4-daily', daily);
+    if (first) { gainAtp(15); achieve('daily'); }
+    $('doneAlmost').textContent = `📅 בדיקה יומית: ${rec ? 'שיא חדש להיום!' : `השיא שלכם היום ${daily.best.toLocaleString()}`}${first ? ' +15 ATP על הבדיקה הראשונה היום.' : ''} מחר מחכה בדיקה אחרת.`;
+  },
+  dailyEnd() { run.daily = null; run.mod = null; toast('הבדיקה היומית הושלמה. אפשר לנסות לשפר את השיא כל היום.'); openMap(); },
+});
+// Share card: a picture of the result to send to family (no accounts, nothing uploaded).
+function shareCard() {
+  const c = document.createElement('canvas'); c.width = 800; c.height = 420;
+  const x = c.getContext('2d'), wd = WD(), n = levelStars().n;
+  const gr = x.createLinearGradient(0, 0, 0, 420); gr.addColorStop(0, '#5a1a12'); gr.addColorStop(1, '#2a0c06');
+  x.fillStyle = gr; x.fillRect(0, 0, 800, 420);
+  x.fillStyle = 'rgba(220, 60, 60, 0.35)';
+  for (let i = 0; i < 14; i++) { x.beginPath(); x.ellipse((i * 137) % 800, (i * 83) % 420, 40, 28, i, 0, 7); x.fill(); }
+  x.direction = 'rtl'; x.textAlign = 'center'; x.fillStyle = '#ffe082';
+  x.font = `bold 44px ${FONT_D}`; x.fillText('סיירת זרם הדם', 400, 80);
+  x.fillStyle = '#fff6ee'; x.font = `30px ${FONT_D}`;
+  x.fillText(`${wd.icon} ${wd.name} · ${LV().name}`, 400, 150);
+  x.font = `56px ${FONT_D}`; x.fillStyle = '#ffd54f'; x.fillText('★'.repeat(n) + '☆'.repeat(3 - n), 400, 230);
+  x.font = `28px ${FONT_B}`; x.fillStyle = '#fff6ee';
+  x.fillText(`ניקוד ${g.score.toLocaleString()} · ${run.kills} פתוגנים`, 400, 290);
+  if (patient) x.fillText(`${patient.name} ${GF('מרגיש', 'מרגישה')} יותר טוב!`, 400, 340);
+  if (run.daily) { x.fillStyle = '#9fd8ff'; x.fillText(`📅 הבדיקה היומית של ${dayKey()}`, 400, 385); }
+  return c;
+}
+$('doneShare').onclick = () => {
+  sfx.click();
+  const c = shareCard(), text = `השגתי ${g.score.toLocaleString()} נקודות בסיירת זרם הדם!`;
+  const fallback = () => { const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = 'bloodstream-patrol.png'; a.click(); toast('התמונה נשמרה'); };
+  if (c.toBlob && navigator.canShare) c.toBlob(b => {
+    const f = new File([b], 'bloodstream-patrol.png', { type: 'image/png' });
+    if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], text }).catch(() => {}); else fallback();
+  }); else fallback();
+};
+// Family profiles: each player keeps their own patient, stars, ATP and album on this device.
+let profiles = store.get('bp4-profiles', [{ id: 'main', name: 'ראשי' }]);
+const profName = () => (profiles.find(p => p.id === profile) || profiles[0]).name;
+function renderProfiles() {
+  const box = $('profileList'); box.innerHTML = '';
+  profiles.forEach(pr => {
+    const b = document.createElement('button'); b.className = 'btn ghost'; b.textContent = pr.name;
+    b.setAttribute('aria-pressed', pr.id === profile);
+    b.onclick = () => { if (pr.id === profile) return; store.set('bp4-cur', pr.id); location.reload(); };
+    box.appendChild(b);
+  });
+  $('profileAdd').hidden = profiles.length >= 5;
+}
+$('toProfiles').textContent = `שחקן: ${profName()}`;
+$('toProfiles').onclick = () => { sfx.click(); renderProfiles(); state = 'profile'; show('profileScreen'); };
+$('profileBack').onclick = () => { sfx.click(); state = 'title'; show('titleScreen'); };
+$('profileNew').onclick = () => {
+  const name = $('profileName').value.trim(); if (!name) return;
+  const id = 'p' + Date.now().toString(36);
+  profiles.push({ id, name }); store.set('bp4-profiles', profiles);
+  store.set('bp4-cur', id); location.reload();
+};
+// Continue: straight back to the newest open world.
+function setupContinue() {
+if (prog.open > 0 || Object.keys(prog.done).length || totalStars() > 0) {
+  const cw = WORLDS[prog.open];
+  $('toContinue').hidden = false; $('toContinue').textContent = `המשיכו: ${cw.icon} ${cw.name}`;
+  $('toSelect').className = 'btn ghost';
+  $('toContinue').onclick = () => {
+    initAudio(); sfx.click();
+    if (!patient) { openMap(); return; }
+    run.world = prog.open; run.level = 0; run.daily = null; mapSel = prog.open; newLevel(); renderSelect(); show('selectScreen'); state = 'select';
+  };
+}
+}
+
 // ================= INPUT =================
 const keys = new Set();
 let pointer = null;
@@ -3281,7 +3412,7 @@ const fevers = () => LV().fever ?? WD().fever ?? false;
 
 function unlock(key, quiet) {
   if (!ENCY[key] || unlocked.has(key)) return;
-  unlocked.add(key); store.set('bp2-ency', [...unlocked]);
+  unlocked.add(key); pset('bp2-ency', [...unlocked]);
   if (!quiet) toast(`נפתח באנציקלופדיה: ${ENCY[key][0]}`);
 }
 let toastT = null, toastQ = [];
@@ -3623,7 +3754,7 @@ function togglePause() {
 }
 function gameOver(line) {
   state = 'over'; stopMusic(); sfx.over();
-  best = Math.max(best, g.score); store.set('bp2-best', best);
+  best = Math.max(best, g.score); pset('bp2-best', best);
   $('finalScore').textContent = g.score.toLocaleString();
   $('finalLevel').textContent = `${WD().name} ${run.level + 1}`;
   $('bestScore').textContent = best.toLocaleString();
@@ -3673,6 +3804,7 @@ function renderQuiz() {
 }
 $('quizNext').onclick = () => { quizI++; if (quizI < quizSet.length) renderQuiz(); else showUpgrades(); };
 function showUpgrades() {
+  if (run.daily) { META.dailyEnd(); return; }
   if (run.level >= WD().levels.length - 1) { winGame(); return; }
   state = 'upgrade';
   const nextLv = WD().levels[run.level + 1];
@@ -3689,11 +3821,11 @@ function showUpgrades() {
   show('upScreen');
 }
 function winGame() {
-  state = 'win'; best = Math.max(best, run.score); store.set('bp2-best', best);
+  state = 'win'; best = Math.max(best, run.score); pset('bp2-best', best);
   const wd = WD(), last = run.world >= WORLDS.length - 1;
   prog.done[wd.id] = Math.max(prog.done[wd.id] || 0, run.score);
   prog.open = Math.max(prog.open, Math.min(WORLDS.length - 1, run.world + 1));
-  store.set('bp3-prog', prog);
+  pset('bp3-prog', prog);
   $('winTitle').textContent = last ? 'כל הגוף נחקר!' : `העולם "${wd.name}" הושלם!`;
   $('winLine').textContent = last ? 'עברתם בכל הגוף: מהדם ועד המוח. עכשיו אתם יודעים איך הצוות הענק הזה עובד יחד!' : wd.win;
   if (patient) $('winNext').dataset.thanks = `${patient.name}: "תודה! ${wd.thanks || `ה${wd.name.replace(/^ה/, '')} שלי ${GF('מרגיש', 'מרגישה')} הרבה יותר טוב`}" `;
@@ -3706,7 +3838,7 @@ function winGame() {
 function toMenu() { stopMusic(); openMap(); }
 
 // ---- body map
-const prog = Object.assign({ open: 0, done: {} }, store.get('bp3-prog', {}));
+const prog = Object.assign({ open: 0, done: {} }, pget('bp3-prog', {}));
 let mapSel = 0;
 const ORGANS = {
   blood:  '<path d="M106 132 L100 70 M106 132 L60 120 L40 230 M106 132 L140 120 L162 230 M106 132 L95 230 L74 380 M106 132 L110 230 L128 380" fill="none" stroke="#e53950" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -3758,13 +3890,14 @@ $('toSelect').onclick = () => { initAudio(); sfx.click(); openMap(); };
 $('toEncy').onclick = () => { sfx.click(); openEncy('titleScreen'); };
 $('mapBack').onclick = () => { show('titleScreen'); state = 'title'; };
 $('mapEncy').onclick = () => { sfx.click(); openEncy('mapScreen'); };
-$('mapUnlock').onclick = () => { prog.open = WORLDS.length - 1; store.set('bp3-prog', prog); sfx.click(); renderMap(); };
+$('mapUnlock').onclick = () => { prog.open = WORLDS.length - 1; pset('bp3-prog', prog); sfx.click(); renderMap(); };
 $('mapGo').onclick = () => {
   if (mapSel > prog.open) return;
+  run.daily = null;
   run.world = mapSel; run.level = 0; sfx.click(); newLevel(); renderSelect(); show('selectScreen'); state = 'select';
 };
 $('selectBack').onclick = openMap;
-$('selectGo').onclick = () => { run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
+$('selectGo').onclick = () => { run.daily = null; run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
 $('introGo').onclick = startLevel;
 $('resumeBtn').onclick = togglePause;
 $('pauseBtn').onclick = togglePause;
@@ -4621,6 +4754,7 @@ function loop(now) {
 function boot() {
   fit();
   setMuted(muted);
+  setupContinue();
   newLevel();
   Promise.all(loads).then(() => {
     for (const [k, c] of Object.entries(HEROES)) if (!c.draw && !c.tintOf && img.wbcIdle && img.wbcAttack) tinted[k] = { idle: tintSheet(img.wbcIdle, c.filter, c.tint), attack: tintSheet(img.wbcAttack, c.filter, c.tint) };
