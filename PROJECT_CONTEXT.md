@@ -5,7 +5,7 @@ This file holds the full context of the project so far: what exists, how it is b
 - **Owner:** Nir (GitHub `nirro01`). Talks to Claude in Hebrew and English. The game UI is in Hebrew.
 - **GitHub repo:** https://github.com/nirro01/bloodstream-patrol (public, currently **empty**: see "Open issues").
 - **Live build:** a private claude.ai artifact, https://claude.ai/artifact/4r7g3pntmiLQD72euVG9vg (version 6). Only the owner can open it until it is shared.
-- **Last saved version:** git commit `f075115`, tag `v6-hebrew-full`, backup `bloodstream_patrol_v6.zip`.
+- **Last saved version:** v7 "body worlds" on branch `claude/project-thread-g4n55s`, one commit per world on top of v6. `main` still holds v6 until the PR is merged.
 
 ---
 
@@ -123,7 +123,8 @@ Visual realism:
 
 ```
 bloodstream-patrol/          (git repo, branch main)
-├── index.html               the whole game: HTML + CSS + JS, about 1,500 lines, no libraries
+├── index.html               the whole game: HTML + CSS + JS, about 3,700 lines, no libraries
+├── tools/harness.js         headless bot test for every world and level
 ├── sprites/                 256×256 frames in horizontal strips, transparent PNG
 │   ├── brain_hero_idle.png        6 frames (menu)
 │   ├── brain_hero_hurt.png        4 frames (game-over screen)
@@ -160,7 +161,7 @@ Bacteria, sporozoites, merozoites, platelets and bosses are not sprite files. Th
 Positions: wall thickness `WALL = 62`; the flow scrolls left at about 90 px/s; the HUD is laid out right to left.
 
 ### Testing
-A Node harness (`harness.js`, kept in the previous conversation's scratch space; it can be rewritten) stubs the DOM and canvas, `eval`s the script, and runs every cell type through every level for 90 simulated seconds with a simple bot. It then forces boss, exit, quiz and upgrades. The last run passed all 16 combinations. It found and fixed a bug: dead red cells were never removed, so infected cells "burst" over and over.
+`node tools/harness.js [index.html] [seconds]` stubs the DOM and canvas, `eval`s the script, and plays every level of every world (all 4 heroes in the blood world) for 100 simulated seconds with a bot that follows `__bp.botTarget()`. It then forces boss, exit, quiz and upgrades, renders the map, and prints `ALL PASSED` or the failures. The v7 run passed all 29 combinations.
 
 Quick checks used before every publish:
 - Syntax: pull out the `<script>` contents and run `node --check`.
@@ -181,6 +182,8 @@ Quick checks used before every publish:
 | v5 | Realism: plasma color, blur layer, real ratios, platelets, allies, scale bar, facts ticker | "make it look more realistic" plus the user's blood-value table |
 | v6 | Full Hebrew rebuild with **all 12 proposed improvements**: 4 organ levels, 4 cell types, bosses, wall infection, hitchhikers, malaria, bacteria, antibodies, chemotaxis, fever, diapedesis, encyclopedia, quiz, upgrades, difficulty | "תבצע את כל ההצעות" ("do all the suggestions") |
 
+| v7 | Body map home screen and 7 new worlds: heart, lungs, digestive system, kidneys, skin, bone marrow, brain | "תבצע הכל" on the worlds-expansion proposal (`/mnt/project-files/ideas/worlds-expansion.md`) |
+
 Versions 1–5 exist only as artifact history on claude.ai. Git history starts at v6.
 
 ---
@@ -194,19 +197,19 @@ Versions 1–5 exist only as artifact history on claude.ai. Git history starts a
 - Keep biology accurate. When the game simplifies something, say so in the game (as done for virus size).
 - Commit attribution lines used so far:
   ```
-  Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+  Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
+  Claude-Session: <session url>
   ```
 
 ---
 
 ## 9. Open issues and next steps
 
-1. **GitHub push is blocked (HTTP 403).** The repo was made public and the Claude GitHub app now lists it ("Claude Code cloud sessions can work in nirro01/bloodstream-patrol"). The old conversation still had a stale credential, though: read and clone worked, push did not. **First task in the new project:** push `main` and the tag `v6-hebrew-full`. If the repo is still empty, upload the contents of `bloodstream_patrol_v6.zip` (or re-create it from this context), commit, tag `v6-hebrew-full`, and push.
+1. Pushing works now. v7 (8 worlds) waits in a PR from `claude/project-thread-g4n55s` to `main`.
 2. Optional: turn on GitHub Pages for a public playable URL (the game is static: `index.html` plus `sprites/`).
 3. Real playtesting. The balance was only tested with a bot. Level 4 (malaria) was the hardest and was tuned down: burst at 8 s, 2 merozoites, damage 2.
 4. Ideas offered but not built yet:
    - more brain-hero animations (jump, attack), a red-cell death animation
-   - more levels, such as bone marrow
    - a sprite per cell type instead of tinting
 
 ---
@@ -222,3 +225,30 @@ Versions 1–5 exist only as artifact history on claude.ai. Git history starts a
 | Player radius | `radius()` | 45 × cell size × upgrades |
 | Points | `eat()` | virus 100, bacteria 80, sporozoite 150, merozoite 60; site 200; infected cell 150; boss 2000; quiz 300 |
 | Fever effect | `update()` | slowdown = 1 + (temp − 37.5) × 0.35; player speed + (temp − 37.5) × 8% |
+
+---
+
+## 11. Body worlds (v7)
+
+The game opens on a **body map** (`mapScreen`): an SVG silhouette with one spot per world. Finishing a world unlocks the next; progress is saved in `localStorage` key `bp3-prog` as `{open, done}`. A small "פתיחת כל העולמות" link unlocks everything (for parents and testing). The original four levels are now world 1, "זרם הדם".
+
+| # | World | Hero (player) | Meter | Levels and mechanic | Bosses |
+|---|---|---|---|---|---|
+| 1 | זרם הדם (blood) | pick: neutrophil, macrophage, B cell, NK | בריאות הדם | the v6 levels | cluster, colony, schizont, rosette |
+| 2 | הלב | red blood cell | זרימת הדם | heart chambers with valves that open on the beat; coronary artery with plaque and LDL/HDL | thrombus (clot) |
+| 3 | הריאות | alveolar macrophage | בריאות הריאות | airway with mucus and cilia (dust, pollen, soot, smoke); alveoli where O2 goes to dark red cells and CO2 leaves | smoke, pneumonia |
+| 4 | מערכת העיכול | enzyme with 3 modes (Space: amylase, protease, lipase) | אנרגיה מהמזון | mouth, stomach (acid waves, H. pylori ulcers), small intestine (bile, villi), colon (microbiome balance) | bolus, H. pylori colony, fat globule, salmonella |
+| 5 | הכליות | nephron tubule cell | איזון הגוף | sort what the filtrate keeps (glucose, amino acids, salt, water) from what leaves (urea, toxins); ADH level with a hydration gauge | kidney stone |
+| 6 | העור והפצע | platelet, then neutrophil | שלמות העור | plug cuts with platelets and fibrin; then clean the wound of staph (allies turn into pus) | big cut, staph colony |
+| 7 | מח העצם | stem cell | מאזן תאי הדם | collect 3 same-colour signals (EPO, G-CSF, M-CSF, IL-7, TPO) to make a cell type the body asks for; iron in level 2 | emergency (needs neutrophils), anemia (needs red cells) |
+| 8 | המוח | astrocyte, then the signal | עוצמת האות | blood-brain barrier sorting; axon: jump between nodes of Ranvier with Space; synapse: push neurotransmitters into matching receptors | toxin cloud, reflex (timed), memory |
+
+### How a world is built
+Each world is one self-contained block in `index.html`, inserted before `// ================= INPUT =================`. It pushes into these registries:
+- `WORLDS[]`: `id, name, icon, organ, meter, fever, hero/heroPick, levels, quiz, route, blurb, win, done`.
+- `HEROES` (player cells), `KINDS` (entities, mostly through `genericEnemy()` with touch types `eat`, `push`, `collect`, `hazard`), `BOSSES` (`r, hp` as a multiple of 30, `emit`, `move`, `shield`, `noBump`, `need`, `draw`), `SITES`, `PICKUPS` (with optional `onPick`), `WALLSTYLE`, and `MECH` (per-level mechanic hooks: `init, flow, update, bound, drawBack/Mid/Front, hud, alarms, botTarget`).
+- Level options include `flow` (0 means a still scene), `rbcFlow`, `bgCells`, `spawnMul`, `waveLen`, `exitTop`, `pickup`, `scale`, `hero`, `modes`, `demands`, `lose`, `bossHint`.
+- Encyclopedia entries are added with `Object.assign(ENCY, {...})`; each world has its own quiz bank.
+- Helpers: `WD()`, `LV()`, `C()`, `M()`, `perk()`, `award()`, `heal()`, `label()`, `banner()`, `wallShape()`, `infSite()`.
+
+Upgrades marked `pickup: true` are hidden when the next level has no pickups. Known quirk: combos make scores large in later worlds; accepted for now.
