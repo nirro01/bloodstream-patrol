@@ -1,5 +1,8 @@
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a0e08">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Bloodstream Patrol</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Rubik:wght@400;600;800&display=swap">
 <style>
@@ -39,6 +42,7 @@ body {
   border-radius: 22px; overflow: hidden;
   box-shadow: 0 0 0 6px var(--vessel), 0 24px 60px rgba(0,0,0,.5);
   touch-action: none; user-select: none; -webkit-user-select: none;
+  container-type: inline-size;
 }
 canvas { display: block; width: 100%; height: 100%; }
 .hint { text-align: center; color: var(--muted); font-size: 0.85rem; margin: 0; }
@@ -121,16 +125,16 @@ canvas { display: block; width: 100%; height: 100%; }
 
 .ability {
   position: absolute; left: 3%; bottom: 5%;
-  width: clamp(66px, 11vw, 108px); aspect-ratio: 1; border-radius: 50%;
+  width: clamp(66px, 11vw, 108px); width: clamp(62px, 10.5cqw, 108px); aspect-ratio: 1; border-radius: 50%;
   border: 4px solid #5b4b8a; background: rgba(180, 154, 232, 0.9);
-  color: #2e2250; font-family: var(--display); font-size: clamp(0.62rem, 1.4vw, 0.9rem); line-height: 1.1;
+  color: #2e2250; font-family: var(--display); font-size: clamp(0.62rem, 1.4vw, 0.9rem); font-size: clamp(0.62rem, 1.45cqw, 0.9rem); line-height: 1.1;
   cursor: pointer; touch-action: none; padding: 4px;
 }
 .ability.cool { opacity: 0.75; }
 .ability.on { background: #ffe082; border-color: #c49000; }
 .ability:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
-.corner { position: absolute; left: 2%; top: 3%; display: flex; gap: 8px; }
-.corner button { font-family: var(--display); background: var(--panel); color: var(--ink); border: 2px solid var(--defender); border-radius: 12px; padding: 3px 11px; font-size: clamp(0.66rem, 1.4vw, 0.9rem); cursor: pointer; }
+.corner { position: absolute; left: 1.6%; top: 2.6%; display: flex; gap: 6px; }
+.corner button { display: grid; place-items: center; width: 40px; height: 40px; width: max(34px, 5.2cqw); height: max(34px, 5.2cqw); padding: 0; background: var(--panel); color: var(--ink); border: 2px solid var(--defender); border-radius: 30%; font-size: 1.1rem; font-size: max(0.95rem, 2.3cqw); line-height: 1; cursor: pointer; touch-action: manipulation; }
 .corner button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .toast {
   position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
@@ -213,14 +217,82 @@ canvas { display: block; width: 100%; height: 100%; }
 .organ.sick { filter: saturate(.35) brightness(.8); }
 .organ.healed { filter: drop-shadow(0 0 4px #ffe082); }
 @media (prefers-reduced-motion: reduce) { .brain-idle, .brain-hurt, .wbc { animation-duration: 3s; } }
+/* ===== Phones and small tablets ===== */
+button, input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior: none; }
+.rotate-tip { display: none; }
+@media (pointer: coarse) { .hint { display: none; } }
+@media (max-width: 700px), (max-height: 520px) {
+  body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    height: 100vh; height: 100dvh;
+  }
+  .wrap { gap: 0; max-width: none; }
+  .hint { display: none; }
+  /* the stage fills the screen: no rounded frame, as big as the 16:9 ratio allows */
+  .stage {
+    border-radius: 0; box-shadow: none;
+    max-width: calc(100vh * 16 / 9);
+    max-width: calc((100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 16 / 9);
+  }
+  /* menus get the whole screen instead of the small game frame */
+  .overlay {
+    position: fixed; inset: 0; z-index: 5;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    background: rgba(24, 6, 4, 0.82);
+    overflow: hidden;
+  }
+  .card { max-height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; border-radius: 18px; }
+  .card h1 { font-size: clamp(1.7rem, 9vw, 2.6rem); }
+  .card h2 { font-size: clamp(1.3rem, 6.5vw, 2rem); }
+  .card p { font-size: clamp(0.85rem, 3.6vw, 1rem); }
+  .btn { font-size: clamp(1rem, 4.4vw, 1.25rem); padding: 9px 22px; min-height: 44px; }
+  .btn.small { min-height: 36px; }
+  .seg button { font-size: clamp(0.85rem, 3.6vw, 1rem); padding: 8px 14px; min-height: 40px; }
+  .pick b { font-size: 1.05rem; } .pick small { font-size: 0.75rem; }
+  .opts button { font-size: 0.95rem; padding: 11px 10px; min-height: 44px; }
+  .feedback, .quiz-q { font-size: 0.95rem; }
+  .wpick { padding: 8px 10px; min-height: 48px; }
+  .wpick small { font-size: 0.75rem; }
+  .route, .missions, .patient, .crit, .pbar { font-size: 0.85rem; }
+  .speech { font-size: 0.85rem; }
+  .linkish { font-size: 0.8rem; padding: 8px; }
+  .toast { font-size: 0.8rem; white-space: normal; max-width: 86%; text-align: center; top: 18%; }
+}
+/* short landscape phones: two-column menus so they fit without much scrolling */
+@media (max-height: 520px) and (orientation: landscape) {
+  .card { padding: 10px 16px; gap: 6px; }
+  .card.wide { max-width: 96vw; }
+  .sprite { width: 56px; }
+  .hero .speech { font-size: 0.8rem; }
+  .map { align-items: start; grid-template-columns: minmax(80px, 0.45fr) 2fr; }
+  .map .body { max-height: calc(100vh - 110px); max-height: calc(100dvh - 110px); position: sticky; top: 0; }
+  .ups, .opts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* portrait phones: the map stacks, the body picture shrinks */
+@media (max-width: 560px) and (orientation: portrait) {
+  .map .body { max-height: 28vh; }
+  .worlds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* holding a phone upright while playing: the game turns sideways to fill the screen */
+body.rot .stage {
+  position: fixed; left: 50%; top: 50%;
+  width: min(100vh, 100vw * 16 / 9); width: min(100dvh, 100vw * 16 / 9);
+  max-width: none;
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+body.rot .overlay { position: absolute; }
+body.rot .rotate-tip { display: block; }
+.rotate-tip { font-weight: 600; color: #ffe082; font-size: 0.85rem; }
 </style>
 
 <div class="wrap" dir="rtl">
   <div class="stage" id="stage">
     <canvas id="game" aria-label="משחק סיירת זרם הדם"></canvas>
     <div class="corner" id="corner" hidden>
-      <button id="pauseBtn">השהיה</button>
-      <button id="soundBtn">צליל: פועל</button>
+      <button id="pauseBtn" aria-label="השהיה" title="השהיה">⏸</button>
+      <button id="soundBtn" aria-label="צליל: פועל" title="צליל: פועל">🔊</button>
     </div>
     <button class="ability" id="abilityBtn" hidden>יכולת</button>
     <div class="toast" id="toast" hidden></div>
@@ -312,6 +384,7 @@ canvas { display: block; width: 100%; height: 100%; }
         <p id="introText"></p>
         <p id="introGoal" style="color:var(--ink)"></p>
         <p class="mod" id="introMod" hidden></p>
+        <p class="rotate-tip">📱 סובבו את הטלפון לרוחב</p>
         <button class="btn" id="introGo">צאו לסיור</button>
       </div>
     </div>
@@ -469,10 +542,10 @@ const FONT_D = '"Secular One", "Arial Hebrew", sans-serif';
 const FONT_B = 'Rubik, "Arial Hebrew", sans-serif';
 
 function fit() {
-  const r = canvas.getBoundingClientRect();
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.max(1, Math.round(r.width * dpr));
-  canvas.height = Math.max(1, Math.round(r.height * dpr));
+  const w = canvas.clientWidth || canvas.getBoundingClientRect().width, h = canvas.clientHeight || canvas.getBoundingClientRect().height;
+  canvas.width = Math.max(1, Math.round(w * dpr));
+  canvas.height = Math.max(1, Math.round(h * dpr));
 }
 if (window.ResizeObserver) new ResizeObserver(fit).observe(canvas);
 
@@ -627,7 +700,8 @@ function duck(t = 1.2) {
 function setMuted(m) {
   muted = m;
   if (master) master.gain.setTargetAtTime(m ? 0 : 0.8, AC.currentTime, 0.02);
-  $('soundBtn').textContent = m ? 'צליל: כבוי' : 'צליל: פועל';
+  const sb = $('soundBtn'), lbl = m ? 'צליל: כבוי' : 'צליל: פועל';
+  sb.textContent = m ? '🔇' : '🔊'; sb.setAttribute('aria-label', lbl); sb.title = lbl;
   store.set('bp2-muted', m);
 }
 function tone(freq, dur, o = {}) {
@@ -3459,10 +3533,34 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 addEventListener('blur', () => keys.clear());
-function toGame(e) { const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
-canvas.addEventListener('pointerdown', e => { pointer = toGame(e); try { canvas.setPointerCapture(e.pointerId); } catch (_) {} });
-canvas.addEventListener('pointermove', e => { if (pointer) pointer = toGame(e); });
-const release = () => { pointer = null; };
+function toGame(e) {
+  const r = canvas.getBoundingClientRect();
+  // rotated a quarter turn clockwise (phone held upright): game x runs down the screen, game y runs right to left
+  if (rotated) return { x: (e.clientY - r.top) / r.height * W, y: (r.right - e.clientX) / r.width * H };
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+}
+// Touch steers like a trackpad: drag anywhere and the cell moves with the finger, so the finger never hides it.
+// Mouse keeps the original press-and-follow.
+const DRAG_GAIN = 1.6;
+let drag = null;
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch') {
+    if (drag) return; // a second finger does not steal steering
+    e.preventDefault();
+    const q = toGame(e), px = g ? g.p.x : q.x, py = g ? g.p.y : q.y;
+    drag = { id: e.pointerId, fx: q.x, fy: q.y, px, py };
+    pointer = { x: px, y: py };
+  } else pointer = toGame(e);
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+});
+canvas.addEventListener('pointermove', e => {
+  if (drag) {
+    if (e.pointerId !== drag.id) return;
+    const q = toGame(e);
+    pointer = { x: Math.max(0, Math.min(W, drag.px + (q.x - drag.fx) * DRAG_GAIN)), y: Math.max(0, Math.min(H, drag.py + (q.y - drag.fy) * DRAG_GAIN)) };
+  } else if (pointer) pointer = toGame(e);
+});
+const release = e => { if (drag && e && e.pointerId !== drag.id) return; drag = null; pointer = null; };
 canvas.addEventListener('pointerup', release);
 canvas.addEventListener('pointercancel', release);
 $('abilityBtn').addEventListener('pointerdown', e => { e.preventDefault(); useAbility(); });
@@ -3737,6 +3835,22 @@ function damageBoss(n) {
 }
 
 // ================= FLOW =================
+// Phones held upright: while playing, turn the stage sideways so the vessel fills the screen.
+const uprightPhone = window.matchMedia ? window.matchMedia('(orientation: portrait) and (max-width: 700px)') : { matches: false };
+const ROT_STATES = new Set(['intro', 'play', 'pause']);
+let rotated = false;
+function updateRotation() {
+  const want = uprightPhone.matches && ROT_STATES.has(state) && !(state === 'pause' && !$('encyScreen').hidden);
+  if (want === rotated) return;
+  rotated = want; document.body.classList.toggle('rot', want); drag = null; pointer = null;
+  fit();
+}
+// Android: on the first tap into a level, go full screen so the browser bars stop eating the play area
+function goFullscreen() {
+  const d = document.documentElement;
+  if (!(window.matchMedia && matchMedia('(pointer: coarse)').matches) || document.fullscreenElement || !d.requestFullscreen) return;
+  try { const p = d.requestFullscreen({ navigationUI: 'hide' }); if (p && p.catch) p.catch(() => {}); } catch (_) {}
+}
 function show(id) {
   ['titleScreen', 'mapScreen', 'selectScreen', 'introScreen', 'pauseScreen', 'doneScreen', 'quizScreen', 'upScreen', 'overScreen', 'winScreen', 'encyScreen', 'labScreen', ...EXTRA_SCREENS]
     .forEach(s => { $(s).hidden = s !== id; });
@@ -3968,7 +4082,7 @@ $('mapGo').onclick = () => {
 };
 $('selectBack').onclick = openMap;
 $('selectGo').onclick = () => { run.daily = null; run.level = 0; run.score = 0; run.kills = 0; run.up = {}; sfx.click(); showIntro(); };
-$('introGo').onclick = startLevel;
+$('introGo').onclick = () => { goFullscreen(); startLevel(); };
 $('resumeBtn').onclick = togglePause;
 $('pauseBtn').onclick = togglePause;
 $('pauseEncy').onclick = () => openEncy('pauseScreen');
@@ -4816,6 +4930,7 @@ function roundRect(x, y, w, h, r) {
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(0.05, Math.max(0, (now - last) / 1000)); last = now;
+  updateRotation();
   if (state === 'play') { if (g.freeze > 0) g.freeze -= dt; else update(dt); }
   else if (g && state !== 'pause') { const f = LV().flow ?? 90; g.t += dt; g.scroll += dt * f; moveBg(dt); for (const d of g.dots) { d.x -= f * d.s * dt; if (d.x < -5) d.x = W + 5; } }
   draw();
@@ -4833,7 +4948,7 @@ function boot() {
 }
 window.__bp = {
   get g() { return g; }, get state() { return state; }, run, startLevel, update, draw, useAbility, spawnBoss, damageBoss, finishLevel, startQuiz, showUpgrades,
-  LEVELS, WORLDS, renderMap, renderSelect, setPointer(x, y) { pointer = { x, y }; }, botTarget,
+  LEVELS, WORLDS, renderMap, renderSelect, setPointer(x, y) { pointer = { x, y }; }, botTarget, get rotated() { return rotated; },
 };
 window.claude && window.claude.hot && window.claude.hot.ready ? window.claude.hot.ready(boot) : boot();
 })();
