@@ -28,6 +28,7 @@ Losing: blood health reaches 0. You can retry the level (score resets to what it
 
 ### Controls
 - Move: WASD / arrow keys (Hebrew keyboard letters are also mapped), or press and hold the mouse or a finger and the cell follows it.
+- **Phones:** touch steers like a trackpad (drag anywhere, the cell moves with the finger at 1.6× gain, so the finger never hides it). Menus fill the whole screen. Holding the phone upright during the intro, play and pause, the stage turns a quarter turn so the vessel fills the screen (`body.rot`, pointer mapping in `toGame`). Android goes full screen on "צאו לסיור".
 - Touching a pathogen engulfs it automatically. No attack button.
 - **Space** or the round on-screen button: the cell type's special ability.
 - **P**: pause. **M**: mute. Sound and music start only after the first click (browser rule).
